@@ -3,7 +3,7 @@ import { api } from './api';
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 it('does not retry unsafe mutations or version conflicts', async () => {
   const fetch = vi.fn().mockResolvedValue(Response.json({ code: 'BUSY' }, { status: 503 })); vi.stubGlobal('fetch', fetch);
-  await expect(api('/session/demo', { method: 'POST' })).rejects.toMatchObject({ status: 503 }); expect(fetch).toHaveBeenCalledTimes(1);
+  await expect(api('/auth/login', { method: 'POST' })).rejects.toMatchObject({ status: 503 }); expect(fetch).toHaveBeenCalledTimes(1);
   fetch.mockResolvedValue(Response.json({ code: 'CONFLICT' }, { status: 412 }));
   await expect(api('/orders/1', { method: 'PUT', headers: { 'Idempotency-Key': 'key' } })).rejects.toMatchObject({ status: 412 }); expect(fetch).toHaveBeenCalledTimes(2);
 });

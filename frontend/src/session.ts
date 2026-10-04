@@ -10,7 +10,7 @@ export function trackActivity(session: Session, expired: () => void) {
     if (last <= acknowledged || inFlight) return;
     inFlight = true;
     try {
-      const response = await api<{ lastActivity: number }>('/session/activity', { method: 'POST', headers: { 'X-CSRF-Token': session.csrf } });
+      const response = await api<{ lastActivity: number }>('/auth/activity', { method: 'POST', headers: { 'X-CSRF-Token': session.csrf } });
       acknowledged = response.lastActivity;
     } catch (error) {
       if (error instanceof Error && 'status' in error && error.status === 401) expire();

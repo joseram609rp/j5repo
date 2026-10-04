@@ -1,8 +1,8 @@
 import { openDB } from 'idb';
 import { api, ApiError } from './api';
 export type Draft = { customerName: string; plate: string; mileage: number | null; notes: string; recommendations: string };
-type Mutation = { key: string; draft: Draft; version: number | null; revision: number };
-export type RecordState = { id: string; draft: Draft; version: number | null; revision: number; savedRevision: number; pending?: Mutation };
+type Mutation = { key: string; draft: Draft; version: string | null; revision: number };
+export type RecordState = { id: string; draft: Draft; version: string | null; revision: number; savedRevision: number; pending?: Mutation };
 const db = () => openDB('j5-drafts-v1', 1, { upgrade(database) { database.createObjectStore('drafts'); } });
 export const storage = {
   async read(user: string): Promise<RecordState | undefined> { return (await db()).get('drafts', user); },
@@ -18,7 +18,7 @@ export class Autosave {
   private timer?: ReturnType<typeof setTimeout>;
   constructor(public state: RecordState, private user: string, private csrf: string, private report: (message: string) => void, private expired: () => void,
     private persist = storage.write,
-    private send = (id: string, mutation: Mutation) => api<{ version: number }>(`/orders/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': this.csrf, 'Idempotency-Key': mutation.key, ...(mutation.version === null ? {} : { 'If-Match': `"${mutation.version}"` }) }, body: JSON.stringify(mutation.draft) })) {}
+    private send = (id: string, mutation: Mutation) => api<{ version: string }>(`/orders/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': this.csrf, 'Idempotency-Key': mutation.key, ...(mutation.version === null ? {} : { 'If-Match': `"${mutation.version}"` }) }, body: JSON.stringify(mutation.draft) })) {}
   private write() {
     const snapshot = structuredClone(this.state);
     this.queue = this.queue.catch(() => undefined).then(() => this.persist(this.user, snapshot));
@@ -51,7 +51,7 @@ export class Autosave {
         const result = await this.send(this.state.id, mutation);
         this.state.version = result.version; this.state.savedRevision = mutation.revision; delete this.state.pending;
         await this.write();
-        this.report('Guardado en el servidor de demostración');
+        this.report('Guardado en el servidor');
       }
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) { this.stopped = true; this.expired(); }
