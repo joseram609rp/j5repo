@@ -1,0 +1,7 @@
+-- Referencia no ejecutable hasta diseñar Orders y sus parámetros.
+-- Dentro de la misma transacción que el comprobante de idempotencia:
+-- UPDATE dbo.Orders
+-- SET notes = @notes, updated_at = SYSUTCDATETIME()
+-- OUTPUT inserted.row_version
+-- WHERE order_id = @order_id AND row_version = @expected_version;
+-- Si @@ROWCOUNT = 0: devolver 412 sin sobreescribir.
