@@ -7,10 +7,13 @@ async function main() {
   const tables=(await tx.query<{name:string}>("SELECT name FROM sys.tables WHERE schema_id=SCHEMA_ID('dbo') ORDER BY name")).recordset.map(r=>r.name);
   console.log('Tables: '+tables.join(', '));
   if(tables.includes('SchemaMigrations')) console.log('SchemaMigrations: '+JSON.stringify((await tx.query('SELECT name FROM dbo.SchemaMigrations ORDER BY name')).recordset));
+  console.log('Vehicles row count: '+(tables.includes('Vehicles') ? (await tx.query<{count:number}>('SELECT COUNT(*) AS count FROM dbo.Vehicles')).recordset[0]!.count : 0));
   if(process.argv.includes('--preflight')) return;
   for(const name of ['Users','Customers','Vehicles','Orders','OrderItems','Sessions','AuditLogs','IdempotencyRequests','SchemaMigrations']) if(!tables.includes(name)) throw new Error('SCHEMA_INCOMPLETE');
   const columns=(await tx.query("SELECT t.name AS table_name,c.name AS column_name,c.is_nullable FROM sys.tables t JOIN sys.columns c ON t.object_id=c.object_id WHERE t.name IN ('Users','Customers','Vehicles','Orders','OrderItems') ORDER BY t.name,c.column_id")).recordset;
+  if (!columns.some(c => c.table_name === 'Vehicles' && c.column_name === 'model')) throw new Error('SCHEMA_INCOMPLETE');
   console.log('Columns: '+JSON.stringify(columns));
+  console.log('Vehicles missing model: '+(await tx.query<{count:number}>('SELECT COUNT(*) AS count FROM dbo.Vehicles WHERE model IS NULL')).recordset[0]!.count);
   console.log('Constraints: '+JSON.stringify((await tx.query('SELECT name,is_disabled,is_not_trusted FROM sys.check_constraints ORDER BY name')).recordset));
   console.log('Indexes: '+JSON.stringify((await tx.query("SELECT t.name AS table_name,i.name,i.is_unique FROM sys.indexes i JOIN sys.tables t ON t.object_id=i.object_id WHERE i.name IS NOT NULL ORDER BY t.name,i.name")).recordset));
   console.log('Triggers: '+JSON.stringify((await tx.query('SELECT name,is_disabled FROM sys.triggers ORDER BY name')).recordset));

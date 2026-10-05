@@ -59,6 +59,13 @@ describe('persistent API contracts (transactional test double)', () => {
     expect((await call('/auth/activity', 'POST', undefined, { ...headers, 'x-csrf-token': 'wrong' })).status).toBe(403);
     expect((await call('/auth/activity', 'POST', undefined, { ...headers, origin: '' })).status).toBe(403);
   });
+  it.each([false, true])('rejects unconfigured loopback Origin (production=%s)', async production => {
+    const { call, repo } = setup(production);
+    const response = await call('/auth/login', 'POST', { username: 'admin', password }, { origin: 'http://127.0.0.1:5173' });
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ code: 'ORIGIN_REJECTED' });
+    expect(repo.sessions.size).toBe(0);
+  });
   it('GET and autosave never extend idle timeout; expires at exactly two hours', async () => {
     const { repo, call, login } = setup();
     const { headers } = await login();
@@ -190,9 +197,10 @@ describe('persistent API contracts (transactional test double)', () => {
     const {call,login}=setup();const mechanic=await login('mechanic');const admin=await login();const id=crypto.randomUUID();
     const save=(body:unknown,headers=mechanic.headers,version?:string)=>call('/orders/'+id,'PUT',body,{...headers,'idempotency-key':crypto.randomUUID(),...(version?{'if-match':'"'+version+'"'}:{})});
     const first=await save(draft);const initial=await first.json();
-    const complete={...draft,identification:'123456789',phone:'88888888',make:'Toyota',year:2020,mileage:0,items:[{description:'Frenos',price:100.1},{description:'Ajuste',price:0.2}],action:'close'};
+    const complete={...draft,identification:'123456789',phone:'88888888',make:'Toyota',model:'Corolla',year:2020,mileage:0,items:[{description:'Frenos',price:100.1},{description:'Ajuste',price:0.2}],action:'close'};
     expect((await save({...complete,items:[]},mechanic.headers,initial.version)).status).toBe(400);
     expect((await save({...complete,mileage:null},mechanic.headers,initial.version)).status).toBe(400);
+    for (const missing of [{customerName:''},{customerName:'   '},{year:null},{model:''},{model:'   '}]) expect((await save({...complete,...missing},mechanic.headers,initial.version)).status).toBe(400);
     expect((await save({...complete,totalAmount:1},mechanic.headers,initial.version)).status).toBe(400);
     const closed=await (await save(complete,mechanic.headers,initial.version)).json();expect(closed.status).toBe('CLOSED');expect(closed.totalAmount).toBe(100.3);
     expect((await save(draft,mechanic.headers,closed.version)).status).toBe(409);

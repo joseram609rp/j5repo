@@ -1,3 +1,4 @@
+import { config } from '../src/config.js';
 import { expect, it } from 'vitest';
 import { randomInt, randomUUID } from 'node:crypto';
 import { createApi, tokenHash } from '../src/api.js';
@@ -9,6 +10,11 @@ const enabled = process.env.J5_SQL_INTEGRATION === '1';
 const sql = new SqlRepository();
 const origin = 'http://localhost:5173';
 it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer against SQL, then rolls back all fixtures', async () => {
+  // This fixture groups dozens of API requests in one rollback-only transaction.
+  // Its aggregate duration is not the production budget for an individual request.
+  const requestBudget = config.sql.retryBudgetMs;
+  config.sql.retryBudgetMs = 55000;
+  try {
   const adminId = randomUUID(); const mechanicId = randomUUID();
   const customerId = randomUUID(); const nextOwnerId = randomUUID(); const vehicleId = randomUUID(); const orderId = randomUUID();
   const username = 'sql-test-' + randomUUID().slice(0, 8);
@@ -19,7 +25,7 @@ it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer
     await tx.insertUser({ id: adminId, username, fullName: 'Test user', passwordHash, role: 'ADMIN', active: true });
     await tx.insertUser({ id: mechanicId, username: username + '-m', fullName: 'Test user', passwordHash, role: 'MECHANIC', active: true });
     await tx.query("INSERT dbo.Customers(id,full_name,identification,phone) VALUES(@a,N'Integration fixture',@identification,'88888888'),(@b,N'Next owner fixture',@nextIdentification,'88888888')", { a: customerId, b: nextOwnerId, identification, nextIdentification });
-    await tx.query("INSERT dbo.Vehicles(id,owner_id,plate,make,year) VALUES(@id,@owner,@plate,'Toyota',2020)", { id: vehicleId, owner: customerId, plate });
+    await tx.query("INSERT dbo.Vehicles(id,owner_id,plate,make,model,year) VALUES(@id,@owner,@plate,'Toyota','Corolla',2020)", { id: vehicleId, owner: customerId, plate });
     // All API calls share this rollback-only transaction. No fixture can commit.
     const scoped: Repository = { run: work => work(tx) };
     const api = createApi({ repository: scoped, origin });
@@ -58,11 +64,12 @@ it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer
     expect(update.status).toBe(200);
     expect((await update.json()).draft.customerId).toBe(customerId);
     expect((await save(randomUUID(), etag)).status).toBe(412);
-    const closeDraft={...draft,identification,phone:'88888888',make:'Toyota',year:2020,mileage:100,items:[{description:'Frenos',price:100.10},{description:'Ajuste',price:0.20}],action:'close'};
+    const closeDraft={...draft,identification,phone:'88888888',make:'Toyota',model:'Corolla',year:2020,mileage:100,items:[{description:'Frenos',price:100.10},{description:'Ajuste',price:0.20}],action:'close'};
     const latest=(await tx.order(orderId))!;
     const close=(payload:unknown,expected=latest.version)=>call('/orders/'+orderId,'PUT',payload,{...mechanic.headers,'idempotency-key':randomUUID(),'if-match':'"'+expected+'"'});
     expect((await close({...closeDraft,items:[]})).status).toBe(400);
     expect((await close({...closeDraft,mileage:null})).status).toBe(400);
+    for (const missing of [{customerName:'   '},{year:null},{model:''}]) expect((await close({...closeDraft,...missing})).status).toBe(400);
     expect((await close({...closeDraft,totalAmount:1})).status).toBe(400);
     const closedResponse=await close(closeDraft);
     expect(closedResponse.status).toBe(200);
@@ -95,7 +102,8 @@ it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer
   }, undefined, true);
   expect(await sql.run(tx => tx.userById(adminId))).toBeUndefined();
   expect(await sql.run(tx => tx.order(orderId))).toBeUndefined();
-}, 60000);
+  } finally { config.sql.retryBudgetMs = requestBudget; }
+}, 90000);
 
 it.skipIf(!enabled)('database rejects closing an order without mileage; rolls back fixture transaction', async () => {
   const id = randomUUID(); const customerId = randomUUID(); const vehicleId = randomUUID();
@@ -105,7 +113,7 @@ it.skipIf(!enabled)('database rejects closing an order without mileage; rolls ba
   await expect(sql.runSql(async tx => {
     await tx.insertUser({ id, username: 'constraint-' + randomUUID().slice(0, 8), fullName: 'Test user', passwordHash, role: 'MECHANIC', active: true });
     await tx.query("INSERT dbo.Customers(id,full_name,identification,phone) VALUES(@id,N'Fixture',@identification,'88888888')", { id: customerId, identification });
-    await tx.query("INSERT dbo.Vehicles(id,owner_id,plate,make,year) VALUES(@id,@owner,@plate,'Toyota',2020)", { id: vehicleId, owner: customerId, plate: 'SQL123' });
+    await tx.query("INSERT dbo.Vehicles(id,owner_id,plate,make,model,year) VALUES(@id,@owner,@plate,'Toyota','Corolla',2020)", { id: vehicleId, owner: customerId, plate: 'SQL123' });
     const order = await tx.saveOrder(randomUUID(), id, { customerId, vehicleId, customerName: 'Fixture', plate: 'SQL123', mileage: null, notes: '', recommendations: '' });
     await tx.query("UPDATE dbo.Orders SET status='CLOSED' WHERE id=@id", { id: order.id });
   }, undefined, true)).rejects.toMatchObject({ number: 547 });
@@ -120,10 +128,31 @@ it.skipIf(!enabled).each([
  const userId=randomUUID();const orderId=randomUUID();const passwordHash=await hashPassword('Fixture-'+randomUUID());
  await expect(sql.runSql(async tx=>{
   await tx.insertUser({id:userId,username:'guard-'+randomUUID().slice(0,8),fullName:'Guard fixture',passwordHash,role:'MECHANIC',active:true});
-  const draft={customerName:'Guard fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'GRD'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',year:2020,mileage:0,notes:'',recommendations:'',items:[{description:'Frenos',price:1}]};
+  const draft={customerName:'Guard fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'GRD'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',model:'Corolla',year:2020,mileage:0,notes:'',recommendations:'',items:[{description:'Frenos',price:1}]};
   const open=await tx.saveOrder(orderId,userId,draft);
   if(test.status==='CLOSED') await tx.saveOrder(orderId,userId,{...draft,action:'close'},open);
   await tx.query(test.query,{id:orderId});
  },undefined,true)).rejects.toMatchObject({number:test.number});
  expect(await sql.run(tx=>tx.userById(userId))).toBeUndefined();
 },60000);
+
+ it.skipIf(!enabled)('persists model end-to-end and preserves legacy unknown model until explicit closing',async()=>{
+  const userId=randomUUID();const orderId=randomUUID();
+  await sql.runSql(async tx=>{
+   await tx.insertUser({id:userId,username:'model-'+randomUUID().slice(0,8),fullName:'Model fixture',passwordHash:await hashPassword('Fixture-'+randomUUID()),role:'MECHANIC',active:true});
+   const draft={customerName:'Model fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'MDL'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',model:'Hilux',year:2020,mileage:0,notes:'',recommendations:'',items:[{description:'Frenos',price:125000}]};
+   const open=await tx.saveOrder(orderId,userId,draft);
+   expect(open.draft.model).toBe('Hilux');expect(open.totalAmount).toBe(125000);
+   const vehicleId=open.draft.vehicleId!;
+   expect((await tx.query<{model:string}>('SELECT model FROM dbo.Vehicles WHERE id=@id',{id:vehicleId})).recordset[0]!.model).toBe('Hilux');
+   const nullable=(await tx.query<{is_nullable:boolean}>("SELECT is_nullable FROM sys.columns WHERE object_id=OBJECT_ID('dbo.Vehicles') AND name='model'")).recordset[0]!.is_nullable;
+   if(nullable) {
+    await tx.query('UPDATE dbo.Vehicles SET model=NULL WHERE id=@id',{id:vehicleId});
+    const updated=await tx.saveOrder(orderId,userId,draft,open);
+    expect((await tx.query<{model:null}>('SELECT model FROM dbo.Vehicles WHERE id=@id',{id:vehicleId})).recordset[0]!.model).toBeNull();
+    await tx.saveOrder(orderId,userId,{...draft,action:'close'},updated);
+    expect((await tx.query<{model:string}>('SELECT model FROM dbo.Vehicles WHERE id=@id',{id:vehicleId})).recordset[0]!.model).toBe('Hilux');
+   }
+  },undefined,true);
+  expect(await sql.run(tx=>tx.order(orderId))).toBeUndefined();
+ },60000);

@@ -43,3 +43,15 @@ it('waits for an in-flight write before releasing the editor on pause', async ()
   finish({version: '0000000000000001'}); await sync; await pause;
   expect(paused).toBe(true); expect(state.version).toBe('0000000000000001');
 });
+
+it('legacy IndexedDB draft and pending mutation without model replay unchanged before a new model revision',async()=>{
+ const state=fresh();delete state.draft.model;state.revision=1;
+ const first=vi.fn().mockRejectedValue(new TypeError('offline'));
+ const a=new Autosave(state,'u','csrf',()=>{},()=>{},async()=>{},first);await a.sync();
+ const pending=structuredClone(state.pending);const recovered=structuredClone(state);
+ recovered.draft.model='Hilux';recovered.revision++;
+ const send=vi.fn().mockResolvedValue({version:'0000000000000001'});
+ const b=new Autosave(recovered,'u','csrf',()=>{},()=>{},async()=>{},send);await b.sync();
+ expect(send.mock.calls[0]![1]).toEqual(pending);expect(send.mock.calls[0]![1].draft).not.toHaveProperty('model');
+ expect(send.mock.calls[1]![1].draft.model).toBe('Hilux');expect(send.mock.calls[1]![1].key).not.toBe(pending!.key);
+});

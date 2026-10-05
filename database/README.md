@@ -7,6 +7,7 @@ Destino previsto: tallerj5, j5sqlserver.database.windows.net, AZ_SQLRG_J5, Centr
 - 001_core.sql: Users, Sessions, Customers, Vehicles, Orders, OrderItems, PK/FK, índices, validaciones y rowversion.
 - 002_receipts_audit.sql: IdempotencyRequests y AuditLogs.
 - 003_order_guards.sql: triggers de inmutabilidad histórica y total calculado de servicios.
+- 004_vehicle_model.sql: model nvarchar(100); nullable si existen vehículos, NOT NULL si está vacía. CHECK de trim/no vacío para valores conocidos. No backfill ficticio. Backend exige modelo en nuevos vehículos y cierres; una futura migración podrá exigir NOT NULL después de completar datos verificados.
 - SchemaMigrations: creada por el runner para registrar archivo, checksum SHA-256 normalizado por saltos de línea y fecha.
 
 **pnpm db:migrate** obtiene un applock exclusivo, comprueba el historial y aplica todo lo pendiente dentro de una transacción. No contiene DROP, TRUNCATE ni modificaciones de datos existentes. Objetos preexistentes incompatibles provocan rollback. No editar migraciones ya aplicadas: agregar otro archivo numerado. El runner rechaza checksums alterados o migraciones históricas ausentes del código.
@@ -43,6 +44,6 @@ El archivo queries/optimistic-concurrency.sql es una referencia ilustrativa del 
 
 ## Resultado y primer administrador
 
-`pnpm --filter @j5/backend db:verify` comprobó 9 tablas, 3 migraciones, 21 CHECK habilitados/trusted, índices únicos de username/cédula/placa/Order ID y 2 triggers activos. ADMIN activos: 0. `pnpm admin:create` devolvió TTY_REQUIRED en ejecución no interactiva; requiere que el usuario ejecute el comando desde PowerShell normal e ingrese nombre completo, username y contraseña (oculta y confirmada). No se inventaron credenciales.
+`pnpm --filter @j5/backend db:verify` comprobó 9 tablas, 4 migraciones, CHECK habilitados/trusted, índices únicos y 2 triggers activos. ADMIN activos: 1. Vehicles conserva su registro previo con model NULL. No se alteró el ADMIN ni se inventó un modelo. Las 6 pruebas SQL son rollback-only; el fixture que agrupa decenas de solicitudes usa 55 segundos de presupuesto exclusivamente en la prueba y lo restaura al terminar. El presupuesto de producción continúa en 28 segundos.
 
 Las migraciones 001/002/003 ya están aplicadas: no volver a editar sus checksums. Cualquier cambio SQL posterior requiere nueva migración.

@@ -118,12 +118,15 @@ export class SqlUnit implements UnitOfWork {
       if (!found) await this.query('INSERT dbo.Customers(id,full_name,identification,phone,email) VALUES(@id,@name,@identification,@phone,@email)', {id:customerId,name:customer.data.fullName,identification:customer.data.identification,phone:customer.data.phone,email:customer.data.email || null});
     }
     if (!vehicleId && customerId) {
-      const vehicle = vehicleSchema.safeParse({make:draft.make,year:draft.year,plate:draft.plate,ownerId:customerId});
+      const vehicle = vehicleSchema.safeParse({make:draft.make,model:draft.model,year:draft.year,plate:draft.plate,ownerId:customerId});
       if (vehicle.success) {
         const found = (await this.query<{id:string}>('SELECT id FROM dbo.Vehicles WITH (UPDLOCK,HOLDLOCK) WHERE plate_normalized=@plate',{plate:vehicle.data.plate})).recordset[0];
         vehicleId = found?.id.toLowerCase() ?? randomUUID();
-        if (!found) await this.query('INSERT dbo.Vehicles(id,owner_id,plate,make,year) VALUES(@id,@owner,@plate,@make,@year)',{id:vehicleId,owner:customerId,plate:vehicle.data.plate,make:vehicle.data.make,year:vehicle.data.year});
+        if (!found) await this.query('INSERT dbo.Vehicles(id,owner_id,plate,make,model,year) VALUES(@id,@owner,@plate,@make,@model,@year)',{id:vehicleId,owner:customerId,plate:vehicle.data.plate,make:vehicle.data.make,model:vehicle.data.model,year:vehicle.data.year});
       }
+    }
+    if (vehicleId && draft.action === 'close' && draft.model) {
+      await this.query('UPDATE dbo.Vehicles SET model=@model WHERE id=@id AND model IS NULL', {id:vehicleId,model:draft.model.trim()});
     }
     const originalClosedAt = previous?.closedAt;
     const dataClosed = previous?.status === 'CLOSED';

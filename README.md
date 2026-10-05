@@ -4,7 +4,7 @@ PWA React/TypeScript/Vite y API Node/TypeScript para el taller. Phase 2.1 incorp
 
 ## Estado de validación
 
-Validación local y Azure SQL completadas el 2026-10-04: 68 pruebas locales y 5 pruebas SQL rollback-only pasan. Migraciones 001/002/003 aplicadas y metadata verificada en tallerj5. Falta crear el primer ADMIN con credenciales elegidas por el usuario. Ver [verificación](docs/verification.md).
+Validación de smoke testing completada el 2026-10-04: 95 pruebas locales y 6 pruebas SQL rollback-only pasan. Migraciones 001–004 aplicadas y metadata verificada en tallerj5. El ADMIN existente sigue activo. Sesión sin flash de login, errores inline por campo, modelo y vistas CRC implementados. Ver [verificación](docs/verification.md).
 
 ## Preparación local
 
@@ -13,7 +13,7 @@ Requiere Node 22.12+ (<25) y pnpm 11.19.0.
 1. Ejecutar **pnpm install --frozen-lockfile**.
 2. Copiar .env.example a .env en la raíz. Completar SQL_USER y SQL_PASSWORD localmente. Usar SQL_AUTH_MODE=sql, servidor j5sqlserver.database.windows.net y base tallerj5.
 3. Revisar [migraciones y permisos](database/README.md). Ejecutar **pnpm db:migrate** con una cuenta autorizada para DDL. Si ya existen tablas incompatibles, la migración falla y revierte; nunca borra tablas.
-4. Ejecutar **pnpm admin:create** en una terminal interactiva. Solicita nombre completo, usuario y contraseña oculta, sin argumentos de contraseña. Solo permite bootstrap cuando no existe ADMIN activo.
+4. Solo en una instalación sin ADMIN, ejecutar **pnpm admin:create** en una terminal interactiva. Solicita nombre completo, usuario y contraseña oculta, sin argumentos de contraseña. Solo permite bootstrap cuando no existe ADMIN activo.
 5. Ejecutar **pnpm dev**; abrir http://localhost:5173. API en http://127.0.0.1:7071. Iniciar sesión con el administrador creado.
 
 SQL debe permitir la IP local en su firewall. No usar credenciales administrativas de migración como identidad normal del servicio. El servidor lee .env de la raíz; jamás colocar secretos en VITE_*. .env y local.settings.json están ignorados por Git. Si pnpm no está en PATH, usar scripts/pnpm.ps1 con el comando deseado.
@@ -47,7 +47,7 @@ Todas las mutaciones requieren Origin=APP_ORIGIN. Salvo login, requieren cookie 
 | GET | /api/orders/:uuid | Lee borrador con ETag |
 | PUT | /api/orders/:uuid | Guarda borrador; If-Match obligatorio al actualizar |
 
-Se conservan GET/DELETE /api/session y POST /api/session/activity como aliases. PUT /orders admite customerName, plate, mileage nullable, notes, recommendations identification (9 dígitos), phone (8 dígitos), email opcional, make, year, items [{description,price}] y customerId/vehicleId opcionales. Campos incompletos pueden quedar en el respaldo local/OPEN; los valores no vacíos deben ser válidos y cerrar exige datos completos, kilometraje y servicios válidos. El servidor rechaza cualquier total enviado por el cliente. Roles válidos: ADMIN y MECHANIC. Ambos leen/guardan borradores abiertos del taller; no hay restricciones por mecánico asignado en esta fase. PUT admite action=close; action=reopen, void o admin-edit exige ADMIN. Cerradas requieren una operación explícita admin y conservan ETag e idempotencia. El formulario permite editar el borrador y servicios; la UI completa de cierre/reapertura queda para la siguiente fase.
+Se conservan GET/DELETE /api/session y POST /api/session/activity como aliases. PUT /orders admite customerName, plate, mileage nullable, notes, recommendations identification (9 dígitos), phone (8 dígitos), email opcional, make, model, year, items [{description,price}] y customerId/vehicleId opcionales. Campos incompletos pueden quedar en el respaldo local/OPEN; los valores no vacíos deben ser válidos y cerrar exige datos completos, kilometraje y servicios válidos. El servidor rechaza cualquier total enviado por el cliente. Roles válidos: ADMIN y MECHANIC. Ambos leen/guardan borradores abiertos del taller; no hay restricciones por mecánico asignado en esta fase. PUT admite action=close; action=reopen, void o admin-edit exige ADMIN. Cerradas requieren una operación explícita admin y conservan ETag e idempotencia. El formulario permite editar el borrador y servicios; la UI completa de cierre/reapertura queda para la siguiente fase.
 
 Ver [arquitectura](docs/architecture.md), [base de datos](database/README.md) e [infraestructura](infra/README.md).
 
@@ -58,3 +58,16 @@ Logo real en frontend/public/logo.png; el original images/J5 logo.PNG permanece 
 ## Verificar SQL y primer ADMIN
 
 Ejecutar `pnpm --filter @j5/backend db:verify` para metadata y número de ADMIN activos, sin listar cuentas ni hashes. En una terminal PowerShell normal: `cd C:\j5repo`, luego `pnpm admin:create`. No pasar passwords por argumentos ni compartirlos en chat.
+
+
+### Smoke testing: sesión, validación y modelo (2026-10-04)
+
+Para pruebas locales ejecutar `pnpm dev` y abrir **http://localhost:5173**; el origen debe coincidir con APP_ORIGIN. El arranque comprueba health y auth/me antes de mostrar login o formulario. Un 401 muestra login; un fallo de red mantiene la pantalla J5 con Reintentar, sin asumir que se perdió la sesión. Tras autenticarse se recupera el mismo borrador IndexedDB y se mantiene el bloqueo entre pestañas.
+
+El formulario separa Datos del cliente, Datos del vehículo y Trabajos realizados. Los errores inline aparecen tras blur o contenido inválido; los campos vacíos iniciales no se marcan todos en rojo. Nombre completo, cédula, teléfono, placa, marca, **modelo**, año, kilometraje y trabajos válidos son obligatorios para cerrar en API. Modelo admite hasta 100 caracteres, por ejemplo Fortuner, Corolla o Hilux. Email, observaciones y recomendaciones son opcionales. OPEN permite valores faltantes; los valores inválidos se conservan localmente mientras se corrigen. La UI completa de cierre sigue pendiente; las pruebas de action=close cubren sus requisitos.
+
+Los inputs de precio conservan números sin formato y muestran una vista CRC de lectura con Intl.NumberFormat es-CR (separador de miles: espacio no separable; decimal: coma). El total mostrado es estimado; SQL sigue calculando el total oficial. No se cambia el payload, ni se parsean comas en un input numérico.
+
+`004_vehicle_model.sql` no cambia 001/002/003 ni sus checksums. Si Vehicles está vacía crea model NOT NULL; con registros existentes crea model nullable para conservar modelos desconocidos. CHECK exige texto recortado no vacío si hay valor. El backend requiere modelo para insertar vehículos nuevos y cerrar órdenes. Solo al cierre explícito se completa un modelo NULL con el dato ingresado; un modelo conocido no se sobrescribe. El modelo de cada orden queda también en draft_data. Los borradores antiguos y sus mutaciones pendientes sin model siguen aceptados como OPEN sin reescribir las claves de idempotencia. Para convertir la columna a NOT NULL en el futuro, completar los modelos desconocidos con información verificada y crear otra migración después de comprobar que no quedan NULL; nunca inventar un backfill.
+
+Verificación: `pnpm check`, `pnpm --filter @j5/backend db:verify` y `pnpm test:sql` (fixtures rollback-only). Resultados y límites en docs/verification.md.
