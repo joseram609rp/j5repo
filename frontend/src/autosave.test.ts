@@ -55,3 +55,11 @@ it('legacy IndexedDB draft and pending mutation without model replay unchanged b
  expect(send.mock.calls[0]![1]).toEqual(pending);expect(send.mock.calls[0]![1].draft).not.toHaveProperty('model');
  expect(send.mock.calls[1]![1].draft.model).toBe('Hilux');expect(send.mock.calls[1]![1].key).not.toBe(pending!.key);
 });
+
+it('autosave sends integer mileage and empty OPEN notes without display formatting',async()=>{
+ const state=fresh();state.revision=1;state.draft.mileage=128400;
+ const send=vi.fn().mockResolvedValue({version:'0000000000000001'});
+ await new Autosave(state,'u','csrf',()=>{},()=>{},async()=>{},send).sync();
+ const payload=JSON.parse(JSON.stringify(send.mock.calls[0]![1].draft));
+ expect(payload.mileage).toBe(128400);expect(Number.isInteger(payload.mileage)).toBe(true);expect(payload.notes).toBe('');
+});

@@ -197,10 +197,10 @@ describe('persistent API contracts (transactional test double)', () => {
     const {call,login}=setup();const mechanic=await login('mechanic');const admin=await login();const id=crypto.randomUUID();
     const save=(body:unknown,headers=mechanic.headers,version?:string)=>call('/orders/'+id,'PUT',body,{...headers,'idempotency-key':crypto.randomUUID(),...(version?{'if-match':'"'+version+'"'}:{})});
     const first=await save(draft);const initial=await first.json();
-    const complete={...draft,identification:'123456789',phone:'88888888',make:'Toyota',model:'Corolla',year:2020,mileage:0,items:[{description:'Frenos',price:100.1},{description:'Ajuste',price:0.2}],action:'close'};
+    const complete={...draft,notes:'Frenos revisados',identification:'123456789',phone:'88888888',make:'Toyota',model:'Corolla',year:2020,mileage:0,items:[{description:'Frenos',price:100.1},{description:'Ajuste',price:0.2}],action:'close'};
     expect((await save({...complete,items:[]},mechanic.headers,initial.version)).status).toBe(400);
     expect((await save({...complete,mileage:null},mechanic.headers,initial.version)).status).toBe(400);
-    for (const missing of [{customerName:''},{customerName:'   '},{year:null},{model:''},{model:'   '}]) expect((await save({...complete,...missing},mechanic.headers,initial.version)).status).toBe(400);
+    for (const missing of [{notes:''},{notes:'   '},{notes:'\t\n'},{customerName:''},{customerName:'   '},{year:null},{model:''},{model:'   '}]) expect((await save({...complete,...missing},mechanic.headers,initial.version)).status).toBe(400);
     expect((await save({...complete,totalAmount:1},mechanic.headers,initial.version)).status).toBe(400);
     const closed=await (await save(complete,mechanic.headers,initial.version)).json();expect(closed.status).toBe('CLOSED');expect(closed.totalAmount).toBe(100.3);
     expect((await save(draft,mechanic.headers,closed.version)).status).toBe(409);

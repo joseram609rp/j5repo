@@ -1,6 +1,6 @@
 # Azure SQL: Phase 2.1
 
-Destino previsto: tallerj5, j5sqlserver.database.windows.net, AZ_SQLRG_J5, Central US. Migraciones aplicadas y metadata verificada el 2026-10-04. Suite SQL reversible completada; no se desplegó la app.
+Destino previsto: tallerj5, j5sqlserver.database.windows.net, AZ_SQLRG_J5, Central US. Migraciones 001–005 aplicadas y metadata verificada el 2026-10-05. Suite SQL reversible completada; no se desplegó la app.
 
 ## Migraciones
 
@@ -8,6 +8,7 @@ Destino previsto: tallerj5, j5sqlserver.database.windows.net, AZ_SQLRG_J5, Centr
 - 002_receipts_audit.sql: IdempotencyRequests y AuditLogs.
 - 003_order_guards.sql: triggers de inmutabilidad histórica y total calculado de servicios.
 - 004_vehicle_model.sql: model nvarchar(100); nullable si existen vehículos, NOT NULL si está vacía. CHECK de trim/no vacío para valores conocidos. No backfill ficticio. Backend exige modelo en nuevos vehículos y cierres; una futura migración podrá exigir NOT NULL después de completar datos verificados.
+- 005_closed_notes.sql: CHECK habilitado/trusted para CLOSED con observaciones no vacías ni solo whitespace (incluidos tabs, saltos de línea y espacios Unicode de JS trim). OPEN admite vacío. Preflight comprobó cero CLOSED incompatibles; la migración valida datos existentes y falla sin modificarlos si hay incompatibilidad.
 - SchemaMigrations: creada por el runner para registrar archivo, checksum SHA-256 normalizado por saltos de línea y fecha.
 
 **pnpm db:migrate** obtiene un applock exclusivo, comprueba el historial y aplica todo lo pendiente dentro de una transacción. No contiene DROP, TRUNCATE ni modificaciones de datos existentes. Objetos preexistentes incompatibles provocan rollback. No editar migraciones ya aplicadas: agregar otro archivo numerado. El runner rechaza checksums alterados o migraciones históricas ausentes del código.
@@ -24,7 +25,7 @@ SQL_AUTH_MODE=default selecciona azure-active-directory-default del driver para 
 
 Users tiene username único case-insensitive, active y rol ADMIN/MECHANIC. Sessions guarda solo hash del token, CSRF y timestamps UTC; nunca el token real.
 
-Vehicles guarda owner_id actual y plate_normalized persistida, única e indexada. Orders.customer_id es la referencia histórica independiente. Los borradores pueden no tener cliente/vehículo aún; guardan snapshots para preservar el frontend existente. API no reasigna referencias una vez establecidas. Dinero decimal(12,2), cédula/teléfono varchar, kilometraje entero nullable. Cerrado exige kilometraje, closed_at, referencias completas y total positivo mediante CHECK; triggers exigen servicios válidos y total exacto. created_at es apertura UTC. display_order_id usa secuencia global única; no reinicia cada año y puede tener huecos tras rollback.
+Vehicles guarda owner_id actual y plate_normalized persistida, única e indexada. Orders.customer_id es la referencia histórica independiente. Los borradores pueden no tener cliente/vehículo aún; guardan snapshots para preservar el frontend existente. API no reasigna referencias una vez establecidas. Dinero decimal(12,2), cédula/teléfono varchar, kilometraje entero nullable. Cerrado exige kilometraje, closed_at, referencias completas, observaciones no vacías y total positivo mediante CHECK; triggers exigen servicios válidos y total exacto. created_at es apertura UTC. display_order_id usa secuencia global única; no reinicia cada año y puede tener huecos tras rollback.
 
 Orders.version rowversion es opaco; API no lo convierte a número. Escrituras y comprobantes de idempotencia se confirman juntos; si falla cualquiera, se revierte todo. No hay trabajo de limpieza automática ni cascadas destructivas. Antes de definir retención de sesiones, recibos y auditoría, acordar la ventana máxima de trabajo offline.
 
@@ -44,6 +45,6 @@ El archivo queries/optimistic-concurrency.sql es una referencia ilustrativa del 
 
 ## Resultado y primer administrador
 
-`pnpm --filter @j5/backend db:verify` comprobó 9 tablas, 4 migraciones, CHECK habilitados/trusted, índices únicos y 2 triggers activos. ADMIN activos: 1. Vehicles conserva su registro previo con model NULL. No se alteró el ADMIN ni se inventó un modelo. Las 6 pruebas SQL son rollback-only; el fixture que agrupa decenas de solicitudes usa 55 segundos de presupuesto exclusivamente en la prueba y lo restaura al terminar. El presupuesto de producción continúa en 28 segundos.
+`pnpm --filter @j5/backend db:verify` comprobó 9 tablas, 5 migraciones, 22 CHECK habilitados/trusted, índices únicos y 2 triggers activos. ADMIN activos: 1. Vehicles conserva su registro previo con model NULL. No se alteró el ADMIN ni se inventó un modelo. Las 10 pruebas SQL son rollback-only; cubren además OPEN con notes vacío y cierre válido/observaciones vacías, espacios, tabs, saltos de línea y espacio no separable. el fixture que agrupa decenas de solicitudes usa 55 segundos de presupuesto exclusivamente en la prueba y lo restaura al terminar. El presupuesto de producción continúa en 28 segundos.
 
-Las migraciones 001/002/003 ya están aplicadas: no volver a editar sus checksums. Cualquier cambio SQL posterior requiere nueva migración.
+Las migraciones 001–005 ya están aplicadas: no volver a editar sus checksums. Cualquier cambio SQL posterior requiere nueva migración.

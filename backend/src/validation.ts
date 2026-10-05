@@ -22,7 +22,7 @@ export const draftSchema = z.object({
  action: z.enum(['close', 'reopen', 'void', 'admin-edit']).optional()
 }).strict().refine(d => (d.items ?? []).reduce((sum, i) => sum + Math.round(i.price * 100), 0) <= 999_999_999_999, 'Total exceeds DECIMAL(12,2)');
 export function canClose(d: z.infer<typeof draftSchema>) {
- return d.mileage !== null && !!d.items?.length && d.items.every(i => itemSchema.safeParse(i).success) && customerSchema.safeParse({ fullName: d.customerName, identification: d.identification, phone: d.phone, email: d.email }).success &&
+ return d.notes.trim().length > 0 && d.mileage !== null && !!d.items?.length && d.items.every(i => itemSchema.safeParse(i).success) && customerSchema.safeParse({ fullName: d.customerName, identification: d.identification, phone: d.phone, email: d.email }).success &&
  makeSchema.safeParse(d.make).success && modelSchema.safeParse(d.model).success && mileageSchema.safeParse(d.mileage).success && d.year != null && plateSchema.safeParse(d.plate).success && yearSchema.safeParse(d.year).success;
 }
 export function totalAmount(items: { price: number }[] = []) { return items.reduce((sum, i) => sum + Math.round(i.price * 100), 0) / 100; }

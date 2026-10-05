@@ -1,3 +1,31 @@
+# Cierre final Phase 2 — 2026-10-05 (America/Guatemala)
+
+## Resultado actual
+
+Trabajo en C:\j5repo, feature/backend-foundation. Sin staging, commit, merge, push ni despliegue. Blockers identificados para pasar a Phase 3: ninguno.
+
+- Kilometraje: input numérico conservado; preview inmediato con coma, por ejemplo 128,400 km. formatMileage cubre cero, null/undefined y números inválidos sin NaN. Estado/API/SQL siguen usando número entero; autosave probado con payload 128400 sin formato.
+- Observaciones generales obligatorias para close y admin-edit de CLOSED mediante canClose. OPEN permite vacío y espacios; recomendaciones siguen opcionales. Error inline accesible después de blur, sin error inicial vacío. El helper visibleErrors(..., true) incluye notes al intentar cerrar; el botón/flujo completo de cierre sigue siendo trabajo de Phase 3.
+- 005_closed_notes.sql agrega CK_Orders_ClosedNotes WITH CHECK, solo para CLOSED; reconoce espacios de JS trim, incluidos tabulaciones, saltos de línea y espacio no separable. Preflight: cero CLOSED incompatibles. La migración se niega a aplicar si existen observaciones históricas incompatibles, sin rellenarlas ni modificar datos reales. 001–004 y sus checksums intactos.
+- pnpm db:migrate aplicó únicamente 005. db:verify final: 9 tablas, 5 migraciones, 22 CHECK habilitados/trusted, índices únicos y 2 triggers activos. Sigue 1 ADMIN activo y 1 vehículo con model NULL; no se alteraron usuarios ni datos reales.
+- pnpm check aprobado: tipos, 104 pruebas locales y builds backend/frontend/PWA. 10 SQL omitidas por diseño en check. pnpm test:sql: 10 aprobadas, rollback-only, aproximadamente 85 segundos. Cierre con observaciones válidas pasa; vacío/espacios/tabulaciones/saltos de línea fallan por API; SQL también prueba espacio no separable. OPEN con notes vacío sigue pasando.
+- Regresiones cubiertas por las suites: session bootstrap, recuperación y replay de autosave, borradores sin model, idempotencia, ETag/rowversion, roles/auth/CSRF, expiración/revocación, totales y guards de órdenes. Branding/assets y schema de IndexedDB no cambiaron. No se realizó una nueva prueba visual autenticada con credenciales humanas.
+- .env ignorado y no tracked; no se imprimieron secretos. git diff --check final aprobado.
+
+## Incidencias de verificación resueltas
+
+El entorno restringido impidió escribir dist y un primer lanzamiento de tsx falló en userInfo; se repitió con acceso al repositorio autorizado. El primer preflight SQL agotó presupuesto; el segundo respondió. Una verificación de metadata durante la suite SQL agotó presupuesto; al repetirla después de finalizar las transacciones pasó. No se ampliaron timeouts de producción. Rollup emitió advertencias sobre anotaciones de comentarios de Zod y completó el build.
+
+## Revisión y trabajo posterior
+
+Revisión de código frontend/backend, migraciones, auth, transacciones/reintentos, autosave, configuración PWA y adaptadores locales/Functions: ningún blocker adicional identificado para iniciar Phase 3. Esto no confirma un despliegue Azure ni reemplaza las pruebas que siguen pendientes.
+
+Para fases posteriores: extraer validación compartida a un paquete independiente; UI completa de cierre/reapertura/anulación e historial, recuperación guiada de conflictos, modelos históricos completados con información verificada, medición de pooling/contención y retención de sesiones/recibos/auditoría. Antes de producción: host Functions, dominio/cookies HTTPS y APP_ORIGIN, identidad SQL con permisos mínimos/Managed Identity, limitador compartido de login, PWA en dispositivos y pruebas controladas de COMMIT ambiguo/concurrencia entre procesos. No se amplió scope con estos trabajos.
+
+---
+
+Los siguientes reportes son históricos; el estado vigente es el cierre del 2026-10-05 anterior.
+
 # Correcciones de smoke testing — 2026-10-04 (America/Guatemala)
 
 ## Resultado actual

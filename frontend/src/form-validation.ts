@@ -1,6 +1,6 @@
 import { customerSchema, vehicleSchema, mileageSchema, itemSchema } from '../../backend/src/validation';
 import type { Draft } from './autosave';
-export type Section = 'Datos del cliente' | 'Datos del vehículo' | 'Trabajos realizados';
+export type Section = 'Datos del cliente' | 'Datos del vehículo' | 'Trabajos realizados' | 'Observaciones generales';
 export type FieldError = {field:string; section:Section; message:string};
 export function fieldErrors(d:Draft): FieldError[] {
  const errors:FieldError[]=[];
@@ -13,6 +13,7 @@ export function fieldErrors(d:Draft): FieldError[] {
  if(!vehicle.success) for(const issue of vehicle.error.issues) {const key=String(issue.path[0]);add(key,'Datos del vehículo',vehicleMessages[key]!);}
  if(d.mileage===null || !mileageSchema.safeParse(d.mileage).success) add('mileage','Datos del vehículo','Indica el kilometraje: un entero entre 0 y 10,000,000.');
  for(const [i,item] of (d.items ?? []).entries()) {const result=itemSchema.safeParse(item);if(!result.success) for(const issue of result.error.issues) {const key=String(issue.path[0]);add(`item-${i}-${key}`,'Trabajos realizados',key==='price'?'Indica un precio positivo con hasta dos decimales.':'Escribe la descripción del trabajo.');}}
+ if(!d.notes.trim()) add('notes','Observaciones generales','Escribe las observaciones de la orden.');
  return errors;
 }
 export function visibleErrors(d:Draft,touched:ReadonlySet<string>,closing=false) {
@@ -21,6 +22,9 @@ export function visibleErrors(d:Draft,touched:ReadonlySet<string>,closing=false)
  return errors.filter(error=>closing || touched.has(error.field) || (error.field.startsWith('item-') ? (()=>{const [,index,key]=error.field.split('-');const item=d.items?.[Number(index)];return key==='price' ? !!item?.price : !!item?.description;})() : (()=>{const value=d[error.field as keyof Draft];return value!==null && value!==undefined && value!=='';})()));
 }
 // Numeric inputs stay numeric. This preview cannot change payload values or cursor position.
+export function formatMileage(value:number | null | undefined) {
+ return typeof value==='number' && Number.isInteger(value) && value>=0 ? new Intl.NumberFormat('en-US').format(value)+' km' : '';
+}
 export function formatCRC(value:number) {
  return '₡ ' + new Intl.NumberFormat('es-CR',{minimumFractionDigits:Number.isInteger(value)?0:2,maximumFractionDigits:2}).format(value);
 }
