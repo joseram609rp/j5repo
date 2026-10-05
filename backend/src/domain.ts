@@ -3,16 +3,12 @@ export const IDLE_MS = 7_200_000;
 export const usernameSchema = z.string().trim().toLowerCase().regex(/^[a-z0-9._-]{3,64}$/);
 export const passwordSchema = z.string().min(12).refine(s => Buffer.byteLength(s, 'utf8') <= 72, 'Maximum 72 UTF-8 bytes');
 export const roleSchema = z.enum(['ADMIN', 'MECHANIC']);
-export const draftSchema = z.object({
-  customerName: z.string().max(200), plate: z.string().max(20),
-  mileage: z.number().int().min(0).max(10_000_000).nullable(),
-  notes: z.string().max(5000), recommendations: z.string().max(5000),
-  customerId: z.uuid().optional(), vehicleId: z.uuid().optional()
-}).strict();
+export { draftSchema } from './validation.js';
+import { draftSchema } from './validation.js';
 export type Draft = z.infer<typeof draftSchema>;
-export type User = { id: string; username: string; passwordHash: string; role: 'ADMIN' | 'MECHANIC'; active: boolean };
+export type User = { id: string; username: string; fullName: string; passwordHash: string; role: 'ADMIN' | 'MECHANIC'; active: boolean };
 export type Session = { tokenHash: string; userId: string; csrf: string; lastActivity: number; revoked: boolean };
-export type Order = { id: string; status: 'OPEN' | 'CLOSED' | 'VOID'; version: string; draft: Draft; mechanicId: string };
+export type Order = { id: string; status: 'OPEN' | 'CLOSED' | 'VOID'; version: string; draft: Draft; mechanicId: string; displayOrderId?: string; totalAmount?: number; closedAt?: string | null };
 export type Reply = { status: number; body: unknown; headers: Record<string, string> };
 export type Receipt = { fingerprint: string; passwordHash?: string; reply: Reply };
 export const publicUser = ({ passwordHash: _, ...user }: User) => user;

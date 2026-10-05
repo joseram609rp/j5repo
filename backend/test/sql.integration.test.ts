@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { randomUUID } from 'node:crypto';
+import { randomInt, randomUUID } from 'node:crypto';
 import { createApi, tokenHash } from '../src/api.js';
 import { hashPassword } from '../src/password.js';
 import { SqlRepository } from '../src/sql.js';
@@ -13,12 +13,13 @@ it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer
   const customerId = randomUUID(); const nextOwnerId = randomUUID(); const vehicleId = randomUUID(); const orderId = randomUUID();
   const username = 'sql-test-' + randomUUID().slice(0, 8);
   const password = 'Fixture-' + randomUUID();
+  const identification=String(randomInt(100000000,999999999)); const nextIdentification=String(randomInt(100000000,999999999)); const plate='SQL'+String(randomInt(0,1000)).padStart(3,'0');
   const passwordHash = await hashPassword(password);
   await sql.runSql(async tx => {
-    await tx.insertUser({ id: adminId, username, passwordHash, role: 'ADMIN', active: true });
-    await tx.insertUser({ id: mechanicId, username: username + '-m', passwordHash, role: 'MECHANIC', active: true });
-    await tx.query("INSERT dbo.Customers(id,name) VALUES(@a,N'Integration fixture'),(@b,N'Next owner fixture')", { a: customerId, b: nextOwnerId });
-    await tx.query('INSERT dbo.Vehicles(id,owner_id,plate) VALUES(@id,@owner,@plate)', { id: vehicleId, owner: customerId, plate: 'T' + randomUUID().replaceAll('-', '').slice(0, 12) });
+    await tx.insertUser({ id: adminId, username, fullName: 'Test user', passwordHash, role: 'ADMIN', active: true });
+    await tx.insertUser({ id: mechanicId, username: username + '-m', fullName: 'Test user', passwordHash, role: 'MECHANIC', active: true });
+    await tx.query("INSERT dbo.Customers(id,full_name,identification,phone) VALUES(@a,N'Integration fixture',@identification,'88888888'),(@b,N'Next owner fixture',@nextIdentification,'88888888')", { a: customerId, b: nextOwnerId, identification, nextIdentification });
+    await tx.query("INSERT dbo.Vehicles(id,owner_id,plate,make,year) VALUES(@id,@owner,@plate,'Toyota',2020)", { id: vehicleId, owner: customerId, plate });
     // All API calls share this rollback-only transaction. No fixture can commit.
     const scoped: Repository = { run: work => work(tx) };
     const api = createApi({ repository: scoped, origin });
@@ -39,7 +40,7 @@ it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer
     expect(savedSession?.userId).toBe(mechanicId);
     expect((await call('/admin/users', 'GET', undefined, mechanic.headers)).status).toBe(403);
     expect((await call('/auth/activity', 'POST', undefined, { ...mechanic.headers, 'x-csrf-token': 'wrong' })).status).toBe(403);
-    const draft = { customerName: 'Integration fixture', plate: 't-est', mileage: null, notes: '', recommendations: '', vehicleId };
+    const draft = { customerName: 'Integration fixture', plate: 'SQL123', mileage: null, notes: '', recommendations: '', vehicleId };
     const key = randomUUID();
     const save = (k = key, etag?: string, body = draft) => call('/orders/' + orderId, 'PUT', body,
       { ...mechanic.headers, 'idempotency-key': k, ...(etag ? { 'if-match': etag } : {}) });
@@ -57,6 +58,27 @@ it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer
     expect(update.status).toBe(200);
     expect((await update.json()).draft.customerId).toBe(customerId);
     expect((await save(randomUUID(), etag)).status).toBe(412);
+    const closeDraft={...draft,identification,phone:'88888888',make:'Toyota',year:2020,mileage:100,items:[{description:'Frenos',price:100.10},{description:'Ajuste',price:0.20}],action:'close'};
+    const latest=(await tx.order(orderId))!;
+    const close=(payload:unknown,expected=latest.version)=>call('/orders/'+orderId,'PUT',payload,{...mechanic.headers,'idempotency-key':randomUUID(),'if-match':'"'+expected+'"'});
+    expect((await close({...closeDraft,items:[]})).status).toBe(400);
+    expect((await close({...closeDraft,mileage:null})).status).toBe(400);
+    expect((await close({...closeDraft,totalAmount:1})).status).toBe(400);
+    const closedResponse=await close(closeDraft);
+    expect(closedResponse.status).toBe(200);
+    const closed=await closedResponse.json();
+    expect(closed.totalAmount).toBe(100.30);
+    expect(closed.status).toBe('CLOSED');
+    expect(closed.closedAt).toBeTruthy();
+    expect(closed.displayOrderId).toMatch(/^OT-\d{4}-\d{6,}$/);
+    expect((await close({...closeDraft,action:undefined},closed.version)).status).toBe(409);
+    expect((await close({...closeDraft,action:'reopen'},closed.version)).status).toBe(403);
+    const edited=await call('/orders/'+orderId,'PUT',{...closeDraft,notes:'Admin correction',action:'admin-edit'},{...admin.headers,'idempotency-key':randomUUID(),'if-match':'"'+closed.version+'"'});
+    expect(edited.status).toBe(200);
+    const editedData=await edited.json();expect(editedData.status).toBe('CLOSED');expect(editedData.closedAt).toBe(closed.closedAt);
+    const reopened=await call('/orders/'+orderId,'PUT',{...closeDraft,action:'reopen'},{...admin.headers,'idempotency-key':randomUUID(),'if-match':'"'+editedData.version+'"'});
+    expect(reopened.status).toBe(200);
+    expect((await reopened.json()).status).toBe('OPEN');
     expect((await tx.session(tokenHash(rawToken)))!.lastActivity).toBe(savedSession!.lastActivity);
     expect((await call('/auth/activity', 'POST', undefined, mechanic.headers)).status).toBe(200);
     await tx.query('UPDATE dbo.Sessions SET last_activity_at=DATEADD(hour,-2,SYSUTCDATETIME()) WHERE token_hash=@hash', { hash: tokenHash(rawToken) });
@@ -77,13 +99,31 @@ it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer
 
 it.skipIf(!enabled)('database rejects closing an order without mileage; rolls back fixture transaction', async () => {
   const id = randomUUID(); const customerId = randomUUID(); const vehicleId = randomUUID();
+  const plate='SQL'+String(randomInt(0,1000)).padStart(3,'0');
+  const identification=String(randomInt(100000000,999999999));
   const passwordHash = await hashPassword('Fixture-' + randomUUID());
   await expect(sql.runSql(async tx => {
-    await tx.insertUser({ id, username: 'constraint-' + randomUUID().slice(0, 8), passwordHash, role: 'MECHANIC', active: true });
-    await tx.query("INSERT dbo.Customers(id,name) VALUES(@id,N'Fixture')", { id: customerId });
-    await tx.query('INSERT dbo.Vehicles(id,owner_id,plate) VALUES(@id,@owner,@plate)', { id: vehicleId, owner: customerId, plate: 'T' + randomUUID().slice(0, 12) });
-    const order = await tx.saveOrder(randomUUID(), id, { customerId, vehicleId, customerName: 'Fixture', plate: 'TEST', mileage: null, notes: '', recommendations: '' });
+    await tx.insertUser({ id, username: 'constraint-' + randomUUID().slice(0, 8), fullName: 'Test user', passwordHash, role: 'MECHANIC', active: true });
+    await tx.query("INSERT dbo.Customers(id,full_name,identification,phone) VALUES(@id,N'Fixture',@identification,'88888888')", { id: customerId, identification });
+    await tx.query("INSERT dbo.Vehicles(id,owner_id,plate,make,year) VALUES(@id,@owner,@plate,'Toyota',2020)", { id: vehicleId, owner: customerId, plate: 'SQL123' });
+    const order = await tx.saveOrder(randomUUID(), id, { customerId, vehicleId, customerName: 'Fixture', plate: 'SQL123', mileage: null, notes: '', recommendations: '' });
     await tx.query("UPDATE dbo.Orders SET status='CLOSED' WHERE id=@id", { id: order.id });
   }, undefined, true)).rejects.toMatchObject({ number: 547 });
   expect(await sql.run(tx => tx.userById(id))).toBeUndefined();
 }, 60000);
+
+it.skipIf(!enabled).each([
+ {status:'CLOSED',query:"UPDATE dbo.Orders SET notes=N'illegal' WHERE id=@id",number:51001},
+ {status:'CLOSED',query:"INSERT dbo.OrderItems(id,order_id,description,price) VALUES(NEWID(),@id,N'illegal',1)",number:51005},
+ {status:'OPEN',query:"UPDATE dbo.Orders SET total_amount=999 WHERE id=@id",number:51003}
+])('SQL guard rejects direct mutation $number and rolls back fixture',async test=>{
+ const userId=randomUUID();const orderId=randomUUID();const passwordHash=await hashPassword('Fixture-'+randomUUID());
+ await expect(sql.runSql(async tx=>{
+  await tx.insertUser({id:userId,username:'guard-'+randomUUID().slice(0,8),fullName:'Guard fixture',passwordHash,role:'MECHANIC',active:true});
+  const draft={customerName:'Guard fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'GRD'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',year:2020,mileage:0,notes:'',recommendations:'',items:[{description:'Frenos',price:1}]};
+  const open=await tx.saveOrder(orderId,userId,draft);
+  if(test.status==='CLOSED') await tx.saveOrder(orderId,userId,{...draft,action:'close'},open);
+  await tx.query(test.query,{id:orderId});
+ },undefined,true)).rejects.toMatchObject({number:test.number});
+ expect(await sql.run(tx=>tx.userById(userId))).toBeUndefined();
+},60000);

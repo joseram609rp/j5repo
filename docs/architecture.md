@@ -1,4 +1,4 @@
-# Phase 2: contratos y límites
+# Phase 2.1: contratos y límites
 
 ## Persistencia y transacciones
 
@@ -24,9 +24,9 @@ Login tiene un límite local por proceso de 15 intentos por nombre cada 5 minuto
 
 ## Datos de órdenes
 
-El borrador conserva snapshots de nombre y placa y admite enlaces opcionales a Customers/Vehicles. No se crean clientes por coincidencia de nombre ni se transfieren dueños implícitamente. Al enlazar un vehículo se toma su cliente actual si no había cliente explícito. Una vez asignado customer_id, queda histórico e inmutable por esta API aunque cambie Vehicles.owner_id. La orden tampoco cambia de vehículo una vez asignado.
+El borrador conserva snapshots de nombre y placa y admite enlaces opcionales a Customers/Vehicles. Se crean clientes únicamente con datos completos válidos; se reutilizan por cédula única y vehículos por placa única. No se transfieren dueños implícitamente. Al enlazar un vehículo se toma su cliente actual si no había cliente explícito. Una vez asignado customer_id, queda histórico e inmutable por esta API aunque cambie Vehicles.owner_id. La orden tampoco cambia de vehículo una vez asignado.
 
-Dinero DECIMAL(12,2). Cédula/teléfono como strings. Placa normalizada e indexada en Vehicles; kilometraje nullable durante borrador. El CHECK SQL impide CLOSED sin kilometraje, cliente y vehículo. La API mínima solo edita OPEN. Cierre, reapertura, líneas de trabajo, totales calculados y pantallas de negocio quedan fuera de esta fase.
+Dinero DECIMAL(12,2). Cédula/teléfono como strings. Placa normalizada e indexada en Vehicles; kilometraje nullable durante borrador. El CHECK SQL impide CLOSED sin kilometraje, cliente y vehículo. La API permite close y operaciones admin explícitas reopen/void/admin-edit. Servicios son exactamente descripción + precio, sin cantidad/IVA/pagos. Total oficial SUM(OrderItems.price) en SQL, nunca un valor del frontend. Triggers mantienen el total al cambiar servicios y rechazan mutaciones de CLOSED/VOID y referencias históricas. El SQL principal es confiable; SESSION_CONTEXT identifica una operación admin autorizada por la API, no sustituye permisos de conexión. Admin-edit reabre temporalmente dentro de la misma transacción y restablece CLOSED al terminar; nada intermedio puede publicarse. Las interfaces completas de cierre/reapertura permanecen fuera de scope.
 
 ## Fiabilidad
 
@@ -38,6 +38,12 @@ El navegador mantiene sus reintentos para GET o escrituras con Idempotency-Key. 
 
 ## Validación pendiente
 
-Tests unitarios de contratos y pruebas del adaptador con driver simulado. Suite SQL explícita de fixtures con ROLLBACK preparada; no ejecutada contra tallerj5 por decisión del propietario. No se afirma que migraciones, firewall, permisos, Managed Identity o Functions host estén validados en Azure. Las pruebas SQL preparadas no simulan una caída de red durante COMMIT ni la concurrencia entre dos procesos reales. No hay despliegue.
+68 pruebas locales pasan. Migraciones aplicadas y metadata verificada en tallerj5 el 2026-10-04; 5 pruebas SQL rollback-only pasan. Health local conectado a Azure responde ok. No hay primer ADMIN, así que no se hizo login de usuario humano por navegador. COMMIT ambiguo y concurrencia entre procesos reales siguen fuera de la suite. No hay despliegue.
 
 Referencias técnicas consultadas: [mssql](https://tediousjs.github.io/node-mssql/), [Tedious](https://tediousjs.github.io/tedious/api-connection.html), [bcryptjs](https://www.npmjs.com/package/bcryptjs).
+
+## Schema y validación Phase 2.1
+
+created_at sigue siendo la fecha UTC de apertura; no se duplica con opened_at. closed_at marca el cierre; total_amount sustituye total. display_order_id es calculado y único (OT-YYYY-000001); una secuencia global sin reinicio anual evita carreras y admite más de seis dígitos. Los rollbacks pueden dejar huecos. Users.full_name y Customers.full_name son requeridos. Vehicles tiene marca, año, dueño actual y placa normalizada única. OrderItems solo guarda descripción y precio DECIMAL(12,2)>0.
+
+backend/src/validation.ts se comparte con frontend: trim de nombres/marca/descripción; cédula 9 dígitos; teléfono 8; email opcional lowercase; placa uppercase sin espacios/guiones y patrón ABC123; año entero 1950 a año UTC actual+1; DB limita a 2200. Kilometraje entero 0..10000000 nullable en OPEN, obligatorio al cerrar. Precio hasta 9999999999.99 con dos decimales; la suma también debe caber. Borradores permiten campos vacíos pero no valores no vacíos inválidos. IndexedDB conserva inclusive ediciones incompletas; autosave espera valores válidos y no renueva sesión.

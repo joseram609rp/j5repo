@@ -1,5 +1,6 @@
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
+import { fullNameSchema, canClose } from './validation.js';
 import { config } from './config.js';
 import { draftSchema, IDLE_MS, passwordSchema, publicUser, roleSchema, usernameSchema, type Reply, type Repository, type Session, type UnitOfWork } from './domain.js';
 import { hashPassword, verifyPassword } from './password.js';
@@ -9,8 +10,8 @@ import { SqlRepository } from './sql.js';
 export const tokenHash = (token: string) => createHash('sha256').update(token).digest('hex');
 const uuid = z.uuid().transform(s => s.toLowerCase());
 const loginSchema = z.object({ username: usernameSchema, password: z.string().min(1).max(200) }).strict();
-const createUserSchema = z.object({ username: usernameSchema, password: passwordSchema, role: roleSchema }).strict();
-const patchUserSchema = z.object({ active: z.boolean().optional(), role: roleSchema.optional(), password: passwordSchema.optional() }).strict().refine(x => Object.keys(x).length > 0);
+const createUserSchema = z.object({ username: usernameSchema, fullName: fullNameSchema, password: passwordSchema, role: roleSchema }).strict();
+const patchUserSchema = z.object({ fullName: fullNameSchema.optional(), active: z.boolean().optional(), role: roleSchema.optional(), password: passwordSchema.optional() }).strict().refine(x => Object.keys(x).length > 0);
 const result = (body: unknown, status = 200, headers: Record<string, string> = {}): Reply =>
   ({ body, status, headers: { 'Cache-Control': 'no-store', ...headers } });
 const errorReply = (error: HttpError) => result({ code: error.code }, error.status, error.status === 503 || error.status === 429 ? { 'Retry-After': '3' } : {});
@@ -84,7 +85,7 @@ export function createApi(options: { repository?: Repository; production?: boole
             await tx.audit(current.id, 'LOGIN', current.id);
           }
           if (session.revoked || (await tx.time()) - session.lastActivity >= IDLE_MS) throw new HttpError(401, 'SESSION_EXPIRED');
-          return result({ userId: current.id, username: current.username, role: current.role, csrf: session.csrf, lastActivity: session.lastActivity, idleMs: IDLE_MS }, 200, { 'Set-Cookie': cookie(token) });
+          return result({ userId: current.id, username: current.username, fullName: current.fullName, role: current.role, csrf: session.csrf, lastActivity: session.lastActivity, idleMs: IDLE_MS }, 200, { 'Set-Cookie': cookie(token) });
         }, signal);
       } else {
         const token = request.headers.get('cookie')?.split(';').map(x => x.trim()).find(x => x.startsWith('j5_session='))?.slice(11) ?? '';
@@ -123,7 +124,7 @@ export function createApi(options: { repository?: Repository; production?: boole
           }
           const { session, user, now } = await authenticated(tx, hash);
           if (mutating && !csrfMatches(request.headers.get('x-csrf-token'), session.csrf)) throw new HttpError(403, 'CSRF_REJECTED');
-          const sessionBody = (s: Session) => ({ userId: user.id, username: user.username, role: user.role, csrf: s.csrf, lastActivity: s.lastActivity, idleMs: IDLE_MS });
+          const sessionBody = (s: Session) => ({ userId: user.id, username: user.username, fullName: user.fullName, role: user.role, csrf: s.csrf, lastActivity: s.lastActivity, idleMs: IDLE_MS });
           if (['/api/auth/me', '/api/session'].includes(path) && method === 'GET') return result(sessionBody(session));
           if (['/api/auth/activity', '/api/session/activity'].includes(path) && method === 'POST') {
             await tx.touchSession(hash, now);
@@ -151,13 +152,18 @@ export function createApi(options: { repository?: Repository; production?: boole
               const expected = request.headers.get('if-match');
               if (existing && expected === null) throw new HttpError(428, 'VERSION_REQUIRED');
               if ((existing && expected !== '"' + existing.version + '"') || (!existing && expected !== null)) throw new HttpError(412, 'VERSION_CONFLICT');
-              if (existing && existing.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');
+              if (draft.action && ['reopen','void','admin-edit'].includes(draft.action) && user.role !== 'ADMIN') throw new HttpError(403, 'ADMIN_REQUIRED');
+              if (existing && existing.status !== 'OPEN' && !(user.role === 'ADMIN' && draft.action)) throw new HttpError(409, 'ORDER_NOT_OPEN');
+              if (draft.action === 'close' && (!existing || existing.status !== 'OPEN' || !canClose(draft))) throw new HttpError(400, 'ORDER_INCOMPLETE');
+              if (draft.action === 'reopen' && existing?.status !== 'CLOSED') throw new HttpError(409, 'ORDER_NOT_CLOSED');
+              if (draft.action === 'admin-edit' && !existing) throw new HttpError(404, 'ORDER_NOT_FOUND');
+              if (draft.action === 'admin-edit' && existing?.status === 'CLOSED' && !canClose(draft)) throw new HttpError(400, 'ORDER_INCOMPLETE');
               const saved = await tx.saveOrder(id, user.id, draft, existing);
               await tx.audit(user.id, existing ? 'ORDER_UPDATED' : 'ORDER_CREATED', id);
               response = result(saved, 200, { ETag: '"' + saved.version + '"' });
             } else if (createInput) {
               if (await tx.userByName(createInput.username)) throw new HttpError(409, 'USERNAME_EXISTS');
-              const created = { id: randomUUID(), username: createInput.username, passwordHash: passwordHash!, role: createInput.role, active: true };
+              const created = { id: randomUUID(), username: createInput.username, fullName: createInput.fullName, passwordHash: passwordHash!, role: createInput.role, active: true };
               await tx.insertUser(created);
               await tx.audit(user.id, 'USER_CREATED', created.id);
               response = result(publicUser(created), 201);
@@ -165,7 +171,7 @@ export function createApi(options: { repository?: Repository; production?: boole
               const id = uuid.parse(userRoute[1]);
               const target = await tx.userById(id);
               if (!target) throw new HttpError(404, 'USER_NOT_FOUND');
-              const updated = { ...target, role: patchInput.role ?? target.role, active: patchInput.active ?? target.active, passwordHash: passwordHash ?? target.passwordHash };
+              const updated = { ...target, fullName: patchInput.fullName ?? target.fullName, role: patchInput.role ?? target.role, active: patchInput.active ?? target.active, passwordHash: passwordHash ?? target.passwordHash };
               if (target.active && target.role === 'ADMIN' && (!updated.active || updated.role !== 'ADMIN') &&
                   (await tx.users()).filter(u => u.active && u.role === 'ADMIN').length <= 1) throw new HttpError(409, 'LAST_ADMIN');
               await tx.updateUser(updated);

@@ -1,9 +1,11 @@
 import { createHash } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { config } from './config.js';
 import { SqlRepository } from './sql.js';
 
 async function migrate() {
+  if (config.sql.server !== 'j5sqlserver.database.windows.net' || config.sql.database !== 'tallerj5') throw new Error('TARGET_MISMATCH');
   const directory = fileURLToPath(new URL('../../database/migrations/', import.meta.url));
   const names = (await readdir(directory)).filter(name => /^\d{3}_[a-z0-9_]+\.sql$/.test(name)).sort();
   const migrations = await Promise.all(names.map(async name => {

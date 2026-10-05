@@ -1,3 +1,4 @@
+import { totalAmount } from '../src/validation.js';
 import { HttpError } from '../src/reliability.js';
 import { IDLE_MS, type Draft, type Order, type Receipt, type Repository, type Session, type UnitOfWork, type User } from '../src/domain.js';
 
@@ -38,7 +39,7 @@ export class FakeRepository implements Repository, UnitOfWork {
   async revokeUserSessions(id: string) { for (const s of this.sessions.values()) if (s.userId === id) s.revoked = true; }
   async order(id: string) { return this.orders.get(id); }
   async saveOrder(id: string, userId: string, draft: Draft, previous?: Order) {
-    const order: Order = { id, status: 'OPEN', mechanicId: previous?.mechanicId ?? userId,
+    const order: Order = { id, status: draft.action === 'close' ? 'CLOSED' : draft.action === 'void' ? 'VOID' : draft.action === 'reopen' ? 'OPEN' : previous?.status ?? 'OPEN', totalAmount: totalAmount(draft.items), mechanicId: previous?.mechanicId ?? userId,
       version: (BigInt('0x' + (previous?.version ?? '0')) + 1n).toString(16).padStart(16, '0'), draft: structuredClone(draft) };
     this.orders.set(id, order);
     return order;

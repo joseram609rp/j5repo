@@ -1,47 +1,38 @@
-# Verificación Phase 2 — 2026-10-03
+# Verificación Phase 2.1 — 2026-10-04 (America/Guatemala)
 
-## Resultado local
+## Resultado
 
-pnpm check final: tipos frontend/backend correctos, **40 pruebas aprobadas**, **2 pruebas SQL omitidas** y builds frontend/backend/PWA correctos. La suite SQL solo se activa con pnpm test:sql y configuración explícita.
+- Branch feature/backend-foundation; main/dev intactas, sin merge ni despliegue.
+- pnpm check: 68 pruebas locales aprobadas, 5 SQL omitidas por diseño; typecheck y builds backend/frontend/PWA correctos.
+- Conectividad TCP 1433 y login SQL confirmados usando .env local; el primer intento autenticado agotó timeout, el siguiente respondió. No se modificó firewall ni TLS.
+- Preflight confirmó base sin tablas; pnpm db:migrate aplicó 001_core.sql, 002_receipts_audit.sql y 003_order_guards.sql en una transacción.
+- Metadata real: 9 tablas, SchemaMigrations con 3 registros, 21 CHECK habilitados/trusted, índices únicos y 2 triggers activos. No se consultaron credenciales ni datos personales para el reporte.
+- pnpm test:sql: 5 pruebas reales aprobadas con rollback-only. Login/password incorrecto, auth/me, actividad, logout, roles/CSRF, idle, desactivación, idempotencia, ETag 412/428, historia de dueño, cierre sin items/mileage rechazado, total SQL 100.30, CLOSED inmutable para mechanic edición admin que conserva fecha de cierre y reapertura admin. Tres fixtures adicionales verifican directamente los triggers SQL contra mutación de CLOSED, cambios de servicios cerrados y total falsificado. Fixtures no persisten.
+- pnpm dev iniciado. GET http://127.0.0.1:7071/api/health devuelve {"status":"ok","mode":"sql"}. Login con logo real revisado en navegador.
 
-Cobertura automática:
-- Bcrypt, password incorrecto/usuario inactivo, cookie segura y token hasheado.
-- ADMIN/MECHANIC, CSRF/Origin, logout repetible, revocación y último ADMIN protegido.
-- Límite exacto a 7 200 000 ms, actividad renueva; GET/autosave no renuevan ni reactivan sesiones.
-- Administración de usuarios, reset efectivo de password y revocación por cambio de rol/desactivación.
-- Replay, conflicto de payload/If-Match/ruta, claves por usuario, solicitudes concurrentes en el doble transaccional.
-- 412/428 y rollback de orden/auditoría cuando falla la persistencia del comprobante.
-- Clasificación transitoria anidada, presupuesto de reintentos, backoff efectivo, cancelación y no retry de login SQL.
-- Driver simulado: TLS, consultas parametrizadas, request.cancel, SERIALIZABLE, rollback y timestamps datetime2(3).
-- Cola frontend: respuesta perdida, recuperación, versión opaca, conflicto, fallo local y espera de envío en vuelo.
+## Validaciones y branding
 
-Prueba adicional del servidor compilado por HTTP local: GET /api/health sin SQL configurado devuelve 503 + Retry-After: 3; login con Origin ajeno devuelve 403. Se forzó SQL_SERVER vacío para impedir conexiones Azure y se cerró el proceso de prueba.
+27 tests del esquema compartido cubren nombre, cédula, teléfono, email, placa, año UTC dinámico, descripción/precio, centavos, overflow agregado, campos de cierre y rechazo de total cliente. Prueba API adicional verifica cierre y permisos admin. IndexedDB guarda cambios incompletos y autosave solo envía payload válido. Mecánico se asigna desde el usuario autenticado al crear; no se acepta un ID enviado por el frontend. Todos pueden leer órdenes ajenas.
 
-git diff --check sin errores de whitespace. .env y backend/local.settings.json permanecen ignorados. No se crearon archivos con credenciales reales; .env.example contiene campos de credenciales vacíos. Las cadenas de contraseña de tests son fixtures sintéticos.
+Logo original intacto; copia web en frontend/public/logo.png. Paleta CSS azul/rojo, favicon/PWA SVG cuadrado con J5 embebido, responsive. No se utilizó una ruta absoluta en runtime.
 
-## Pendiente, explícitamente
+created_at es la apertura UTC; no se duplica opened_at. total_amount es oficial y lo calcula SQL desde description/price de cada servicio. display_order_id usa secuencia global sin reinicio anual (huecos posibles por rollback). CLOSED exige servicios válidos, datos completos, kilometraje y fecha de cierre. Los triggers protegen total y referencias históricas.
 
-El propietario eligió dejar pendiente la validación Azure. No se ejecutaron migraciones, no se creó administrador real y no se conectó a tallerj5. Por tanto **no se declara cerrada la validación funcional contra Azure SQL**.
+## Paso interactivo pendiente
 
-La suite SQL preparada usa fixtures propios y ROLLBACK; comprueba autenticación, idempotencia, rowversion, cliente histórico y CHECK de kilometraje. Aún no se ejecutó. Tampoco están validados fallos ambiguos de COMMIT real, concurrencia entre procesos SQL, credenciales/Managed Identity/firewall, host Functions o dispositivos PWA.
+ADMIN activos: 0. Se ejecutó pnpm admin:create; devolvió TTY_REQUIRED antes de solicitar credenciales. No se creó un usuario real.
 
-El formulario de login se compiló; no se hizo un recorrido de navegador con credenciales reales. La UI completa de órdenes está fuera de alcance.
+En una terminal PowerShell normal ejecutar:
 
-## Working tree y entrega
+    cd C:\j5repo
+    pnpm admin:create
 
-Rama existente usada: feature/backend-foundation. El árbol estaba limpio al comenzar. Todas las modificaciones sin commit corresponden a esta fase:
+Ingresar nombre completo, username (3–64 caracteres), contraseña elegida por el usuario (mínimo 12 caracteres, máximo 72 bytes UTF-8, entrada oculta) y confirmación. El comando vuelve a comprobar que no exista ADMIN activo. No enviar contraseñas por chat ni argumentos. Después iniciar sesión en http://127.0.0.1:5173 y probar el borrador. No se hizo ese recorrido autenticado con usuario humano porque aún no existen sus credenciales; el flujo equivalente fue verificado con fixtures SQL rollback-only.
 
-- Migraciones 001/002, adaptador SQL, contratos de dominio y hashing.
-- Endpoints auth/admin/órdenes, configuración y adaptadores local/Functions.
-- Scripts db:migrate, admin:create y test:sql.
-- Login frontend, heartbeat y versiones opacas del autosave.
-- Pruebas locales y suite SQL reversible.
-- README, arquitectura, documentación SQL/infra y este registro.
+## Límites
 
-Se retiró backend/src/store.ts, el almacén demo de producción. El único almacén simulado está en backend/test.
+Sin UI completa de cierre/reapertura/anulación ni gestión del cambio de dueño; las reglas API/DB y el historial sí están listas. Sin pruebas de COMMIT ambiguo real, concurrencia entre procesos, Managed Identity, host Functions, dispositivo PWA instalado o despliegue Azure. La validación evita datos mal digitados; no acredita identidad real, kilometraje real ni trabajo físicamente realizado.
 
-No hubo commit, push, merge ni despliegue. main y dev no fueron modificadas. Rama preparada para revisar y hacer commit/push; conservar esta advertencia de validación Azure pendiente al describir el cambio.
+## Git y secretos
 
-## Siguiente validación
-
-Configurar .env localmente; revisar/aplicar pnpm db:migrate; ejecutar pnpm test:sql; crear el primer ADMIN con pnpm admin:create; iniciar pnpm dev y probar login, recarga, actividad, guardado y logout. No compartir la contraseña en chat ni argumentos de consola.
+.env permanece local/ignorado, sin staging. .env.example contiene placeholders vacíos y nombres públicos del destino. No se imprimieron SQL_USER/SQL_PASSWORD ni connection strings. Sin push. git diff --check final sin errores; pnpm check final aprobado (68 locales, 5 SQL omitidas por diseño, builds correctos); no se hizo commit automático.

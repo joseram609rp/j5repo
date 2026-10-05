@@ -1,6 +1,7 @@
+import { draftSchema } from '../../backend/src/validation';
 import { openDB } from 'idb';
 import { api, ApiError } from './api';
-export type Draft = { customerName: string; plate: string; mileage: number | null; notes: string; recommendations: string };
+export type Draft = { customerName: string; plate: string; mileage: number | null; notes: string; recommendations: string; identification?: string; phone?: string; email?: string; make?: string; year?: number | null; items?: {description:string;price:number}[] };
 type Mutation = { key: string; draft: Draft; version: string | null; revision: number };
 export type RecordState = { id: string; draft: Draft; version: string | null; revision: number; savedRevision: number; pending?: Mutation };
 const db = () => openDB('j5-drafts-v1', 1, { upgrade(database) { database.createObjectStore('drafts'); } });
@@ -8,7 +9,7 @@ export const storage = {
   async read(user: string): Promise<RecordState | undefined> { return (await db()).get('drafts', user); },
   async write(user: string, record: RecordState) { const database = await db(); await database.put('drafts', record, user); }
 };
-export const fresh = (): RecordState => ({ id: crypto.randomUUID(), draft: { customerName: '', plate: '', mileage: null, notes: '', recommendations: '' }, version: null, revision: 0, savedRevision: 0 });
+export const fresh = (): RecordState => ({ id: crypto.randomUUID(), draft: { customerName: '', plate: '', identification:'',phone:'',email:'',make:'',year:null,items:[], mileage: null, notes: '', recommendations: '' }, version: null, revision: 0, savedRevision: 0 });
 /** Freeze the payload/key before sending. Never reuse a key with an edited payload. */
 export class Autosave {
   private queue = Promise.resolve();
@@ -44,9 +45,11 @@ export class Autosave {
     try {
       await this.queue;
       while (!this.stopped && (this.state.pending || this.state.savedRevision < this.state.revision)) {
+        if (!this.state.pending && !draftSchema.safeParse(this.state.draft).success) { this.report('Completa o corrige los campos. Tu borrador permanece guardado en este dispositivo.'); return; }
         this.state.pending ??= { key: crypto.randomUUID(), draft: structuredClone(this.state.draft), version: this.state.version, revision: this.state.revision };
         await this.write();
         const mutation = this.state.pending;
+        if (!draftSchema.safeParse(mutation.draft).success) { delete this.state.pending; await this.write(); this.report('Corrige los campos para sincronizar. La copia local está protegida.'); return; }
         this.report('Sincronizando…');
         const result = await this.send(this.state.id, mutation);
         this.state.version = result.version; this.state.savedRevision = mutation.revision; delete this.state.pending;

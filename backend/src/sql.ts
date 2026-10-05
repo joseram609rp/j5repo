@@ -1,4 +1,6 @@
 import sql from 'mssql';
+import { randomUUID } from 'node:crypto';
+import { customerSchema, vehicleSchema } from './validation.js';
 import { config } from './config.js';
 import { HttpError, retrySql } from './reliability.js';
 import { IDLE_MS, type Draft, type Order, type Receipt, type Repository, type Session, type UnitOfWork, type User } from './domain.js';
@@ -17,12 +19,12 @@ export function sqlConfig(): sql.config {
   };
 }
 type Params = Record<string, string | number | boolean | Date | Buffer | null>;
-type UserRow = { id: string; username: string; password_hash: string; role: User['role']; active: boolean };
-const user = (r: UserRow): User => ({ id: r.id.toLowerCase(), username: r.username, passwordHash: r.password_hash, role: r.role, active: r.active });
-type OrderRow = { id: string; status: Order['status']; version: Buffer; mechanic_id: string; customer_id: string | null; vehicle_id: string | null; customer_name_snapshot: string; plate_snapshot: string; mileage: number | null; notes: string; recommendations: string };
+type UserRow = { id: string; username: string; full_name: string; password_hash: string; role: User['role']; active: boolean };
+const user = (r: UserRow): User => ({ id: r.id.toLowerCase(), username: r.username, fullName: r.full_name, passwordHash: r.password_hash, role: r.role, active: r.active });
+type OrderRow = { id: string; status: Order['status']; version: Buffer; mechanic_id: string; customer_id: string | null; vehicle_id: string | null; customer_name_snapshot: string; plate_snapshot: string; mileage: number | null; notes: string; recommendations: string; display_order_id: string; total_amount: number; closed_at: Date | null; draft_data: string };
 function order(r: OrderRow): Order {
-  return { id: r.id.toLowerCase(), status: r.status, version: r.version.toString('hex'), mechanicId: r.mechanic_id.toLowerCase(),
-    draft: { customerName: r.customer_name_snapshot, plate: r.plate_snapshot, mileage: r.mileage, notes: r.notes, recommendations: r.recommendations,
+  return { displayOrderId: r.display_order_id, totalAmount: r.total_amount, closedAt: r.closed_at?.toISOString() ?? null, id: r.id.toLowerCase(), status: r.status, version: r.version.toString('hex'), mechanicId: r.mechanic_id.toLowerCase(),
+    draft: { ...JSON.parse(r.draft_data), customerName: r.customer_name_snapshot, plate: r.plate_snapshot, mileage: r.mileage, notes: r.notes, recommendations: r.recommendations,
       ...(r.customer_id ? { customerId: r.customer_id.toLowerCase() } : {}), ...(r.vehicle_id ? { vehicleId: r.vehicle_id.toLowerCase() } : {}) } };
 }
 export class SqlUnit implements UnitOfWork {
@@ -57,12 +59,12 @@ export class SqlUnit implements UnitOfWork {
     return (await this.query<UserRow>('SELECT * FROM dbo.Users WITH (UPDLOCK,HOLDLOCK) ORDER BY username')).recordset.map(user);
   }
   async insertUser(u: User) {
-    await this.query('INSERT dbo.Users(id,username,password_hash,role,active) VALUES(@id,@username,@hash,@role,@active)',
-      { id: u.id, username: u.username, hash: u.passwordHash, role: u.role, active: u.active });
+    await this.query('INSERT dbo.Users(id,username,full_name,password_hash,role,active) VALUES(@id,@username,@fullName,@hash,@role,@active)',
+      { id: u.id, username: u.username, fullName: u.fullName, hash: u.passwordHash, role: u.role, active: u.active });
   }
   async updateUser(u: User) {
-    await this.query('UPDATE dbo.Users SET password_hash=@hash,role=@role,active=@active WHERE id=@id',
-      { id: u.id, hash: u.passwordHash, role: u.role, active: u.active });
+    await this.query('UPDATE dbo.Users SET full_name=@fullName,password_hash=@hash,role=@role,active=@active WHERE id=@id',
+      { id: u.id, fullName: u.fullName, hash: u.passwordHash, role: u.role, active: u.active });
   }
   async session(hash: string) {
     const r = await this.query<{ token_hash: string; user_id: string; csrf: string; last_activity_at: Date; revoked_at: Date | null }>(
@@ -90,11 +92,14 @@ export class SqlUnit implements UnitOfWork {
   }
   async order(id: string) {
     const r = await this.query<OrderRow>('SELECT * FROM dbo.Orders WITH (UPDLOCK,HOLDLOCK) WHERE id=@id', { id });
-    return r.recordset[0] ? order(r.recordset[0]) : undefined;
+    if (!r.recordset[0]) return undefined;
+    const result=order(r.recordset[0]);
+    result.draft.items=(await this.query<{description:string;price:number}>('SELECT description,price FROM dbo.OrderItems WHERE order_id=@id ORDER BY id',{id})).recordset;
+    return result;
   }
   async saveOrder(id: string, userId: string, draft: Draft, previous?: Order) {
     let customerId = previous?.draft.customerId ?? draft.customerId ?? null;
-    const vehicleId = previous?.draft.vehicleId ?? draft.vehicleId ?? null;
+    let vehicleId = previous?.draft.vehicleId ?? draft.vehicleId ?? null;
     if (previous?.draft.customerId && draft.customerId && previous.draft.customerId !== draft.customerId)
       throw new HttpError(409, 'HISTORICAL_CUSTOMER_IMMUTABLE');
     if (previous?.draft.vehicleId && draft.vehicleId && previous.draft.vehicleId !== draft.vehicleId)
@@ -106,16 +111,48 @@ export class SqlUnit implements UnitOfWork {
     }
     if (customerId && !(await this.query('SELECT id FROM dbo.Customers WHERE id=@id', { id: customerId })).recordset.length)
       throw new HttpError(400, 'INVALID_CUSTOMER');
+    const customer = customerSchema.safeParse({fullName: draft.customerName, identification: draft.identification, phone: draft.phone, email: draft.email});
+    if (!customerId && customer.success) {
+      const found = (await this.query<{id: string}>('SELECT id FROM dbo.Customers WITH (UPDLOCK,HOLDLOCK) WHERE identification=@identification', {identification: customer.data.identification})).recordset[0];
+      customerId = found?.id.toLowerCase() ?? randomUUID();
+      if (!found) await this.query('INSERT dbo.Customers(id,full_name,identification,phone,email) VALUES(@id,@name,@identification,@phone,@email)', {id:customerId,name:customer.data.fullName,identification:customer.data.identification,phone:customer.data.phone,email:customer.data.email || null});
+    }
+    if (!vehicleId && customerId) {
+      const vehicle = vehicleSchema.safeParse({make:draft.make,year:draft.year,plate:draft.plate,ownerId:customerId});
+      if (vehicle.success) {
+        const found = (await this.query<{id:string}>('SELECT id FROM dbo.Vehicles WITH (UPDLOCK,HOLDLOCK) WHERE plate_normalized=@plate',{plate:vehicle.data.plate})).recordset[0];
+        vehicleId = found?.id.toLowerCase() ?? randomUUID();
+        if (!found) await this.query('INSERT dbo.Vehicles(id,owner_id,plate,make,year) VALUES(@id,@owner,@plate,@make,@year)',{id:vehicleId,owner:customerId,plate:vehicle.data.plate,make:vehicle.data.make,year:vehicle.data.year});
+      }
+    }
+    const originalClosedAt = previous?.closedAt;
+    const dataClosed = previous?.status === 'CLOSED';
+    const actor = await this.userById(userId);
+    const adminMutation = actor?.role === 'ADMIN' && !!draft.action && ['admin-edit','reopen','void'].includes(draft.action);
+    if (previous && previous.status !== 'OPEN' && !adminMutation) throw new HttpError(409,'ORDER_NOT_OPEN');
+    await this.query("EXEC sys.sp_set_session_context @key=N'j5_admin_mutation',@value=@allow",{allow:adminMutation});
+    // Temporarily reopen inside the same transaction to replace services without exposing an invalid closed order.
+    if (previous?.status === 'CLOSED' && adminMutation) {
+      await this.query("UPDATE dbo.Orders SET status='OPEN',closed_at=NULL WHERE id=@id AND version=@version",{id,version:Buffer.from(previous.version,'hex')});
+      previous = (await this.order(id))!;
+    }
+    const action = draft.action;
+    const status = action === 'close' ? 'CLOSED' : action === 'void' ? 'VOID' : action === 'reopen' ? 'OPEN' : action === 'admin-edit' && dataClosed ? 'CLOSED' : previous?.status ?? 'OPEN';
+    const {action: _, ...data} = draft;
     const params: Params = { id, userId, customerId, vehicleId, name: draft.customerName, plate: draft.plate.toUpperCase().replace(/[\s-]/g, ''),
-      mileage: draft.mileage, notes: draft.notes, recommendations: draft.recommendations };
+      mileage: draft.mileage, notes: draft.notes, recommendations: draft.recommendations, data: JSON.stringify(data) };
     if (previous) {
       const r = await this.query(
-        'UPDATE dbo.Orders SET customer_id=@customerId,vehicle_id=@vehicleId,customer_name_snapshot=@name,plate_snapshot=@plate,mileage=@mileage,notes=@notes,recommendations=@recommendations,updated_at=SYSUTCDATETIME() WHERE id=@id AND version=@version',
+        'UPDATE dbo.Orders SET draft_data=@data,customer_id=@customerId,vehicle_id=@vehicleId,customer_name_snapshot=@name,plate_snapshot=@plate,mileage=@mileage,notes=@notes,recommendations=@recommendations,updated_at=SYSUTCDATETIME() WHERE id=@id AND version=@version',
         { ...params, version: Buffer.from(previous.version, 'hex') });
       if (r.rowsAffected[0] !== 1) throw new HttpError(412, 'VERSION_CONFLICT');
     } else {
-      await this.query('INSERT dbo.Orders(id,customer_id,vehicle_id,mechanic_id,customer_name_snapshot,plate_snapshot,mileage,notes,recommendations) VALUES(@id,@customerId,@vehicleId,@userId,@name,@plate,@mileage,@notes,@recommendations)', params);
+      await this.query('INSERT dbo.Orders(id,customer_id,vehicle_id,mechanic_id,draft_data,customer_name_snapshot,plate_snapshot,mileage,notes,recommendations) VALUES(@id,@customerId,@vehicleId,@userId,@data,@name,@plate,@mileage,@notes,@recommendations)', params);
     }
+    await this.query('DELETE dbo.OrderItems WHERE order_id=@id', {id});
+    for (const item of draft.items ?? []) await this.query('INSERT dbo.OrderItems(id,order_id,description,price) VALUES(@itemId,@id,@description,CAST(@price AS decimal(12,2)))', {itemId:randomUUID(),id,description:item.description,price:item.price.toFixed(2)});
+    await this.query("UPDATE dbo.Orders SET total_amount=(SELECT COALESCE(SUM(price),0) FROM dbo.OrderItems WHERE order_id=@id),status=@status,closed_at=CASE WHEN @status='CLOSED' THEN COALESCE(@originalClosedAt,closed_at,SYSUTCDATETIME()) ELSE NULL END WHERE id=@id",{id,status,originalClosedAt:action==='admin-edit' && originalClosedAt ? new Date(originalClosedAt) : null});
+    await this.query("EXEC sys.sp_set_session_context @key=N'j5_admin_mutation',@value=NULL");
     return (await this.order(id))!;
   }
   async receipt(userId: string, key: string) {

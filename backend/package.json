@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "start:azure": "func start",
     "db:migrate": "tsx --env-file-if-exists=../.env src/migrate.ts",
-    "admin:create": "tsx --env-file-if-exists=../.env src/admin-create.ts"
+    "admin:create": "tsx --env-file-if-exists=../.env src/admin-create.ts",
+    "db:verify": "tsx --env-file-if-exists=../.env src/verify-sql.ts"
   },
   "dependencies": {
     "@azure/functions": "^4.10.0",

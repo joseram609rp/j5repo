@@ -1,16 +1,17 @@
-# Azure SQL: Phase 2
+# Azure SQL: Phase 2.1
 
-Destino previsto: tallerj5, j5sqlserver.database.windows.net, AZ_SQLRG_J5, Central US. No se conectó ni modificó Azure durante esta fase; validación pendiente por decisión del propietario.
+Destino previsto: tallerj5, j5sqlserver.database.windows.net, AZ_SQLRG_J5, Central US. Migraciones aplicadas y metadata verificada el 2026-10-04. Suite SQL reversible completada; no se desplegó la app.
 
 ## Migraciones
 
 - 001_core.sql: Users, Sessions, Customers, Vehicles, Orders, OrderItems, PK/FK, índices, validaciones y rowversion.
 - 002_receipts_audit.sql: IdempotencyRequests y AuditLogs.
+- 003_order_guards.sql: triggers de inmutabilidad histórica y total calculado de servicios.
 - SchemaMigrations: creada por el runner para registrar archivo, checksum SHA-256 normalizado por saltos de línea y fecha.
 
 **pnpm db:migrate** obtiene un applock exclusivo, comprueba el historial y aplica todo lo pendiente dentro de una transacción. No contiene DROP, TRUNCATE ni modificaciones de datos existentes. Objetos preexistentes incompatibles provocan rollback. No editar migraciones ya aplicadas: agregar otro archivo numerado. El runner rechaza checksums alterados o migraciones históricas ausentes del código.
 
-Revisar scripts y permisos antes de aplicarlos. El usuario de migraciones necesita crear tablas/índices/constraints en dbo. La identidad del runtime necesita SELECT/INSERT/UPDATE de entidades usadas, SELECT/INSERT de IdempotencyRequests y INSERT de AuditLogs. No necesita DROP/ALTER/CREATE. Mantener cuentas separadas. No se ejecutan migraciones al iniciar la API.
+Revisar scripts y permisos antes de aplicarlos. El usuario de migraciones necesita crear tablas/índices/constraints/secuencias/triggers en dbo. La identidad del runtime necesita SELECT/INSERT/UPDATE de entidades usadas y DELETE de OrderItems para reemplazar servicios de un borrador, SELECT/INSERT de IdempotencyRequests y INSERT de AuditLogs. No necesita DROP/ALTER/CREATE. Mantener cuentas separadas. No se ejecutan migraciones al iniciar la API.
 
 ## Configuración
 
@@ -22,7 +23,7 @@ SQL_AUTH_MODE=default selecciona azure-active-directory-default del driver para 
 
 Users tiene username único case-insensitive, active y rol ADMIN/MECHANIC. Sessions guarda solo hash del token, CSRF y timestamps UTC; nunca el token real.
 
-Vehicles guarda owner_id actual y plate_normalized persistida, única e indexada. Orders.customer_id es la referencia histórica independiente. Los borradores pueden no tener cliente/vehículo aún; guardan snapshots para preservar el frontend existente. API no reasigna referencias una vez establecidas. Dinero decimal(12,2), cédula/teléfono nvarchar, kilometraje entero nullable. Cerrado exige kilometraje y referencias completas mediante CHECK.
+Vehicles guarda owner_id actual y plate_normalized persistida, única e indexada. Orders.customer_id es la referencia histórica independiente. Los borradores pueden no tener cliente/vehículo aún; guardan snapshots para preservar el frontend existente. API no reasigna referencias una vez establecidas. Dinero decimal(12,2), cédula/teléfono varchar, kilometraje entero nullable. Cerrado exige kilometraje, closed_at, referencias completas y total positivo mediante CHECK; triggers exigen servicios válidos y total exacto. created_at es apertura UTC. display_order_id usa secuencia global única; no reinicia cada año y puede tener huecos tras rollback.
 
 Orders.version rowversion es opaco; API no lo convierte a número. Escrituras y comprobantes de idempotencia se confirman juntos; si falla cualquiera, se revierte todo. No hay trabajo de limpieza automática ni cascadas destructivas. Antes de definir retención de sesiones, recibos y auditoría, acordar la ventana máxima de trabajo offline.
 
@@ -36,6 +37,12 @@ Cuando las credenciales estén disponibles y se hayan aplicado las migraciones:
 4. Una segunda prueba comprueba el CHECK de cierre sin kilometraje.
 5. Termina con ROLLBACK y comprueba que usuarios/órdenes de prueba no persistan.
 
-No usa DROP/TRUNCATE, no reinicializa la base, no edita usuarios existentes. El esquema debe estar previamente migrado; la suite no aplica migraciones. Puede consumir números de identidad/rowversion y generar logs transaccionales aunque haga rollback. **pnpm test** y **pnpm check** omiten esta suite por defecto. No verifica COMMIT real ni concurrencia entre procesos; esas pruebas controladas siguen pendientes junto con la primera ejecución contra Azure.
+No usa DROP/TRUNCATE, no reinicializa la base, no edita usuarios existentes. El esquema debe estar previamente migrado; la suite no aplica migraciones. Puede consumir números de identidad/rowversion y generar logs transaccionales aunque haga rollback. **pnpm test** y **pnpm check** omiten esta suite por defecto. No verifica COMMIT real ni concurrencia entre procesos; esas pruebas controladas siguen pendientes; la ejecución rollback-only contra Azure ya pasó.
 
 El archivo queries/optimistic-concurrency.sql es una referencia ilustrativa del UPDATE; el código ejecutable está en backend/src/sql.ts.
+
+## Resultado y primer administrador
+
+`pnpm --filter @j5/backend db:verify` comprobó 9 tablas, 3 migraciones, 21 CHECK habilitados/trusted, índices únicos de username/cédula/placa/Order ID y 2 triggers activos. ADMIN activos: 0. `pnpm admin:create` devolvió TTY_REQUIRED en ejecución no interactiva; requiere que el usuario ejecute el comando desde PowerShell normal e ingrese nombre completo, username y contraseña (oculta y confirmada). No se inventaron credenciales.
+
+Las migraciones 001/002/003 ya están aplicadas: no volver a editar sus checksums. Cualquier cambio SQL posterior requiere nueva migración.

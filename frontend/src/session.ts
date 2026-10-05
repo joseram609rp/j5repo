@@ -1,5 +1,5 @@
 import { api } from './api';
-export type Session = { userId: string; csrf: string; idleMs: number; lastActivity: number };
+export type Session = { userId: string; username?: string; fullName?: string; role?: 'ADMIN' | 'MECHANIC'; csrf: string; idleMs: number; lastActivity: number };
 /** Heartbeats only after actual foreground input. Polling/autosave never extends a session. */
 export function trackActivity(session: Session, expired: () => void) {
   let last = session.lastActivity; let acknowledged = session.lastActivity; let inFlight = false; let ended = false;

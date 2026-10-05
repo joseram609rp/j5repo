@@ -9,13 +9,13 @@ const origin = 'http://localhost:5173';
 const password = 'Local-test-only-123!';
 const adminId = '11111111-1111-4111-8111-111111111111';
 const mechanicId = '22222222-2222-4222-8222-222222222222';
-const draft = { customerName: 'Fixture', plate: 'TEST01', mileage: null, notes: '', recommendations: '' };
+const draft = { customerName: 'Fixture', plate: 'ABC123', mileage: null, notes: '', recommendations: '' };
 let passwordHash: string;
 beforeAll(async () => { passwordHash = await hashPassword(password); });
 function setup(production = false) {
   const repo = new FakeRepository();
-  repo.accounts.set(adminId, { id: adminId, username: 'admin', passwordHash, role: 'ADMIN', active: true });
-  repo.accounts.set(mechanicId, { id: mechanicId, username: 'mechanic', passwordHash, role: 'MECHANIC', active: true });
+  repo.accounts.set(adminId, { id: adminId, username: 'admin', fullName: 'Test user', passwordHash, role: 'ADMIN', active: true });
+  repo.accounts.set(mechanicId, { id: mechanicId, username: 'mechanic', fullName: 'Test user', passwordHash, role: 'MECHANIC', active: true });
   const api = createApi({ repository: repo, origin, production });
   const call = (path: string, method = 'GET', body?: unknown, headers: Record<string, string> = {}) =>
     api(new Request(origin + '/api' + path, { method, headers: { origin, 'content-type': 'application/json', ...headers }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) }));
@@ -151,7 +151,7 @@ describe('persistent API contracts (transactional test double)', () => {
     const { repo, call, login } = setup();
     const { headers } = await login();
     const key = crypto.randomUUID();
-    const data = { username: 'New.Mechanic', password, role: 'MECHANIC' };
+    const data = { username: 'New.Mechanic', fullName: 'New Mechanic', password, role: 'MECHANIC' };
     const send = (body = data, k = key) => call('/admin/users', 'POST', body, { ...headers, 'idempotency-key': k });
     const first = await send();
     expect(first.status).toBe(201);
@@ -185,6 +185,19 @@ describe('persistent API contracts (transactional test double)', () => {
     expect((await call('/orders/' + crypto.randomUUID(), 'PUT', draft, headers)).status).toBe(400);
     expect((await call('/orders/' + crypto.randomUUID(), 'PUT', { ...draft, mileage: -1 }, { ...headers, 'idempotency-key': crypto.randomUUID() })).status).toBe(400);
     expect((await call('/admin/users', 'POST', { username: 'newuser', password: 'é'.repeat(37), role: 'ADMIN' }, { ...headers, 'idempotency-key': crypto.randomUUID() })).status).toBe(400);
+  });
+  it('enforces closing prerequisites, official totals, ETag and admin-only changes to closed orders', async()=>{
+    const {call,login}=setup();const mechanic=await login('mechanic');const admin=await login();const id=crypto.randomUUID();
+    const save=(body:unknown,headers=mechanic.headers,version?:string)=>call('/orders/'+id,'PUT',body,{...headers,'idempotency-key':crypto.randomUUID(),...(version?{'if-match':'"'+version+'"'}:{})});
+    const first=await save(draft);const initial=await first.json();
+    const complete={...draft,identification:'123456789',phone:'88888888',make:'Toyota',year:2020,mileage:0,items:[{description:'Frenos',price:100.1},{description:'Ajuste',price:0.2}],action:'close'};
+    expect((await save({...complete,items:[]},mechanic.headers,initial.version)).status).toBe(400);
+    expect((await save({...complete,mileage:null},mechanic.headers,initial.version)).status).toBe(400);
+    expect((await save({...complete,totalAmount:1},mechanic.headers,initial.version)).status).toBe(400);
+    const closed=await (await save(complete,mechanic.headers,initial.version)).json();expect(closed.status).toBe('CLOSED');expect(closed.totalAmount).toBe(100.3);
+    expect((await save(draft,mechanic.headers,closed.version)).status).toBe(409);
+    expect((await save({...complete,action:'reopen'},mechanic.headers,closed.version)).status).toBe(403);
+    expect((await save({...complete,action:'reopen'},admin.headers,closed.version)).status).toBe(200);
   });
   it('does not provide a demo login endpoint', async () => {
     const { call } = setup();
