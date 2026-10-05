@@ -1,3 +1,13 @@
+# Limpieza final de UI Phase 2 — 2026-10-05 (America/Guatemala)
+
+- Se eliminaron slogans, panel de módulos futuros y footer decorativo. Formulario a todo el ancho, login centrado y campos apilados en móvil; logo J5 y paleta azul/rojo conservados.
+- Retry manual condicionado a fallo recuperable de sincronización. Estados de progreso/guardado/copia local visibles; offline no ofrece retry manual y conserva el listener online existente. Conflictos y expiración no ofrecen un botón ineficaz.
+- Pruebas de render conectadas a los reportes de Autosave verifican estado sano, fallo, replay con la misma mutación, recuperación offline, conflictos y expiración. Persistencia, debounce, idempotencia y ETag sin cambios.
+- pnpm check: 112 pruebas locales aprobadas, 10 SQL omitidas por diseño; typecheck y builds correctos. git diff --check correcto; .env ignorado y no staged.
+- Sin migración, acceso a Azure SQL, cambios de ADMIN, merge ni push. Layout verificado por código y render automatizado; sin revisión visual manual en navegador.
+
+---
+
 # Cierre final Phase 2 — 2026-10-05 (America/Guatemala)
 
 ## Resultado actual

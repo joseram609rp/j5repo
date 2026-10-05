@@ -39,3 +39,9 @@ it('session gate renders login only in resolved anonymous state',()=>{
  expect(render('authenticated')).toContain('Borrador recuperado');expect(render('authenticated')).not.toContain('username');
  expect(render('anonymous')).toContain('Ingresa al taller');expect(render('anonymous')).not.toContain('Borrador recuperado');
 });
+
+it('application shell contains no marketing, future modules or footer', () => {
+ const html = renderToStaticMarkup(<App/>);
+ for (const copy of ['EL TALLER, A MANO', 'Menos papel', 'Más tiempo en el taller', 'Un lugar para', 'Una sucursal', 'Tu trabajo, siempre a mano', 'Todo en su lugar', 'PRÓXIMOS MÓDULOS', '<footer', 'Reintentar sincronización']) expect(html).not.toContain(copy);
+ expect(html).toContain('Iniciar sesión');
+});

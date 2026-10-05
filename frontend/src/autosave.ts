@@ -17,7 +17,7 @@ export class Autosave {
   private stopped = false;
   private active?: Promise<void>;
   private timer?: ReturnType<typeof setTimeout>;
-  constructor(public state: RecordState, private user: string, private csrf: string, private report: (message: string) => void, private expired: () => void,
+  constructor(public state: RecordState, private user: string, private csrf: string, private report: (message: string, retryable?: boolean) => void, private expired: () => void,
     private persist = storage.write,
     private send = (id: string, mutation: Mutation) => api<{ version: string }>(`/orders/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': this.csrf, 'Idempotency-Key': mutation.key, ...(mutation.version === null ? {} : { 'If-Match': `"${mutation.version}"` }) }, body: JSON.stringify(mutation.draft) })) {}
   private write() {
@@ -54,12 +54,13 @@ export class Autosave {
         const result = await this.send(this.state.id, mutation);
         this.state.version = result.version; this.state.savedRevision = mutation.revision; delete this.state.pending;
         await this.write();
-        this.report('Guardado en el servidor');
+        this.report('Guardado');
       }
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) { this.stopped = true; this.expired(); }
       else if (error instanceof ApiError && [409, 412, 428].includes(error.status)) { this.stopped = true; this.report('Conflicto de versión. Tu copia está protegida en este dispositivo; requiere revisión antes de continuar.'); }
-      else this.report('No se pudo sincronizar. Conservamos la copia local; pulsa Reintentar.');
+      else if (typeof navigator !== 'undefined' && navigator.onLine === false) this.report('Cambios guardados en este dispositivo. Sin conexión.');
+      else this.report('No se pudo sincronizar. Reintenta para guardar los cambios pendientes.', true);
     } finally { this.syncing = false; }
   }
 }
