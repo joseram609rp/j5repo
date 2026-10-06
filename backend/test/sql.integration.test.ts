@@ -46,7 +46,7 @@ it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer
     expect(savedSession?.userId).toBe(mechanicId);
     expect((await call('/admin/users', 'GET', undefined, mechanic.headers)).status).toBe(403);
     expect((await call('/auth/activity', 'POST', undefined, { ...mechanic.headers, 'x-csrf-token': 'wrong' })).status).toBe(403);
-    const draft = { customerName: 'Integration fixture', plate: 'SQL123', mileage: null, notes: '', recommendations: '', vehicleId };
+    const draft = { customerName: 'Integration fixture', plate, mileage: null, notes: '', recommendations: '', vehicleId };
     const key = randomUUID();
     const save = (k = key, etag?: string, body = draft) => call('/orders/' + orderId, 'PUT', body,
       { ...mechanic.headers, 'idempotency-key': k, ...(etag ? { 'if-match': etag } : {}) });

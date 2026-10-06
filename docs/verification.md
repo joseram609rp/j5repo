@@ -1,3 +1,34 @@
+# Phase 3 — Orders MVP verificado el 2026-10-05 (America/Guatemala)
+
+## Entrega vigente
+
+`C:\j5repo`, branch `feature/orders-mvp`. Phase 2 (`15994cf`) integrada a `dev` mediante fast-forward local antes de crear el branch. `main` intacto. Phase 3 queda en su rama para revisión; sin push, merge final ni despliegue Azure.
+
+Flujo implementado: login → dashboard → nueva OPEN/retomar → SQL + IndexedDB autosave → lista OPEN de todos los mecánicos → continuar → cierre validado/confirmado → CLOSED de solo lectura → historial/búsqueda. ADMIN también tiene usuarios básicos completos y reapertura confirmada. Cambiar el dueño requiere acción ADMIN explícita; guardar/seleccionar otro cliente no transfiere ownership y las órdenes anteriores conservan su cliente.
+
+## Validación
+
+- `pnpm check`: tipos y builds backend/frontend/PWA aprobados; **135 tests locales** aprobados. Los 11 SQL se omiten por diseño en este comando.
+- `pnpm db:migrate`: aplicó solo **006_open_order_selection.sql**. 001–005 intactas; checksums verificados por el runner. 006 permite correcciones de selecciones OPEN, conserva guards de CLOSED/VOID, mechanic_id y total/servicios, y agrega índice de listas. Sin modificaciones de datos.
+- `pnpm test:sql`: **11 tests aprobados**, aproximadamente 112 s; ambas suites ejecutadas secuencialmente. Se usan exclusivamente fixtures nuevos, transacciones rollback-only y comprobación posterior de ausencia de usuarios/órdenes de prueba.
+- SQL real: login/auth/roles/CSRF/expiración/revocación; ETag/rowversion, replay y conflictos; total oficial SUM; cierre válido/faltantes/whitespace; guards directos; modelo legacy; listas cross-mechanic; búsquedas por OT/placa/cédula/nombre; reutilización sin duplicados; dueño permanece intacto en guardado normal; transferencia explícita ADMIN e histórico conservado; reapertura ADMIN.
+- `db:verify` después de la suite: 9 tablas, **6 migraciones**, 22 CHECK habilitados/trusted, índices únicos e IX_Orders_StatusCreated, 2 triggers activos, **1 ADMIN activo** y el **mismo vehículo existente** con modelo desconocido. Cero CLOSED sin observaciones. No se cambió el ADMIN ni se rellenaron datos reales.
+- UI automatizada interactiva: dashboard por rol sin crear órdenes al login; crear/retomar OPEN; legacy local; validación completa con errores inline/resumen; close/read-only/reopen; búsqueda/selección de dueño; historial vacío; detalle CLOSED conserva borrador activo; usuarios crear/desactivar confirmados; estado local en listas.
+- IndexedDB real emulado con fake-indexeddb: aislamiento por usuario, pending close persistido, recuperación de payload/clave/ETag exactos tras reinicio, sin segundo cierre. Regresiones autosave incluyen respuesta perdida, edición bloqueada CLOSED, rechazo conocido de cierre y replay rechazado sin falsa confirmación.
+- Retry manual solo ante error recuperable. Offline, conflicto y expiración mantienen sus comportamientos. CRC y kilometraje siguen numéricos; previews probados.
+- Navegador real con API simulada temporal, sin credenciales humanas ni escrituras SQL: dashboard desktop/móvil, entrada de todos los campos/trabajo, confirmación con OT/total, cierre y campos bloqueados. Viewport 390 px: scrollWidth 375 px, botones visibles mínimo 48 px. Vista temporal retirada después de revisión.
+- `git diff --check` aprobado. `.env` ignorado, sin seguimiento ni staging; secretos locales nunca impresos. Revisión del diff frente a credenciales locales sin revelar valores.
+
+## Límites y Phase 4
+
+Las pruebas SQL hacen rollback: no acreditan COMMIT persistente real, pérdida de respuesta tras COMMIT real ni concurrencia entre procesos. El browser smoke usa datos simulados; las suites API/SQL verifican los contratos del runtime real. Las suites SQL son secuenciales porque sus transacciones largas de fixtures y lecturas globales pueden provocar deadlocks artificiales cuando se ejecutan juntas; los reintentos transaccionales de producción conservan su presupuesto original.
+
+Phase 4: recuperación guiada de conflictos, anulación/admin-edit UI, reportes, retención de recibos/sesiones, catálogos extensos y pruebas de COMMIT/concurrencia. Antes de producción: despliegue/configuración HTTPS/Functions/Managed Identity, mínimos permisos SQL, limitador compartido y PWA en dispositivos reales. Usuarios básicos ya implementados; no se deja un módulo funcional a medias.
+
+---
+
+Los reportes siguientes son históricos de Phase 2 y fases anteriores; el estado vigente es Phase 3 arriba.
+
 # Limpieza final de UI Phase 2 — 2026-10-05 (America/Guatemala)
 
 - Se eliminaron slogans, panel de módulos futuros y footer decorativo. Formulario a todo el ancho, login centrado y campos apilados en móvil; logo J5 y paleta azul/rojo conservados.

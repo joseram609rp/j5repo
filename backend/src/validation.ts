@@ -19,7 +19,7 @@ export const draftSchema = z.object({
  make: blankOr(makeSchema).optional(), model: blankOr(modelSchema).optional(), year: yearSchema.nullable().optional(),
  mileage: mileageSchema, notes: z.string().max(5000), recommendations: z.string().max(5000),
  customerId: z.uuid().optional(), vehicleId: z.uuid().optional(), items: z.array(itemSchema).max(100).optional(),
- action: z.enum(['close', 'reopen', 'void', 'admin-edit']).optional()
+ action: z.enum(['close', 'reopen', 'void', 'admin-edit', 'transfer-owner']).optional()
 }).strict().refine(d => (d.items ?? []).reduce((sum, i) => sum + Math.round(i.price * 100), 0) <= 999_999_999_999, 'Total exceeds DECIMAL(12,2)');
 export function canClose(d: z.infer<typeof draftSchema>) {
  return d.notes.trim().length > 0 && d.mileage !== null && !!d.items?.length && d.items.every(i => itemSchema.safeParse(i).success) && customerSchema.safeParse({ fullName: d.customerName, identification: d.identification, phone: d.phone, email: d.email }).success &&
