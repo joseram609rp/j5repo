@@ -370,7 +370,7 @@ export function createApi(
           try {
             if (orderRoute && method === 'PUT') {
               const id = uuid.parse(orderRoute[1]);
-              const draft = draftSchema.parse(input);
+              let draft = draftSchema.parse(input);
               const existing = await tx.order(id);
               const expected = request.headers.get('if-match');
               if (existing && expected === null)
@@ -382,12 +382,20 @@ export function createApi(
                 throw new HttpError(412, 'VERSION_CONFLICT');
               if (
                 draft.action &&
-                ['reopen', 'void', 'admin-edit', 'transfer-owner'].includes(
+                ['reopen', 'admin-edit', 'transfer-owner', 'assign-mechanic'].includes(
                   draft.action,
                 ) &&
                 user.role !== 'ADMIN'
               )
                 throw new HttpError(403, 'ADMIN_REQUIRED');
+              if (draft.action === 'void' || draft.action === 'assign-mechanic') {
+                if (!existing || existing.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');
+                if (draft.action === 'void' && user.role !== 'ADMIN' && existing.mechanicId !== user.id)
+                  throw new HttpError(403, 'ASSIGNED_MECHANIC_REQUIRED');
+                if (draft.action === 'assign-mechanic' && !draft.mechanicId) throw new HttpError(400, 'INVALID_MECHANIC');
+                // Operational actions preserve all customer, vehicle and service data.
+                draft = { ...existing.draft, action: draft.action, ...(draft.action === 'assign-mechanic' ? { mechanicId: draft.mechanicId } : {}) };
+              }
               if (
                 existing &&
                 existing.status !== 'OPEN' &&
@@ -407,7 +415,7 @@ export function createApi(
                   !draft.vehicleId)
               )
                 throw new HttpError(400, 'OWNER_TRANSFER_INCOMPLETE');
-              if (draft.mechanicId && draft.mechanicId !== existing?.mechanicId) {
+              if (draft.mechanicId && (draft.action === 'assign-mechanic' || draft.mechanicId !== existing?.mechanicId)) {
                 if (user.role !== 'ADMIN') throw new HttpError(403, 'ADMIN_REQUIRED');
                 if (!existing || existing.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');
                 const target = await tx.userById(draft.mechanicId);
@@ -425,10 +433,10 @@ export function createApi(
                 throw new HttpError(400, 'ORDER_INCOMPLETE');
               const saved = await tx.saveOrder(id, user.id, draft, existing);
               if (existing && saved.mechanicId !== existing.mechanicId)
-                await tx.audit(user.id, 'ORDER_MECHANIC:' + saved.mechanicId, id);
+                await tx.audit(user.id, 'ORDER_MECHANIC_CHANGED', id);
               await tx.audit(
                 user.id,
-                existing ? 'ORDER_UPDATED' : 'ORDER_CREATED',
+                draft.action === 'void' ? 'ORDER_VOIDED' : existing ? 'ORDER_UPDATED' : 'ORDER_CREATED',
                 id,
               );
               response = result(saved, 200, {

@@ -8,7 +8,11 @@ export function OrderList({
   onOpen,
   active,
   userId,
+  role,
+  onCancel,
 }: {
+  role?: 'ADMIN' | 'MECHANIC';
+  onCancel?: (order: Order) => void;
   userId?: string;
   status: 'OPEN' | 'CLOSED';
   onOpen: (order: Order) => void;
@@ -60,6 +64,14 @@ export function OrderList({
       current = false;
     };
   }, [status, applied, cursor, reload]);
+  useEffect(() => {
+    if (status !== 'OPEN') return;
+    const refresh = () => { if (document.visibilityState !== 'hidden') { setCursor(undefined); setReload(n => n + 1); } };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    const timer = setInterval(refresh, 30000);
+    return () => { clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
+  }, [status]);
   const visible = [...orders, ...localOrders.filter(local => !orders.some(o => o.id === local.id) && (!applied || local.draft.customerName.toLocaleLowerCase().includes(applied.toLocaleLowerCase()) || local.draft.plate === applied.toUpperCase().replace(/[\s-]/g, '')))];
   return (
     <section className="card">
@@ -125,6 +137,9 @@ export function OrderList({
             <button disabled={loading} onClick={() => onOpen(order)}>
               {status === 'OPEN' ? 'Continuar' : 'Ver detalle'}
             </button>
+            {order.status === 'OPEN' && !!order.version && onCancel && (role === 'ADMIN' || order.mechanicId === userId) && (
+              <button className="quiet" disabled={loading} onClick={() => onCancel(order)}>Cancelar orden</button>
+            )}
           </article>
         ))}
       </div>

@@ -240,7 +240,7 @@ it('same mechanic creates multiple OPEN; ADMIN reassigns OPEN with ETag, replay 
  const changed=await (await save(a.id,body,admin.headers,a.version,key)).json();
  expect(changed.mechanicId).toBe(adminId);expect(changed.version).not.toBe(a.version);
  expect(await (await save(a.id,body,admin.headers,a.version,key)).json()).toEqual(changed);
- expect(repo.audits.filter(x=>x.action==='ORDER_MECHANIC:'+adminId)).toEqual([{actorId:adminId,action:'ORDER_MECHANIC:'+adminId,entityId:a.id}]);
+ expect(repo.audits.filter(x=>x.action==='ORDER_MECHANIC_CHANGED')).toEqual([{actorId:adminId,action:'ORDER_MECHANIC_CHANGED',entityId:a.id}]);
  expect((await save(a.id,draft,admin.headers,a.version)).status).toBe(412);
  const closed=await (await save(a.id,{...draft,customerName:'Cliente',identification:'123456789',phone:'88888888',make:'Toyota',model:'Corolla',year:2035,mileage:0,items:[{description:'Frenos',price:1}],notes:'',action:'close'},admin.headers,changed.version)).json();
  expect(closed.status).toBe('CLOSED');

@@ -25,12 +25,13 @@ export function App() {
     'dashboard' | 'editor' | 'open' | 'history' | 'users'
   >('dashboard');
   const [ownerRevision, setOwnerRevision] = useState(0);
+  const [selectedMechanic, setSelectedMechanic] = useState('');
   const [mechanics, setMechanics] = useState<{id: string; fullName: string; role: string}[]>([]);
   const [order, setOrder] = useState<Order | null>(null);
   const [editorReady, setEditorReady] = useState(false);
   const [closing, setClosing] = useState(false);
   const [confirmAction, setConfirmAction] = useState<
-    'close' | 'reopen' | 'transfer-owner' | null
+    'close' | 'reopen' | 'transfer-owner' | 'void' | null
   >(null);
   const [session, setSession] = useState<Session | null>(null);
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>('checking');
@@ -52,6 +53,30 @@ export function App() {
       .catch(() => { if (current) setMessage('No se pudieron cargar los mecánicos. Reabre la orden para reintentar.'); });
     return () => { current = false; };
   }, [session, page, order?.id, order?.status]);
+  useEffect(() => { setSelectedMechanic(order?.mechanicId ?? ''); }, [order?.id, order?.mechanicId]);
+  useEffect(() => {
+    if (page !== 'editor' || !order || order.status !== 'OPEN') return;
+    const refresh = () => {
+      if (document.visibilityState === 'hidden') return;
+      void saver.current?.refresh().catch(() => undefined);
+    };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    const timer = setInterval(refresh, 30000);
+    return () => { clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
+  }, [page, order?.id, order?.status]);
+  async function updateMechanic() {
+    if (!saver.current || !order || !session || busy) return;
+    setBusy(true);
+    try {
+      await saver.current.flush();
+      await saver.current.edit({ ...saver.current.state.draft, mechanicId: selectedMechanic, action: 'assign-mechanic' });
+      await saver.current.flush();
+      if (saver.current.state.order?.mechanicId !== selectedMechanic) throw new Error('ASSIGNMENT_FAILED');
+      setMessage('Mecánico actualizado.');
+    } catch { setMessage('No se pudo actualizar el mecánico. Revisa la orden y sincroniza los cambios pendientes.'); }
+    finally { setBusy(false); }
+  }
   async function checkSession() {
     setBootstrapError(false);
     setSessionStatus('checking');
@@ -200,7 +225,7 @@ export function App() {
     setTouched(new Set());
     setClosing(false);
     setConfirmAction(
-      record.pending?.draft.action === 'close'
+      record.pending?.draft.action === 'void' ? 'void' : record.pending?.draft.action === 'close'
         ? 'close'
         : record.pending?.draft.action === 'reopen'
           ? 'reopen'
@@ -209,7 +234,7 @@ export function App() {
             : null,
     );
     setPage('editor');
-    if (record.order?.status !== 'CLOSED') {
+    if (!record.order || record.order.status === 'OPEN') {
       await service.sync();
       setOrder(service.state.order ?? null);
     }
@@ -256,7 +281,7 @@ export function App() {
       }
       await saver.current?.pause();
       const remote = await api<Order>('/orders/' + selected.id);
-      if (remote.status === 'CLOSED') {
+      if (remote.status !== 'OPEN') {
         setDraft(remote.draft);
         setOrder(remote);
         setTouched(new Set());
@@ -301,7 +326,9 @@ export function App() {
       setDraft(saver.current.state.draft);
       setConfirmAction(null);
       setMessage(
-        action === 'close'
+        action === 'void'
+          ? 'Orden cancelada. Se conserva su información.'
+          : action === 'close'
           ? 'Orden cerrada correctamente.'
           : action === 'reopen'
             ? 'Orden reabierta.'
@@ -317,7 +344,7 @@ export function App() {
     }
   }
   function saveDraft(next: Draft) {
-    if (busy || confirmAction || order?.status === 'CLOSED') return;
+    if (busy || confirmAction || (order && order.status !== 'OPEN')) return;
     setDraft(next);
     void saver.current
       ?.edit(next)
@@ -359,7 +386,7 @@ export function App() {
   }
   const errors = draft ? visibleErrors(draft, touched, closing) : [];
   const readOnly =
-    order?.status === 'CLOSED' ||
+    (!!order && order.status !== 'OPEN') ||
     !!confirmAction ||
     busy ||
     !!saver.current?.state.pending?.draft.action;
@@ -455,6 +482,12 @@ export function App() {
                     : undefined
                 }
                 userId={session.userId}
+                role={session.role}
+                onCancel={async selected => {
+                  await openOrder(selected);
+                  const current = saver.current?.state.order;
+                  if (current?.id === selected.id && current.status === 'OPEN' && (session.role === 'ADMIN' || current.mechanicId === session.userId)) setConfirmAction('void');
+                }}
                 status={page === 'open' ? 'OPEN' : 'CLOSED'}
                 onOpen={(o) => void openOrder(o)}
               />
@@ -480,7 +513,7 @@ export function App() {
             </h2>
             {sessionStatus === 'authenticated' && (
               <span className="badge">
-                {order?.status === 'CLOSED' ? 'CERRADA' : 'ABIERTA'}
+                {order?.status === 'VOID' ? 'CANCELADA' : order?.status === 'CLOSED' ? 'CERRADA' : 'ABIERTA'}
               </span>
             )}
           </div>
@@ -581,7 +614,7 @@ export function App() {
                       </ul>
                     </div>
                   )}
-                  {order?.status !== 'CLOSED' && !confirmAction && !busy && (
+                  {(!order || order.status === 'OPEN') && !confirmAction && !busy && (
                     <EntitySearch key={saver.current?.state.id} ownerRevision={ownerRevision} draft={draft} onSelect={saveDraft} allowTransfer={session.role === 'ADMIN'} onTransfer={() => {
                       setBusy(true);
                       void saver.current?.flush().then(() => { setOrder(saver.current?.state.order ?? null); setConfirmAction('transfer-owner'); })
@@ -721,10 +754,11 @@ export function App() {
                       </label>
                     </div>
                     {session.role === 'ADMIN' && order?.status === 'OPEN' && <label>Mecánico asignado
-                      <select aria-label="Mecánico asignado" value={draft.mechanicId ?? order.mechanicId} onChange={e => saveDraft({...draft, mechanicId: e.target.value})}>
+                      <select aria-label="Mecánico asignado" value={selectedMechanic} onChange={e => setSelectedMechanic(e.target.value)}>
                         {!mechanics.some(u => u.id === order.mechanicId) && <option value={order.mechanicId}>{order.mechanicName}</option>}
                         {mechanics.map(u => <option key={u.id} value={u.id}>{u.fullName} ({u.role})</option>)}
                       </select>
+                    <button type="button" disabled={readOnly || !selectedMechanic || selectedMechanic === order.mechanicId} onClick={() => void updateMechanic()}>Actualizar mecánico</button>
                     </label>}
                     <p>
                       Mecánico:{' '}
@@ -842,7 +876,10 @@ export function App() {
                       />
                     </label>
                   </fieldset>
-                  {order?.status !== 'CLOSED' && (
+                  {order?.status === 'OPEN' && (session.role === 'ADMIN' || order.mechanicId === session.userId) && (
+                    <button type="button" className="danger" disabled={busy || !!confirmAction} onClick={() => setConfirmAction('void')}>Cancelar orden</button>
+                  )}
+                  {(!order || order.status === 'OPEN') && (
                     <button
                       type="button"
                       className="danger"
@@ -886,7 +923,9 @@ export function App() {
                       className="confirmation"
                     >
                       <p>
-                        {confirmAction === 'close'
+                        {confirmAction === 'void'
+                          ? `¿Cancelar la orden ${order?.displayOrderId}? Esta acción la quitará de órdenes abiertas.`
+                          : confirmAction === 'close'
                           ? `¿Cerrar la orden ${order?.displayOrderId ?? 'local'}?`
                           : confirmAction === 'reopen'
                             ? `¿Reabrir la orden ${order?.displayOrderId}?`

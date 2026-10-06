@@ -203,7 +203,7 @@ it.skipIf(!enabled)(
           const reassigned=await call('/orders/'+orderId,'PUT',assignmentDraft,true,assignmentKey,assignmentVersion);
           expect(reassigned.status,diagnostic).toBe(200);open=await reassigned.json();expect(open.mechanicId).toBe(adminId);
           expect(await (await call('/orders/'+orderId,'PUT',assignmentDraft,true,assignmentKey,assignmentVersion)).json()).toEqual(open);
-          const audit=(await tx.query<{actor_id:string;action:string;entity_id:string}>('SELECT actor_id,action,entity_id FROM dbo.AuditLogs WHERE entity_id=@id AND action=@action',{id:orderId,action:'ORDER_MECHANIC:'+adminId})).recordset;
+          const audit=(await tx.query<{actor_id:string;action:string;entity_id:string}>('SELECT actor_id,action,entity_id FROM dbo.AuditLogs WHERE entity_id=@id AND action=@action',{id:orderId,action:'ORDER_MECHANIC_CHANGED'})).recordset;
           expect(audit).toHaveLength(1);expect(audit[0]!.actor_id.toLowerCase()).toBe(adminId);
           const closeKey = randomUUID(),
             payload = { ...draft, action: 'close' };
@@ -325,6 +325,7 @@ it.skipIf(!enabled)(
             newOwnerId,
           );
           expect((await tx.order(orderId))?.draft.customerId).toBe(customer.id);
+
           expect(
             (
               await call(
@@ -348,6 +349,42 @@ it.skipIf(!enabled)(
           expect(reopenedResponse.status).toBe(200);
           expect((await reopenedResponse.json()).status).toBe('OPEN');
           expect((await tx.order(orderId))?.draft.customerId).toBe(customer.id);
+          const operationalId=randomUUID();
+          const created=await call('/orders/'+operationalId,'PUT',draft);
+          const operational:Order=await created.json();expect(created.status,diagnostic).toBe(200);
+          const snapshot=async()=>({
+            items:(await tx.query('SELECT id,description,price FROM dbo.OrderItems WHERE order_id=@id ORDER BY id',{id:operationalId})).recordset,
+            customer:(await tx.query('SELECT * FROM dbo.Customers WHERE id=@id',{id:operational.draft.customerId!})).recordset,
+            vehicle:(await tx.query('SELECT * FROM dbo.Vehicles WHERE id=@id',{id:operational.draft.vehicleId!})).recordset,
+            history:(await tx.query('SELECT * FROM dbo.Orders WHERE id=@id',{id:orderId})).recordset,
+          });
+          const before=await snapshot();
+          const assignment={...operational.draft,action:'assign-mechanic',mechanicId:adminId};
+          expect((await call('/orders/'+operationalId,'PUT',assignment,false,randomUUID(),operational.version)).status).toBe(403);
+          const assignedResponse=await call('/orders/'+operationalId,'PUT',assignment,true,randomUUID(),operational.version);
+          expect(assignedResponse.status,diagnostic).toBe(200);const assigned:Order=await assignedResponse.json();
+          expect(assigned.mechanicId).toBe(adminId);expect(assigned.version).not.toBe(operational.version);
+          expect(assignedResponse.headers.get('etag')).toBe('"'+assigned.version+'"');expect(await snapshot()).toEqual(before);
+          const liveList=await (await call('/orders?status=OPEN&q='+encodeURIComponent(suffix))).json();
+          expect(liveList.orders.find((o:Order)=>o.id===operationalId).mechanicId).toBe(adminId);
+          const cancel={...assigned.draft,action:'void'};
+          expect((await call('/orders/'+operationalId,'PUT',cancel,false,randomUUID(),operational.version)).status).toBe(412);
+          expect((await call('/orders/'+operationalId,'PUT',cancel,false,randomUUID(),assigned.version)).status).toBe(403);
+          const key=randomUUID(),voidResponse=await call('/orders/'+operationalId,'PUT',cancel,true,key,assigned.version);
+          expect(voidResponse.status,diagnostic).toBe(200);const voided:Order=await voidResponse.json();expect(voided.status).toBe('VOID');
+          expect(await snapshot()).toEqual(before);expect(voided.draft).toEqual(operational.draft);
+          expect((await call('/orders/'+operationalId,'PUT',cancel,true,key,assigned.version)).status).toBe(200);
+          expect((await call('/orders/'+operationalId,'PUT',cancel,true,randomUUID(),voided.version)).status).toBe(409);
+          expect((await call('/orders/'+operationalId,'PUT',assignment,true,randomUUID(),voided.version)).status).toBe(409);
+          expect((await (await call('/orders?status=OPEN&q='+encodeURIComponent(suffix))).json()).orders.some((o:Order)=>o.id===operationalId)).toBe(false);
+          expect((await tx.query('SELECT action FROM dbo.AuditLogs WHERE entity_id=@id',{id:operationalId})).recordset.map(r=>r.action)).toEqual(expect.arrayContaining(['ORDER_MECHANIC_CHANGED','ORDER_VOIDED']));
+          const ownId=randomUUID(), ownResponse=await call('/orders/'+ownId,'PUT',draft),own:Order=await ownResponse.json();
+          expect((await call('/orders/'+ownId,'PUT',{...own.draft,action:'void'},false,randomUUID(),own.version)).status).toBe(200);
+          const closedId=randomUUID(), terminalCreated=await call('/orders/'+closedId,'PUT',draft), terminalOpen:Order=await terminalCreated.json();
+          const terminalResponse=await call('/orders/'+closedId,'PUT',{...terminalOpen.draft,action:'close'},false,randomUUID(),terminalOpen.version), closedFixture:Order=await terminalResponse.json();
+          expect(terminalResponse.status,diagnostic).toBe(200);
+          for(const action of ['void','assign-mechanic']) expect((await call('/orders/'+closedId,'PUT',{...closedFixture.draft,action,mechanicId:adminId},true,randomUUID(),closedFixture.version)).status).toBe(409);
+
         },
         undefined,
         true,

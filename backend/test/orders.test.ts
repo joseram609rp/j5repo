@@ -29,7 +29,10 @@ function setup() {
         headers: cookie ? { cookie: 'j5_session=' + raw } : {},
       }),
     );
-  return { repo, call };
+  const mutate = (id: string, draft: unknown, version = repo.orders.get(id)?.version, key = randomUUID()) => api(new Request(origin + '/api/orders/' + id, {
+    method: 'PUT', headers: { origin, cookie: 'j5_session=' + raw, 'content-type': 'application/json', 'x-csrf-token': 'fixture', 'idempotency-key': key, ...(version ? {'if-match': '"' + version + '"'} : {}) }, body: JSON.stringify(draft),
+  }));
+  return { repo, call, mutate, hash: tokenHash(raw) };
 }
 it('lists orders from any mechanic, filters CLOSED history and requires auth', async () => {
   const { repo, call } = setup();
@@ -146,4 +149,48 @@ it('partial names are accent/case insensitive, exact identity and pages remain b
  expect(await search('12345678')).toEqual([]);expect(await search('ABC12')).toEqual([]);
  expect(await search('abc-123')).toHaveLength(50);
  expect(await search('%_[')).toEqual([]);
+});
+
+
+const operationalDraft = { customerName: '', plate: '', mileage: null, notes: '', recommendations: '', items: [{description:'Servicio',price:10}] };
+it.each(['MECHANIC', 'ADMIN'] as const)('%s can VOID an assigned OPEN with replay and preserved data', async role => {
+ const {repo,mutate,call,hash}=setup(); repo.accounts.get(userId)!.role=role;
+ const id=randomUUID(), initial=await repo.saveOrder(id,userId,operationalDraft),key=randomUUID();
+ repo.clock+=30000; const last=repo.sessions.get(hash)!.lastActivity;
+ const payload={...operationalDraft,notes:'must not overwrite',action:'void'};
+ const first=await mutate(id,payload,initial.version,key);expect(first.status).toBe(200);
+ const voided=await first.json();expect(voided.status).toBe('VOID');expect(voided.draft).toEqual(initial.draft);
+ expect(first.headers.get('etag')).toBe('"'+voided.version+'"');expect(voided.version).not.toBe(initial.version);
+ expect(await (await mutate(id,payload,initial.version,key)).json()).toEqual(voided);
+ expect((await mutate(id,payload)).status).toBe(409);
+ expect((await (await call('/orders?status=OPEN')).json()).orders).toEqual([]);
+ expect(repo.audits.filter(a=>a.action==='ORDER_VOIDED' && a.entityId===id)).toHaveLength(1);
+ await call('/orders/'+id);expect(repo.sessions.get(hash)!.lastActivity).toBe(last);
+});
+it('only assigned mechanics can cancel; ADMIN can cancel another mechanic order',async()=>{
+ const {repo,mutate}=setup();const id=randomUUID();await repo.saveOrder(id,randomUUID(),operationalDraft);
+ expect((await mutate(id,{...operationalDraft,action:'void'})).status).toBe(403);
+ repo.accounts.get(userId)!.role='ADMIN';expect((await mutate(id,{...operationalDraft,action:'void'})).status).toBe(200);
+});
+it.each(['CLOSED','VOID'] as const)('%s cannot be cancelled or reassigned',async status=>{
+ const {repo,mutate}=setup();const id=randomUUID();const order=await repo.saveOrder(id,userId,operationalDraft);order.status=status;repo.accounts.get(userId)!.role='ADMIN';
+ for(const action of ['void','assign-mechanic']) expect((await mutate(id,{...operationalDraft,action,mechanicId:userId})).status).toBe(409);
+});
+it('explicit ADMIN reassignment validates target, changes ETag/list and rejects old versions without touching session',async()=>{
+ const {repo,mutate,call,hash}=setup();const id=randomUUID(), target=randomUUID();
+ repo.accounts.set(target,{...repo.accounts.get(userId)!,id:target,fullName:'Nuevo mecánico'});
+ const initial=await repo.saveOrder(id,userId,operationalDraft);
+ const payload={...operationalDraft,notes:'must not overwrite',action:'assign-mechanic',mechanicId:target};
+ expect((await mutate(id,payload)).status).toBe(403);repo.accounts.get(userId)!.role='ADMIN';
+ repo.accounts.get(target)!.active=false;expect((await mutate(id,payload)).status).toBe(400);repo.accounts.get(target)!.active=true;
+ const response=await mutate(id,payload);expect(response.status).toBe(200);const updated=await response.json();
+ expect(updated.mechanicId).toBe(target);expect(updated.draft).toEqual(initial.draft);expect(updated.version).not.toBe(initial.version);
+ expect(response.headers.get('etag')).toBe('"'+updated.version+'"');
+ repo.accounts.get(target)!.active=false;expect((await mutate(id,payload)).status).toBe(400);repo.accounts.get(target)!.active=true;
+ expect((await mutate(id,{...operationalDraft,action:'void'},initial.version)).status).toBe(412);
+ repo.accounts.get(userId)!.role='MECHANIC';expect((await mutate(id,{...operationalDraft,action:'void'})).status).toBe(403);
+ const last=repo.sessions.get(hash)!.lastActivity;repo.clock+=30000;
+ for(let i=0;i<3;i++) { await call('/orders/'+id); const list=await (await call('/orders?status=OPEN')).json();expect(list.orders[0].mechanicName).toBe('Nuevo mecánico'); }
+ expect(repo.sessions.get(hash)!.lastActivity).toBe(last);
+ expect(repo.audits.some(a=>a.action==='ORDER_MECHANIC_CHANGED' && a.entityId===id)).toBe(true);
 });

@@ -48,22 +48,22 @@ Todas las mutaciones requieren Origin=APP_ORIGIN. Salvo login, requieren cookie 
 | POST | /api/auth/logout | Revoca sesión |
 | GET | /api/orders?status=OPEN\|CLOSED&q=...&before=uuid | Lista/búsqueda; CLOSED exige q de mínimo 2 caracteres; máximo 50, cursor before |
 | GET | /api/orders/:uuid | Detalle, ETag, apertura/cierre, mecánico y total |
-| PUT | /api/orders/:uuid | Crear/guardar, mechanicId opcional para reasignar OPEN solo ADMIN, acciones close/reopen/transfer-owner; ETag e idempotencia |
+| PUT | /api/orders/:uuid | Crear/guardar, acciones close/reopen/transfer-owner/void/assign-mechanic; ETag e idempotencia |
 | GET | /api/customers?q=... | Cédula exacta o nombre parcial case/accent-insensitive; máximo 20, mínimo 2 caracteres |
 | GET | /api/vehicles?q=... | Placa exacta normalizada, mínimo 3 caracteres; devuelve dueño actual |
 | GET | /api/vehicles?customerId=uuid | Vehículos del cliente, máximo 20 |
 | GET/POST | /api/admin/users | ADMIN: listar/crear, sin hashes en respuesta |
 | PATCH | /api/admin/users/:uuid | ADMIN: active/role/password/fullName |
 
-GET/DELETE `/api/session` y POST `/api/session/activity` siguen como aliases. `void` y `admin-edit` siguen disponibles en backend solo para ADMIN; no tienen UI en esta fase.
+GET/DELETE `/api/session` y POST `/api/session/activity` siguen como aliases. `admin-edit` continúa disponible solo para ADMIN en backend. `void` tiene confirmación en editor y lista OPEN: ADMIN puede cancelar cualquier OPEN; MECHANIC solo la asignada a su usuario. CLOSED/VOID no admiten cancelación ni reasignación.
 
 Datos de cierre: nombre requerido, cédula 9 dígitos, teléfono 8, email opcional válido, placa ABC123, marca/modelo, año entero >=1950, sin máximo funcional (almacenado como int SQL), kilometraje entero 0..10,000,000, al menos un trabajo con descripción/precio positivo Observaciones y recomendaciones opcionales. Valores incompletos/incorrectos se conservan localmente; SQL autosave espera payload válido. Kilometraje y precios siguen numéricos; previews `128,400 km` y CRC no alteran el payload.
 
-El servidor asigna mechanic_id y recalcula SUM(OrderItems.price). MECHANIC puede editar OPEN del taller y no modificar CLOSED; reopen/transfer-owner/void/admin-edit requieren ADMIN. El dueño actual solo se cambia mediante `action=transfer-owner`, con identidad exacta de cliente/vehículo, ETag, idempotencia y auditoría.
+El servidor asigna mechanic_id y recalcula SUM(OrderItems.price). MECHANIC puede editar OPEN del taller y no modificar CLOSED; reopen/transfer-owner/assign-mechanic/admin-edit requieren ADMIN. Cancelar usa VOID, sin DELETE ni cambios a cliente/vehículo/trabajos, y registra ORDER_VOIDED. El dueño actual solo se cambia mediante `action=transfer-owner`, con identidad exacta de cliente/vehículo, ETag, idempotencia y auditoría.
 
 ## Persistencia y sesión
 
-IndexedDB mantiene registros por clave compuesta [userId, orderId], migrando atómicamente el borrador legacy por usuario sin descartarlo; payload/clave/ETag pendientes y metadata de la orden. El cierre se persiste antes del envío; una respuesta perdida se recupera con la misma clave. Se protege el borrador antes de cambiar de orden. Un conflicto conserva la copia y detiene sync para revisión; la recuperación guiada de conflictos queda para Phase 4.
+IndexedDB mantiene registros por clave compuesta [userId, orderId], migrando atómicamente el borrador legacy por usuario sin descartarlo; payload/clave/ETag pendientes y metadata de la orden. El cierre se persiste antes del envío; una respuesta perdida se recupera con la misma clave. Se protege el borrador antes de cambiar de orden. Un 412 consulta la orden nuevamente y conserva el borrador. Si únicamente cambió la metadata por reasignación, permite reintentar con ETag y clave nuevos; si cambió el contenido remoto, detiene sync para revisión. La recuperación guiada de conflictos de contenido queda para Phase 4.
 
 Estados: Guardado, Sincronizando, copia local/offline y error. Retry manual aparece solo ante fallo recuperable; al volver la conexión se reintenta automáticamente. Un Web Lock por usuario evita dos editores locales simultáneos.
 
@@ -77,6 +77,8 @@ Ver [arquitectura](docs/architecture.md) e [infraestructura](infra/README.md).
 
 Búsqueda de órdenes: nombres parciales con collation Latin1_General_100_CI_AI; cédula exacta (trim) y placa exacta normalizada (uppercase sin espacios/guiones). display_order_id admite prefijo literal. CHARINDEX/LEFT usan parámetros, sin LIKE: %, _ y [ son caracteres literales. Las páginas SQL se limitan a 50, ordenadas por created_at y order_number para desempatar; Cargar más envía before con el último UUID. Una página exacta de 50 puede mostrar Cargar más y terminar en una página vacía.
 
-Reasignación: AuditLogs guarda actor_id, entity_id de la orden y action=ORDER_MECHANIC:<nuevo UUID> (menos de 64 caracteres). No requiere ampliar schema. El mecánico actual viaja en Order.mechanicId; el campo Draft.mechanicId es una intención de cambio y se retira del borrador al guardar.
+Reasignación: ADMIN elige un usuario activo y pulsa Actualizar mecánico, usando action=assign-mechanic y mechanicId. AuditLogs guarda actor_id, entity_id de la orden y action=ORDER_MECHANIC_CHANGED. No requiere ampliar schema. El mecánico actual viaja en Order.mechanicId; el campo Draft.mechanicId es una intención de cambio y se retira del borrador al guardar.
 
 CarsXE, catálogos de marcas/modelos y llamadas externas permanecen fuera de esta fase.
+
+Editor y lista OPEN consultan SQL al recuperar foco/visibilidad y cada 30 segundos mientras están visibles. El editor avisa de la reasignación y actualiza los permisos de cancelación; los borradores pendientes conservan su versión base hasta resolver el conflicto. Estos GET no generan actividad ni renuevan la sesión de dos horas. La lista se vuelve a consultar al entrar al módulo.

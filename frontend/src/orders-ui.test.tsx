@@ -107,7 +107,7 @@ beforeEach(() => {
           draft: d,
           version: String(puts),
           status:
-            d.action === 'close'
+            d.action === 'void' ? 'VOID' : d.action === 'close'
               ? 'CLOSED'
               : d.action === 'reopen'
                 ? 'OPEN'
@@ -173,6 +173,7 @@ beforeEach(() => {
 afterEach(async () => {
   await act(async () => root.unmount());
   container.remove();
+  vi.useRealTimers();
   vi.clearAllMocks();
   vi.unstubAllGlobals();
 });
@@ -477,7 +478,7 @@ it('keeps pending drafts independent while creating and continuing multiple orde
  expect(second).not.toBe(first);
  expect(records.get(first)?.draft.identification).toBe('12');
  await click('Órdenes abiertas');
- const buttons=[...container.querySelectorAll<HTMLButtonElement>('.order-card button')];
+ const buttons=[...container.querySelectorAll<HTMLButtonElement>('.order-card button')].filter(b => b.textContent === 'Continuar');
  expect(buttons).toHaveLength(2);
  await act(async()=>buttons[0]!.click());
  expect(container.querySelector<HTMLInputElement>('[data-field=identification]')?.value).toBe('12');
@@ -508,7 +509,11 @@ it('ADMIN can select an active mechanic and owner update is explicitly labeled',
  const select=container.querySelector<HTMLSelectElement>('[aria-label="Mecánico asignado"]')!;
  expect(select.textContent).toContain('Otro mecánico');expect(select.textContent).not.toContain('Inactivo');
  await act(async()=>{select.value=next;select.dispatchEvent(new Event('change',{bubbles:true}));});
- expect(disk?.draft.mechanicId).toBe(next);
+ expect(disk?.draft.mechanicId).toBeUndefined();
+ expect(puts).toBe(0);
+ await click('Actualizar mecánico');
+ expect(orders.get(selected.id)?.mechanicId).toBe(next);
+ expect(vi.mocked(api).mock.calls.some(([,options])=>options?.body?.toString().includes('assign-mechanic'))).toBe(true);
  await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
  // Exact selections become valid UUIDs in the real API; the UI test fixture uses short identifiers.
  expect(button('Actualizar dueño a Cliente de prueba')).toBeTruthy();
@@ -532,4 +537,55 @@ it('history searches on submit and loads the next page using the last server UUI
  await click('Cargar más');expect(container.querySelectorAll('.order-card')).toHaveLength(55);
  expect(vi.mocked(api).mock.calls.at(-1)?.[0]).toContain('before='+list[49]!.id);
  expect(button('Cargar más')).toBeUndefined();
+});
+
+
+it('assigned mechanic cancels with confirmation; VOID is read-only and absent on reentry',async()=>{
+ const initial=seed(); await mount();await click('Órdenes abiertas');await click('Continuar');
+ expect(button('Actualizar mecánico')).toBeUndefined();await click('Cancelar orden');
+ expect(text()).toContain('Esta acción la quitará de órdenes abiertas.');expect(orders.get(initial.id)?.status).toBe('OPEN');
+ await click('Confirmar');expect(orders.get(initial.id)?.status).toBe('VOID');
+ expect(container.querySelector('fieldset')?.disabled).toBe(true);expect(button('Cancelar orden')).toBeUndefined();
+ await click('Órdenes abiertas');expect(container.querySelector('.order-list')?.textContent).not.toContain(initial.displayOrderId);
+});
+it('focus refetch updates reassigned mechanic and removes cancellation without session activity',async()=>{
+ const initial=seed();await mount();await click('Órdenes abiertas');await click('Continuar');
+ expect(button('Cancelar orden')).toBeTruthy();
+ orders.set(initial.id,{...initial,mechanicId:crypto.randomUUID(),mechanicName:'Nuevo mecánico',version:'new-version'});
+ await act(async()=>{window.dispatchEvent(new Event('focus'));for(let i=0;i<30;i++)await Promise.resolve();});
+ expect(text()).toContain('Esta orden fue reasignada a Nuevo mecánico.');expect(button('Cancelar orden')).toBeUndefined();
+ expect(disk?.version).toBe('new-version');expect(vi.mocked(api).mock.calls.some(([path])=>path==='/auth/activity')).toBe(false);
+});
+it('ADMIN can cancel an order assigned to another mechanic',async()=>{
+ const initial=seed();initial.mechanicId=crypto.randomUUID();orders.set(initial.id,clone(initial));disk!.order=clone(initial);
+ vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
+ await mount();await click('Órdenes abiertas');await click('Continuar');expect(button('Cancelar orden')).toBeTruthy();
+});
+
+
+it('polls OPEN metadata every 30 seconds and does not renew session',async()=>{
+ const initial=seed();await mount();await click('Órdenes abiertas');await click('Continuar');vi.useFakeTimers();
+ // Remounting the editor installs its interval under the fake clock.
+ await click('Inicio');await click('Órdenes abiertas');await click('Continuar');
+ orders.set(initial.id,{...initial,mechanicId:crypto.randomUUID(),mechanicName:'Poll mechanic',version:'polled'});
+ await act(async()=>{await vi.advanceTimersByTimeAsync(30000);});
+ expect(text()).toContain('Esta orden fue reasignada a Poll mechanic.');expect(disk?.version).toBe('polled');
+ expect(vi.mocked(api).mock.calls.some(([path])=>path==='/auth/activity')).toBe(false);
+});
+it('an invalid local draft does not prevent cancellation of a persisted OPEN',async()=>{
+ seed();await mount();await click('Órdenes abiertas');await click('Continuar');
+ await input('[data-field=identification]','12');await click('Cancelar orden');await click('Confirmar');
+ expect(disk?.order?.status).toBe('VOID');expect(puts).toBe(1);
+});
+
+it('list cancellation opens the selected order confirmation and removes it after success',async()=>{
+ const initial=seed();await mount();await click('Órdenes abiertas');await click('Cancelar orden');
+ expect(container.querySelector('[role=dialog]')?.textContent).toContain(initial.displayOrderId);
+ expect(puts).toBe(0);await click('Confirmar');await click('Órdenes abiertas');
+ expect(container.querySelector('.order-list')?.textContent).not.toContain(initial.displayOrderId);
+});
+it('list hides cancellation for orders assigned to another mechanic',async()=>{
+ const initial=seed();initial.mechanicId=crypto.randomUUID();orders.set(initial.id,clone(initial));
+ await mount();await click('Órdenes abiertas');expect(button('Cancelar orden')).toBeUndefined();
+ await click('Continuar');expect(button('Cancelar orden')).toBeUndefined();
 });

@@ -1,3 +1,28 @@
+# Phase 3 — cancelación y reasignación operativas (2026-10-05, America/Guatemala)
+
+Repositorio C:\j5repo inspeccionado limpio, en feature/orders-mvp antes de editar. Sin merge, push, commit, staging ni despliegue; dev/main intactos. CarsXE fuera de scope.
+
+## Resultado de esta ronda
+
+- Cancelar orden visible en editor y lista OPEN; desde la lista abre el detalle y confirmación de la orden seleccionada. MECHANIC solo cancela la asignada a su usuario; ADMIN cualquier OPEN. Backend y repositorio SQL validan permisos y estado. CLOSED/VOID rechazan cancelación y reasignación. La confirmación usa el número de orden y avisa que desaparecerá de abiertas.
+- action=void usa PUT /api/orders/:uuid, status=VOID y audit ORDER_VOIDED con entity_id=orderId. La operación SQL actualiza únicamente estado/fecha; no hace DELETE ni reemplaza OrderItems ni customer/vehicle/referencias históricas. Un borrador local inválido no impide cancelar una OPEN ya persistida. VOID queda read-only, desaparece de OPEN y se excluye de historial normal.
+- ADMIN selecciona un usuario activo elegible y pulsa Actualizar mecánico. Cambiar el dropdown no edita el borrador ni inicia autosave. action=assign-mechanic actualiza solo mechanic_id/fecha, devuelve orden y ETag nuevos y audita ORDER_MECHANIC_CHANGED. El mecánico normal ve el asignado read-only. Se conserva la edición general de OPEN por los mecánicos del taller.
+- La lista se monta/consulta SQL al entrar o reentrar. Editor y lista OPEN refrescan mediante GET al recuperar foco/visibilidad y cada 30 segundos estando visibles. El editor avisa de la reasignación y recalcula permiso de cancelación inmediatamente. Las respuestas tardías de una orden abandonada se ignoran.
+- Borradores sucios mantienen su versión base; GET no reconoce como guardados cambios locales. Un 412 refetch conserva el borrador. Reasignación sin cambio de contenido permite retry explícito con ETag y clave de idempotencia nuevos; cambios remotos de contenido detienen sync para revisión. No se reintenta automáticamente una cancelación rechazada.
+- Se mantienen Origin/CSRF, recibos idempotentes, If-Match y rowversion, transacciones y parámetros SQL. Solo actividad real renueva la sesión de dos horas; GET/polls/foco/autosave no la renuevan.
+
+## Verificación final
+
+- pnpm check: typecheck, 168 pruebas locales aprobadas y builds backend/frontend/PWA correctos; 13 SQL omitidas en el comando local por diseño.
+- pnpm --filter @j5/backend db:verify: conectividad y estructura correctas; SchemaMigrations 001–008 ya aplicadas y triggers activos. AuditLogs existente basta. No se crearon ni editaron migraciones ni se aplicó DDL.
+- pnpm test:sql: 13 pruebas reales aprobadas, todas rollback-only. Incluye cancelar propia/403 para no asignado, ADMIN, idempotencia, CLOSED/VOID, reasignación y rowversion/ETag, listado con asignado actual, auditoría, preservación de IDs/contenido de trabajos, cliente, vehículo e historial anterior. Las fixtures y sus usuarios no persisten; no se modificaron usuarios ADMIN ni datos reales.
+- Frontend: selector sin autosave y botón explícito ADMIN; cancelación por permisos desde editor/lista; confirmación, VOID read-only y retirada de lista; foco y polling con aviso de reasignación; sesión sin renovación por consultas; 412 con copia local conservada y clave nueva al retry; respuesta tardía ignorada al cambiar de orden.
+- git diff --check sin errores. .env local ignorado, sin tracking/staging y sin imprimir secretos.
+
+README actualizado con contratos, permisos, auditoría y refresco. Los registros siguientes documentan rondas anteriores; las reglas de esta ronda sustituyen sus descripciones antiguas de void/reasignación.
+
+---
+
 # Phase 3 — cambios 1–7 verificados el 2026-10-05 (America/Guatemala)
 
 Trabajo en C:\j5repo, branch feature/orders-mvp inspeccionado antes de editar. Sin merge, push, staging, commit ni despliegue. El cambio previo en .env.example se conservó. CarsXE, catálogos, seed y llamadas externas no se implementaron.

@@ -5,7 +5,7 @@ export type Draft = {
   mechanicId?: string;
   customerId?: string;
   vehicleId?: string;
-  action?: 'close' | 'reopen' | 'void' | 'admin-edit' | 'transfer-owner';
+  action?: 'close' | 'reopen' | 'void' | 'admin-edit' | 'transfer-owner' | 'assign-mechanic';
   customerName: string;
   plate: string;
   mileage: number | null;
@@ -96,9 +96,11 @@ export const fresh = (): RecordState => ({
 });
 /** Freeze the payload/key before sending. Never reuse a key with an edited payload. */
 export class Autosave {
+  private baselineDraft?: Draft;
   private queue = Promise.resolve();
   private syncing = false;
   private stopped = false;
+  private detached = false;
   private active?: Promise<void>;
   private timer?: ReturnType<typeof setTimeout>;
   constructor(
@@ -121,7 +123,7 @@ export class Autosave {
         },
         body: JSON.stringify(mutation.draft),
       }),
-  ) {}
+  ) { this.baselineDraft = state.order?.draft; }
   private write() {
     const snapshot = structuredClone(this.state);
     this.queue = this.queue
@@ -133,7 +135,7 @@ export class Autosave {
     if (
       this.state.pending?.draft.action ||
       this.state.draft.action ||
-      (this.state.order?.status === 'CLOSED' && draft.action !== 'reopen')
+      (this.state.order?.status === 'VOID' || (this.state.order?.status === 'CLOSED' && draft.action !== 'reopen'))
     )
       throw new Error('ORDER_LOCKED');
     this.state.draft = draft;
@@ -162,12 +164,24 @@ export class Autosave {
       this.state.pending?.draft.action === action ||
       this.state.draft.action === action;
     const replayVersion = this.state.version;
+    if (action === 'void' && !replaying) {
+      clearTimeout(this.timer);
+      await this.active;
+      if (this.state.pending || this.state.order?.status !== 'OPEN') throw new Error('SYNC_REQUIRED');
+      // Cancellation does not save an invalid local edit or replace related services.
+      const before = this.state.version;
+      await this.edit({ ...this.state.order.draft, action });
+      await this.flush();
+      if (this.state.version === before || (this.state.order?.status as string) !== 'VOID') throw new Error('ACTION_REJECTED');
+      return this.state.order;
+    }
     await this.flush();
     const beforeVersion = this.state.version;
     if (replaying) {
       if (
         this.state.version === replayVersion ||
         (action === 'close' && this.state.order?.status !== 'CLOSED') ||
+        (action === 'void' && this.state.order?.status !== 'VOID') ||
         (action === 'reopen' && this.state.order?.status !== 'OPEN')
       )
         throw new Error('ACTION_REJECTED');
@@ -178,12 +192,44 @@ export class Autosave {
     if (
       this.state.version === beforeVersion ||
       (action === 'close' && this.state.order?.status !== 'CLOSED') ||
+        (action === 'void' && this.state.order?.status !== 'VOID') ||
       (action === 'reopen' && this.state.order?.status !== 'OPEN')
     )
       throw new Error('ACTION_REJECTED');
     return this.state.order;
   }
+  async refresh(conflict = false) {
+    const version = this.state.version;
+    const metadataVersion = this.state.order?.version;
+    if (this.detached) return;
+    if (!version || (this.active && !conflict)) return;
+    const remote = await api<Order>('/orders/' + this.state.id);
+    if (this.detached || (this.active && !conflict) || this.state.version !== version || this.state.order?.version !== metadataVersion) return;
+    if (!conflict && remote.version === this.state.order?.version) return;
+    const reassigned = this.state.order?.mechanicId !== remote.mechanicId;
+    const metadataOnly = JSON.stringify(this.baselineDraft) === JSON.stringify(remote.draft) && remote.status === 'OPEN';
+    this.state.order = remote;
+    if (conflict && metadataOnly) {
+      // A metadata-only reassignment can safely rebase the preserved local edits.
+      delete this.state.pending;
+      const { action: _, mechanicId: __, ...local } = this.state.draft;
+      this.state.draft = local;
+      this.state.version = remote.version;
+      this.stopped = false;
+    }
+    if (!this.state.pending && this.state.revision === this.state.savedRevision) {
+      this.state.version = remote.version;
+      this.state.draft = remote.draft;
+      this.baselineDraft = remote.draft;
+    }
+    const pendingAction = this.state.pending?.draft.action;
+    const awaitingReceipt = (pendingAction === 'void' && remote.status === 'VOID') || (pendingAction === 'close' && remote.status === 'CLOSED');
+    if (remote.status !== 'OPEN' && !awaitingReceipt) this.stopped = true;
+    await this.write();
+    this.report(reassigned ? `Esta orden fue reasignada a ${remote.mechanicName ?? remote.mechanicId}.` : remote.status === 'VOID' ? 'Esta orden fue cancelada.' : 'Orden actualizada.');
+  }
   async pause() {
+    this.detached = true;
     this.stopped = true;
     clearTimeout(this.timer);
     await this.active;
@@ -234,6 +280,7 @@ export class Autosave {
         const result = await this.send(this.state.id, mutation);
         if (result.status && result.draft) {
           this.state.order = result as Order;
+          this.baselineDraft = result.draft;
           if (this.state.revision === mutation.revision)
             this.state.draft = result.draft;
         }
@@ -276,8 +323,12 @@ export class Autosave {
         [409, 412, 428].includes(error.status)
       ) {
         this.stopped = true;
+        const priorMechanic = this.state.order?.mechanicId;
+        if (error.status === 412) await this.refresh(true).catch(() => undefined);
+        const notice = priorMechanic !== this.state.order?.mechanicId ? `Esta orden fue reasignada a ${this.state.order?.mechanicName ?? this.state.order?.mechanicId}. ` : '';
         this.report(
-          'Conflicto de versión. Tu copia está protegida en este dispositivo; requiere revisión antes de continuar.',
+          notice + 'Conflicto de versión. La orden se ha consultado de nuevo; tu copia local está protegida. Revisa los datos antes de reintentar.',
+          !this.stopped,
         );
       } else if (typeof navigator !== 'undefined' && navigator.onLine === false)
         this.report('Cambios guardados en este dispositivo. Sin conexión.');

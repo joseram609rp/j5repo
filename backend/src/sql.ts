@@ -304,6 +304,30 @@ export class SqlUnit implements UnitOfWork {
     return result;
   }
   async saveOrder(id: string, userId: string, draft: Draft, previous?: Order) {
+    if (draft.action === 'void' || draft.action === 'assign-mechanic') {
+      if (!previous || previous.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');
+      const actor = await this.userById(userId);
+      if (draft.action === 'void' && actor?.role !== 'ADMIN' && previous.mechanicId !== userId)
+        throw new HttpError(403, 'ASSIGNED_MECHANIC_REQUIRED');
+      if (draft.action === 'assign-mechanic') {
+        if (actor?.role !== 'ADMIN') throw new HttpError(403, 'ADMIN_REQUIRED');
+        const target = draft.mechanicId ? await this.userById(draft.mechanicId) : undefined;
+        if (!target?.active || !['ADMIN', 'MECHANIC'].includes(target.role)) throw new HttpError(400, 'INVALID_MECHANIC');
+      }
+      await this.query("EXEC sys.sp_set_session_context @key=N'j5_mechanic_reassignment',@value=@allow", { allow: draft.action === 'assign-mechanic' });
+      try {
+        const result = await this.query(
+          draft.action === 'void'
+            ? "UPDATE dbo.Orders SET status='VOID',updated_at=SYSUTCDATETIME() WHERE id=@id AND status='OPEN' AND version=@version"
+            : "UPDATE dbo.Orders SET mechanic_id=@mechanic,updated_at=SYSUTCDATETIME() WHERE id=@id AND status='OPEN' AND version=@version",
+          { id, mechanic: draft.mechanicId ?? previous.mechanicId, version: Buffer.from(previous.version, 'hex') },
+        );
+        if (result.rowsAffected[0] !== 1) throw new HttpError(412, 'VERSION_CONFLICT');
+      } finally {
+        await this.query("EXEC sys.sp_set_session_context @key=N'j5_mechanic_reassignment',@value=NULL");
+      }
+      return (await this.order(id))!;
+    }
     const assignedMechanic = draft.mechanicId ?? previous?.mechanicId ?? userId;
     if (assignedMechanic !== (previous?.mechanicId ?? userId)) {
       const actor = await this.userById(userId);
@@ -494,9 +518,7 @@ export class SqlUnit implements UnitOfWork {
     const status =
       action === 'close'
         ? 'CLOSED'
-        : action === 'void'
-          ? 'VOID'
-          : action === 'reopen'
+        : action === 'reopen'
             ? 'OPEN'
             : action === 'admin-edit' && dataClosed
               ? 'CLOSED'
