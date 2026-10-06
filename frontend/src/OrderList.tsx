@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
 import { api } from './api';
 import { formatCRC } from './form-validation';
-import type { Order } from './autosave';
+import { storage, type Order } from './autosave';
 
 export function OrderList({
   status,
   onOpen,
   active,
+  userId,
 }: {
+  userId?: string;
   status: 'OPEN' | 'CLOSED';
   onOpen: (order: Order) => void;
   active?: { id: string; message: string };
 }) {
+  const [localOrders, setLocalOrders] = useState<Order[]>([]);
   const [orders, setOrders] = useState<Order[]>([]),
     [query, setQuery] = useState(''),
     [applied, setApplied] = useState(''),
@@ -21,7 +24,21 @@ export function OrderList({
     [cursor, setCursor] = useState<string | undefined>(),
     [more, setMore] = useState(false);
   useEffect(() => {
+    if (status !== 'OPEN' || !userId) return;
     let current = true;
+    void storage.list(userId).then(records => {
+      if(current) setLocalOrders(records.filter(r => r.order?.status !== 'CLOSED' && r.order?.status !== 'VOID' && (!r.version || r.pending || r.savedRevision < r.revision)).map(r => ({
+        ...(r.order ?? {status: 'OPEN' as const, mechanicId: userId}), id: r.id, draft: r.draft, version: r.version ?? '',
+      })));
+    }).catch(() => { if(current) setError(true); });
+  return () => { current = false; };
+  }, [status, userId, reload]);
+  useEffect(() => {
+    let current = true;
+    if (status === 'CLOSED' && applied.length < 2) {
+      setOrders([]); setMore(false); setLoading(false); setError(false);
+      return;
+    }
     setLoading(true);
     setError(false);
     void api<{ orders: Order[] }>(
@@ -43,6 +60,7 @@ export function OrderList({
       current = false;
     };
   }, [status, applied, cursor, reload]);
+  const visible = [...orders, ...localOrders.filter(local => !orders.some(o => o.id === local.id) && (!applied || local.draft.customerName.toLocaleLowerCase().includes(applied.toLocaleLowerCase()) || local.draft.plate === applied.toUpperCase().replace(/[\s-]/g, '')))];
   return (
     <section className="card">
       <h2>{status === 'OPEN' ? 'Órdenes abiertas' : 'Historial'}</h2>
@@ -63,7 +81,7 @@ export function OrderList({
             onChange={(e) => setQuery(e.target.value)}
           />
         </label>
-        <button type="submit">Buscar</button>
+        <button type="submit" disabled={status === 'CLOSED' && query.trim().length < 2}>Buscar</button>
       </form>
       {loading && <p role="status">Cargando órdenes…</p>}
       {error && (
@@ -72,7 +90,8 @@ export function OrderList({
           <button onClick={() => setReload((n) => n + 1)}>Reintentar</button>
         </p>
       )}
-      {!loading && !error && !orders.length && (
+      {status === 'CLOSED' && !applied && <p>Busca por nombre, cédula, placa o número de orden para consultar el historial.</p>}
+      {!loading && !error && !visible.length && (status === 'OPEN' || !!applied) && (
         <p>
           No hay órdenes
           {applied
@@ -84,9 +103,9 @@ export function OrderList({
         </p>
       )}
       <div className="order-list">
-        {orders.map((order) => (
+        {visible.map((order) => (
           <article className="order-card" key={order.id}>
-            <h3>{order.displayOrderId}</h3>
+            <h3>{order.displayOrderId ?? "Orden local pendiente de sincronizar"}</h3>
             <p>{order.draft.customerName || 'Cliente pendiente'}</p>
             <p>
               {[order.draft.make, order.draft.model, order.draft.plate]

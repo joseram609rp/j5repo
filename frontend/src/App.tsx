@@ -24,6 +24,8 @@ export function App() {
   const [page, setPage] = useState<
     'dashboard' | 'editor' | 'open' | 'history' | 'users'
   >('dashboard');
+  const [ownerRevision, setOwnerRevision] = useState(0);
+  const [mechanics, setMechanics] = useState<{id: string; fullName: string; role: string}[]>([]);
   const [order, setOrder] = useState<Order | null>(null);
   const [editorReady, setEditorReady] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -41,6 +43,15 @@ export function App() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const saver = useRef<Autosave | null>(null);
+  const creating = useRef(false);
+  useEffect(() => {
+    if (session?.role !== 'ADMIN' || page !== 'editor' || order?.status !== 'OPEN') return;
+    let current = true;
+    void api<{users: {id: string; fullName: string; role: string; active: boolean}[]}>('/admin/users')
+      .then(data => { if (current) setMechanics(data.users.filter(u => u.active && ['ADMIN', 'MECHANIC'].includes(u.role))); })
+      .catch(() => { if (current) setMessage('No se pudieron cargar los mecánicos. Reabre la orden para reintentar.'); });
+    return () => { current = false; };
+  }, [session, page, order?.id, order?.status]);
   async function checkSession() {
     setBootstrapError(false);
     setSessionStatus('checking');
@@ -213,33 +224,11 @@ export function App() {
     setPage(next);
   }
   async function newOrder() {
-    if (!session || !editorReady || busy) return;
+    if (!session || !editorReady || busy || creating.current || confirmAction) return;
+    creating.current = true;
     setBusy(true);
     try {
-      const local =
-        saver.current?.state ?? (await storage.read(session.userId));
-      if (local && local.order?.status !== 'CLOSED') {
-        if (
-          local.pending ||
-          local.savedRevision < local.revision ||
-          !local.version
-        ) {
-          if (!local.version && local.revision === local.savedRevision)
-            local.revision++;
-          await attach(local);
-          return;
-        }
-        const remote = await api<Order>('/orders/' + local.id);
-        if (remote.status === 'OPEN') {
-          await attach({
-            ...local,
-            draft: remote.draft,
-            version: remote.version,
-            order: remote,
-          });
-          return;
-        }
-      }
+      await storage.read(session.userId); // Migrate the legacy draft without reusing it.
       const record = fresh();
       record.revision = 1;
       await attach(record);
@@ -248,6 +237,7 @@ export function App() {
         'No se pudo abrir la orden. Tu borrador local está conservado.',
       );
     } finally {
+      creating.current = false;
       setBusy(false);
     }
   }
@@ -255,25 +245,16 @@ export function App() {
     if (!session || !editorReady || busy) return;
     setBusy(true);
     try {
-      const local =
-        saver.current?.state ?? (await storage.read(session.userId));
+      const local = saver.current?.state.id === selected.id
+        ? saver.current.state : await storage.read(session.userId, selected.id);
       if (
         local?.id === selected.id &&
-        (local.pending || local.savedRevision < local.revision)
+        (local.pending || local.savedRevision < local.revision || !local.version)
       ) {
         await attach(local);
         return;
       }
-      if (local && (local.pending || local.savedRevision < local.revision)) {
-        if (!saver.current) {
-          await attach(local);
-          setMessage(
-            'Sincroniza el borrador recuperado antes de abrir otra orden.',
-          );
-          return;
-        }
-        await saver.current.flush();
-      }
+      await saver.current?.pause();
       const remote = await api<Order>('/orders/' + selected.id);
       if (remote.status === 'CLOSED') {
         setDraft(remote.draft);
@@ -315,6 +296,7 @@ export function App() {
         });
       if (!saver.current) throw new Error('EDITOR_NOT_READY');
       const saved = await saver.current.action(action);
+      if (action === 'transfer-owner') setOwnerRevision(n => n + 1);
       setOrder(saved ?? null);
       setDraft(saver.current.state.draft);
       setConfirmAction(null);
@@ -472,6 +454,7 @@ export function App() {
                     ? { id: saver.current.state.id, message }
                     : undefined
                 }
+                userId={session.userId}
                 status={page === 'open' ? 'OPEN' : 'CLOSED'}
                 onOpen={(o) => void openOrder(o)}
               />
@@ -599,7 +582,11 @@ export function App() {
                     </div>
                   )}
                   {order?.status !== 'CLOSED' && !confirmAction && !busy && (
-                    <EntitySearch draft={draft} onSelect={saveDraft} />
+                    <EntitySearch key={saver.current?.state.id} ownerRevision={ownerRevision} draft={draft} onSelect={saveDraft} allowTransfer={session.role === 'ADMIN'} onTransfer={() => {
+                      setBusy(true);
+                      void saver.current?.flush().then(() => { setOrder(saver.current?.state.order ?? null); setConfirmAction('transfer-owner'); })
+                        .catch(() => setMessage('Sincroniza la orden antes de actualizar el dueño.')).finally(() => setBusy(false));
+                    }} />
                   )}
                   <fieldset disabled={readOnly}>
                     <h3>Datos del cliente</h3>
@@ -726,7 +713,6 @@ export function App() {
                           {...accessibility('year')}
                           type="number"
                           min={1950}
-                          max={new Date().getUTCFullYear() + 1}
                           step={1}
                           value={draft.year ?? ''}
                           onChange={(e) => edit('year', e.target.value)}
@@ -734,6 +720,12 @@ export function App() {
                         {validation('year')}
                       </label>
                     </div>
+                    {session.role === 'ADMIN' && order?.status === 'OPEN' && <label>Mecánico asignado
+                      <select aria-label="Mecánico asignado" value={draft.mechanicId ?? order.mechanicId} onChange={e => saveDraft({...draft, mechanicId: e.target.value})}>
+                        {!mechanics.some(u => u.id === order.mechanicId) && <option value={order.mechanicId}>{order.mechanicName}</option>}
+                        {mechanics.map(u => <option key={u.id} value={u.id}>{u.fullName} ({u.role})</option>)}
+                      </select>
+                    </label>}
                     <p>
                       Mecánico:{' '}
                       {order?.mechanicName ??
@@ -886,19 +878,6 @@ export function App() {
                       Reabrir orden
                     </button>
                   )}
-                  {order?.status === 'OPEN' &&
-                    session.role === 'ADMIN' &&
-                    draft.customerId &&
-                    draft.vehicleId && (
-                      <button
-                        type="button"
-                        className="quiet"
-                        disabled={busy || !!confirmAction}
-                        onClick={() => setConfirmAction('transfer-owner')}
-                      >
-                        Cambiar dueño actual al cliente de esta orden
-                      </button>
-                    )}
                   {confirmAction && (
                     <div
                       role="dialog"

@@ -92,21 +92,14 @@ export class FakeRepository implements Repository, UnitOfWork {
       if (s.userId === id) s.revoked = true;
   }
   async listOrders(status: 'OPEN' | 'CLOSED', search: string, before?: string) {
-    return [...this.orders.values()]
-      .filter(
-        (o) =>
-          o.status === status &&
-          (!before ||
-            (o.openedAt ?? '') < (this.orders.get(before)?.openedAt ?? '')) &&
-          [
-            o.displayOrderId,
-            o.draft.customerName,
-            o.draft.plate,
-            o.draft.identification,
-          ].some((v) => (v ?? '').toLowerCase().includes(search.toLowerCase())),
-      )
-      .sort((a, b) => (b.openedAt ?? '').localeCompare(a.openedAt ?? ''))
-      .slice(0, 50);
+    const fold = (v: string) => v.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+    const sorted = [...this.orders.values()].sort((a,b) => (b.openedAt ?? '').localeCompare(a.openedAt ?? '') || (b.displayOrderId ?? '').localeCompare(a.displayOrderId ?? ''));
+    const offset = before ? sorted.findIndex(o => o.id === before) + 1 : 0;
+    return sorted.slice(offset).filter(o => o.status === status && (!search ||
+      fold(o.draft.customerName).includes(fold(search)) ||
+      o.draft.plate === search.toUpperCase().replace(/[\s-]/g, '') ||
+      o.draft.identification === search ||
+      (o.displayOrderId ?? '').startsWith(search))).slice(0,50);
   }
   async findCustomers(_search: string) {
     return [];
@@ -124,7 +117,7 @@ export class FakeRepository implements Repository, UnitOfWork {
       displayOrderId:
         previous?.displayOrderId ??
         `OT-2026-${String(this.orders.size + 1).padStart(6, '0')}`,
-      mechanicName: this.accounts.get(previous?.mechanicId ?? userId)?.fullName,
+      mechanicName: this.accounts.get(draft.mechanicId ?? previous?.mechanicId ?? userId)?.fullName,
       closedAt:
         draft.action === 'close' ? new Date(this.clock).toISOString() : null,
       status:
@@ -136,12 +129,14 @@ export class FakeRepository implements Repository, UnitOfWork {
               ? 'OPEN'
               : (previous?.status ?? 'OPEN'),
       totalAmount: totalAmount(draft.items),
-      mechanicId: previous?.mechanicId ?? userId,
+      mechanicId: draft.mechanicId ?? previous?.mechanicId ?? userId,
       version: (BigInt('0x' + (previous?.version ?? '0')) + 1n)
         .toString(16)
         .padStart(16, '0'),
       draft: structuredClone(draft),
     };
+    delete order.draft.mechanicId;
+    delete order.draft.action;
     this.orders.set(id, order);
     return order;
   }

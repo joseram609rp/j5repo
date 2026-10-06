@@ -317,6 +317,7 @@ export function createApi(
               .trim()
               .max(200)
               .parse(url.searchParams.get('q') ?? '');
+            if (status === 'CLOSED' && search.length < 2) throw new HttpError(400, 'HISTORY_SEARCH_REQUIRED');
             const before = url.searchParams.get('before');
             if (before) uuid.parse(before);
             return result({
@@ -406,6 +407,12 @@ export function createApi(
                   !draft.vehicleId)
               )
                 throw new HttpError(400, 'OWNER_TRANSFER_INCOMPLETE');
+              if (draft.mechanicId && draft.mechanicId !== existing?.mechanicId) {
+                if (user.role !== 'ADMIN') throw new HttpError(403, 'ADMIN_REQUIRED');
+                if (!existing || existing.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');
+                const target = await tx.userById(draft.mechanicId);
+                if (!target?.active || !['MECHANIC', 'ADMIN'].includes(target.role)) throw new HttpError(400, 'INVALID_MECHANIC');
+              }
               if (draft.action === 'reopen' && existing?.status !== 'CLOSED')
                 throw new HttpError(409, 'ORDER_NOT_CLOSED');
               if (draft.action === 'admin-edit' && !existing)
@@ -417,6 +424,8 @@ export function createApi(
               )
                 throw new HttpError(400, 'ORDER_INCOMPLETE');
               const saved = await tx.saveOrder(id, user.id, draft, existing);
+              if (existing && saved.mechanicId !== existing.mechanicId)
+                await tx.audit(user.id, 'ORDER_MECHANIC:' + saved.mechanicId, id);
               await tx.audit(
                 user.id,
                 existing ? 'ORDER_UPDATED' : 'ORDER_CREATED',

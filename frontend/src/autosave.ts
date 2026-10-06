@@ -2,6 +2,7 @@ import { draftSchema } from '../../backend/src/validation';
 import { openDB } from 'idb';
 import { api, ApiError } from './api';
 export type Draft = {
+  mechanicId?: string;
   customerId?: string;
   vehicleId?: string;
   action?: 'close' | 'reopen' | 'void' | 'admin-edit' | 'transfer-owner';
@@ -52,12 +53,25 @@ const db = () =>
     },
   });
 export const storage = {
-  async read(user: string): Promise<RecordState | undefined> {
-    return (await db()).get('drafts', user);
+  async read(user: string, orderId?: string): Promise<RecordState | undefined> {
+    const database = await db();
+    const tx = database.transaction('drafts', 'readwrite');
+    const legacy: RecordState | undefined = await tx.store.get(user);
+    if (legacy) {
+      if (!await tx.store.get([user, legacy.id])) await tx.store.put(legacy, [user, legacy.id]);
+      await tx.store.delete(user);
+    }
+    await tx.done;
+    if (orderId) return database.get('drafts', [user, orderId]);
+    return legacy;
+  },
+  async list(user: string): Promise<RecordState[]> {
+    await this.read(user);
+    return (await db()).getAll('drafts', IDBKeyRange.bound([user, ''], [user, '\uffff']));
   },
   async write(user: string, record: RecordState) {
     const database = await db();
-    await database.put('drafts', record, user);
+    await database.put('drafts', record, [user, record.id]);
   },
 };
 export const fresh = (): RecordState => ({

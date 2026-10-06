@@ -111,7 +111,7 @@ it.skipIf(!enabled)(
           };
           const first = await call('/orders/' + orderId, 'PUT', draft);
           expect(first.status, diagnostic).toBe(200);
-          const open: Order = await first.json();
+          let open: Order = await first.json();
           expect(open.openedAt).toBeTruthy();
           expect(open.mechanicId).toBe(userId);
           expect(open.totalAmount).toBe(100.3);
@@ -149,10 +149,12 @@ it.skipIf(!enabled)(
             '/orders/' + secondId,
             'PUT',
             draft,
-            true,
+            false,
           );
           expect(secondResponse.status).toBe(200);
           const second: Order = await secondResponse.json();
+          expect(second.mechanicId).toBe(userId);
+          expect(open.mechanicId).toBe(userId);
           expect(second.draft.customerId).toBe(customer.id);
           expect(second.draft.vehicleId).toBe(vehicle.id);
           expect(
@@ -188,13 +190,21 @@ it.skipIf(!enabled)(
               await call(
                 '/orders/' + orderId,
                 'PUT',
-                { ...draft, action: 'close', notes: '' },
+                { ...draft, action: 'close', model: '' },
                 false,
                 randomUUID(),
                 open.version,
               )
             ).status,
           ).toBe(400);
+          expect((await call('/orders?status=CLOSED')).status).toBe(400);
+          expect((await call('/orders/'+orderId,'PUT',{...draft,mechanicId:adminId},false,randomUUID(),open.version)).status).toBe(403);
+          const assignmentKey=randomUUID(), assignmentVersion=open.version, assignmentDraft={...draft,mechanicId:adminId};
+          const reassigned=await call('/orders/'+orderId,'PUT',assignmentDraft,true,assignmentKey,assignmentVersion);
+          expect(reassigned.status,diagnostic).toBe(200);open=await reassigned.json();expect(open.mechanicId).toBe(adminId);
+          expect(await (await call('/orders/'+orderId,'PUT',assignmentDraft,true,assignmentKey,assignmentVersion)).json()).toEqual(open);
+          const audit=(await tx.query<{actor_id:string;action:string;entity_id:string}>('SELECT actor_id,action,entity_id FROM dbo.AuditLogs WHERE entity_id=@id AND action=@action',{id:orderId,action:'ORDER_MECHANIC:'+adminId})).recordset;
+          expect(audit).toHaveLength(1);expect(audit[0]!.actor_id.toLowerCase()).toBe(adminId);
           const closeKey = randomUUID(),
             payload = { ...draft, action: 'close' };
           const closedResponse = await call(
@@ -208,6 +218,7 @@ it.skipIf(!enabled)(
           expect(closedResponse.status).toBe(200);
           const closed: Order = await closedResponse.json();
           expect(closed.status).toBe('CLOSED');
+          expect((await call('/orders/'+orderId,'PUT',{...closed.draft,mechanicId:userId,action:'admin-edit'},true,randomUUID(),closed.version)).status).toBe(409);
           expect(closed.closedAt).toBeTruthy();
           expect(closed.totalAmount).toBe(100.3);
           expect(
@@ -349,3 +360,43 @@ it.skipIf(!enabled)(
   },
   90000,
 );
+
+it.skipIf(!enabled)('SQL history: accent-insensitive partial names, literal patterns, exact identity and 50-row pages (rollback)',async()=>{
+ const repo=new SqlRepository(),userId=randomUUID(),customerId=randomUUID(),vehicleId=randomUUID();
+ const suffix=randomUUID().slice(0,8), name='José Ramírez '+suffix, plate='HIS'+String(randomInt(0,1000)).padStart(3,'0'), identification=String(randomInt(100000000,999999999));
+ const rows=Array.from({length:55},()=>({id:randomUUID()}));
+ await repo.runSql(async tx=>{
+  await tx.insertUser({id:userId,username:'history-'+suffix,fullName:'History fixture',passwordHash:'unused',role:'MECHANIC',active:true});
+  await tx.query("INSERT dbo.Customers(id,full_name,identification,phone) VALUES(@id,@name,@identification,'88888888')",{id:customerId,name,identification});
+  await tx.query("INSERT dbo.Vehicles(id,owner_id,plate,make,model,year) VALUES(@id,@owner,@plate,'Toyota','Corolla',2035)",{id:vehicleId,owner:customerId,plate});
+  const params={rows:JSON.stringify(rows),userId,customerId,vehicleId,name,plate,data:JSON.stringify({identification,phone:'88888888',make:'Toyota',model:'Corolla',year:2035})};
+  await tx.query(`INSERT dbo.Orders(id,customer_id,vehicle_id,mechanic_id,draft_data,customer_name_snapshot,plate_snapshot,mileage,notes,recommendations)
+    SELECT id,@customerId,@vehicleId,@userId,@data,@name,@plate,0,N'',N'' FROM OPENJSON(@rows) WITH(id uniqueidentifier '$.id');
+    INSERT dbo.OrderItems(id,order_id,description,price) SELECT NEWID(),id,N'Servicio',1 FROM OPENJSON(@rows) WITH(id uniqueidentifier '$.id');
+    UPDATE o SET status='CLOSED',total_amount=1,closed_at=SYSUTCDATETIME() FROM dbo.Orders o JOIN OPENJSON(@rows) WITH(id uniqueidentifier '$.id') r ON r.id=o.id;`,params);
+  const search='Jose Ramirez '+suffix;
+  const first=await tx.listOrders('CLOSED',search);expect(first).toHaveLength(50);
+  const second=await tx.listOrders('CLOSED',search,first.at(-1)!.id);expect(second).toHaveLength(5);
+  expect(new Set([...first,...second].map(o=>o.id)).size).toBe(55);
+  expect(await tx.listOrders('CLOSED',suffix+'%_[')).toEqual([]);
+  expect((await tx.listOrders('CLOSED',identification)).filter(o=>rows.some(r=>r.id===o.id))).toHaveLength(50);
+  expect((await tx.listOrders('CLOSED',plate.toLowerCase().slice(0,3)+'-'+plate.slice(3))).filter(o=>rows.some(r=>r.id===o.id))).toHaveLength(50);
+  expect((await tx.listOrders('CLOSED',identification.slice(0,-1))).some(o=>rows.some(r=>r.id===o.id))).toBe(false);
+  expect((await tx.listOrders('CLOSED',plate.slice(0,-1))).some(o=>rows.some(r=>r.id===o.id))).toBe(false);
+  expect((await tx.findCustomers(search)).map(c=>c.id)).toContain(customerId);
+  expect(await tx.findVehicles(plate.slice(0,-1))).toEqual([]);
+  for(const year of [1950,2028,2035,100000,2147483647]){
+   await tx.query('UPDATE dbo.Vehicles SET year=@year WHERE id=@id',{year,id:vehicleId});
+   expect((await tx.findVehicles(plate))[0]!.year).toBe(year);
+  }
+ },undefined,true);
+ expect(await repo.run(tx=>tx.order(rows[0]!.id))).toBeUndefined();
+},60000);
+it.skipIf(!enabled)('SQL year constraint rejects 1949 without changing real data',async()=>{
+ const repo=new SqlRepository();
+ await expect(repo.runSql(async tx=>{
+  const customerId=randomUUID();
+  await tx.query("INSERT dbo.Customers(id,full_name,identification,phone) VALUES(@id,N'Year fixture',@identification,'88888888')",{id:customerId,identification:String(randomInt(100000000,999999999))});
+  await tx.query("INSERT dbo.Vehicles(id,owner_id,plate,make,model,year) VALUES(@id,@owner,@plate,'Toyota','Corolla',1949)",{id:randomUUID(),owner:customerId,plate:'YER'+String(randomInt(0,1000)).padStart(3,'0')});
+ },undefined,true)).rejects.toMatchObject({number:547});
+},60000);

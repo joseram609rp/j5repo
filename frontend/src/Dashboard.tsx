@@ -16,7 +16,7 @@ export function Dashboard({
       <h2>Inicio</h2>
       <div className="modules">
         <button disabled={!ready} onClick={onNew}>
-          Nueva orden<span>Crear o retomar borrador</span>
+          Nueva orden<span>Crear nueva orden</span>
         </button>
         <button onClick={() => onPage('open')}>Órdenes abiertas</button>
         <button onClick={() => onPage('history')}>Historial</button>

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { App } from './App';
+import { OrderList } from './OrderList';
 import { api } from './api';
 import { bootstrapSession } from './bootstrap';
 import { fresh, storage, type Order, type RecordState } from './autosave';
@@ -17,6 +18,7 @@ vi.mock('./autosave', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./autosave')>();
   actual.storage.read = vi.fn();
   actual.storage.write = vi.fn();
+  actual.storage.list = vi.fn();
   return actual;
 });
 const session: Session = {
@@ -46,6 +48,7 @@ let container: HTMLDivElement,
   disk: RecordState | undefined,
   orders: Map<string, Order>,
   puts: number;
+let records: Map<string, RecordState>;
 const clone = <T,>(v: T): T => structuredClone(v);
 beforeEach(() => {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
@@ -60,13 +63,21 @@ beforeEach(() => {
     },
   });
   disk = undefined;
+  records = new Map();
   orders = new Map();
   puts = 0;
-  vi.mocked(storage.read).mockImplementation(async () =>
-    disk ? clone(disk) : undefined,
-  );
+  vi.mocked(storage.read).mockImplementation(async (_u, id) => {
+    const r = id ? records.get(id) ?? (disk?.id === id ? disk : undefined) : disk;
+    return r ? clone(r) : undefined;
+  });
+  vi.mocked(storage.list).mockImplementation(async () => {
+    const all = new Map(records);
+    if (disk) all.set(disk.id, disk);
+    return [...all.values()].map(clone);
+  });
   vi.mocked(storage.write).mockImplementation(async (_u, r) => {
     disk = clone(r);
+    records.set(r.id, clone(r));
   });
   vi.mocked(bootstrapSession).mockResolvedValue({
     session: clone(session),
@@ -104,7 +115,7 @@ beforeEach(() => {
           displayOrderId: old?.displayOrderId ?? 'OT-2026-000001',
           openedAt: old?.openedAt ?? '2026-10-05T10:00:00Z',
           closedAt: d.action === 'close' ? '2026-10-05T11:00:00Z' : null,
-          mechanicId: old?.mechanicId ?? session.userId,
+          mechanicId: d.mechanicId ?? old?.mechanicId ?? session.userId,
           mechanicName: session.fullName,
           totalAmount:
             d.items?.reduce(
@@ -113,6 +124,7 @@ beforeEach(() => {
             ) ?? 0,
         };
         delete o.draft.action;
+        delete o.draft.mechanicId;
         orders.set(id, clone(o));
         return clone(o) as never;
       }
@@ -217,6 +229,7 @@ function seed(status: 'OPEN' | 'CLOSED' = 'OPEN') {
     version: order.version,
     order: clone(order),
   };
+  records.set(id, clone(disk));
   return order;
 }
 it.each(['ADMIN', 'MECHANIC'] as const)(
@@ -236,25 +249,28 @@ it.each(['ADMIN', 'MECHANIC'] as const)(
     expect(puts).toBe(0);
   },
 );
-it('creates one real OPEN and resumes it after returning to dashboard', async () => {
+it('explicit Nueva orden creates a second OPEN; re-render and refresh create none', async () => {
   await mount();
   await click('Nueva orden');
   expect(puts).toBe(1);
   const id = disk!.id;
   await click('Inicio');
   await click('Nueva orden');
-  expect(disk!.id).toBe(id);
-  expect(puts).toBe(1);
+  expect(disk!.id).not.toBe(id);
+  expect(puts).toBe(2);
+  expect(orders.size).toBe(2);
+  await mount();
+  expect(puts).toBe(2);
   expect(text()).toContain('OT-2026-000001');
   expect(text()).not.toContain('Reintentar sincronización');
 });
-it('recovers a legacy local draft with no server version', async () => {
+it('Nueva orden preserves a legacy local draft and creates a different order', async () => {
   disk = fresh();
   disk.draft.notes = 'Copia local antigua';
   await mount();
   await click('Nueva orden');
   expect(puts).toBe(1);
-  expect(disk?.draft.notes).toBe('Copia local antigua');
+  expect(disk?.draft.notes).toBe('');
 });
 it('validates missing fields inline and in summary without closing', async () => {
   await mount();
@@ -282,6 +298,7 @@ it('lists OPEN, resumes, confirms closure, locks CLOSED and finds history detail
   expect(button('Reabrir orden')).toBeUndefined();
   expect(text()).toContain('Total oficial');
   await click('Historial');
+  await historySearch();
   expect(text()).toContain('OT-2026-000007');
   await click('Ver detalle');
   expect(container.querySelector('fieldset')?.disabled).toBe(true);
@@ -295,6 +312,7 @@ it('ADMIN can explicitly confirm reopening a CLOSED order', async () => {
   });
   await mount();
   await click('Historial');
+  await historySearch();
   await click('Ver detalle');
   await click('Reabrir orden');
   expect(container.querySelector('[role=dialog]')).toBeTruthy();
@@ -317,10 +335,11 @@ it('selects exact vehicle and current owner from search results', async () => {
   ).toBe('987654321');
   expect(disk?.draft.vehicleId).toBe('v');
 });
-it('a pending invalid local draft prevents switching to another order', async () => {
+it('continues the selected order with its pending invalid local draft', async () => {
   const o = seed();
   disk!.draft.identification = '12';
   disk!.revision = 1;
+  records.set(o.id,clone(disk!));
   await mount();
   await click('Órdenes abiertas');
   await click('Continuar');
@@ -332,7 +351,7 @@ it('a pending invalid local draft prevents switching to another order', async ()
   expect(puts).toBe(0);
 });
 
-it('viewing CLOSED history preserves the active OPEN draft for Nueva orden', async () => {
+it('viewing CLOSED history preserves OPEN drafts and Nueva orden creates another', async () => {
   const active = seed();
   const closed = {
     ...clone(active),
@@ -344,18 +363,20 @@ it('viewing CLOSED history preserves the active OPEN draft for Nueva orden', asy
   await mount();
   await click('Nueva orden');
   await click('Historial');
+  await historySearch();
   await click('Ver detalle');
   expect(container.querySelector('fieldset')?.disabled).toBe(true);
-  expect(disk?.id).toBe(active.id);
+  expect(records.get(active.id)).toBeDefined();
   await click('Inicio');
   await click('Nueva orden');
-  expect(disk?.id).toBe(active.id);
+  expect(disk?.id).not.toBe(active.id);
   expect(container.querySelector('fieldset')?.disabled).toBe(false);
 });
 it('history has a useful empty state', async () => {
   await mount();
   await click('Historial');
-  expect(text()).toContain('No hay órdenes cerradas');
+  expect(text()).toContain('para consultar el historial');
+  expect(vi.mocked(api).mock.calls.some(([path]) => path.includes('status=CLOSED'))).toBe(false);
 });
 it('long customer names search without sending an invalid plate query', async () => {
   await mount();
@@ -442,4 +463,73 @@ it('OPEN list identifies pending local changes for the active order', async () =
   expect(container.querySelector('.order-card .status')?.textContent).toContain(
     'guardados en este dispositivo',
   );
+});
+
+async function historySearch() {
+  await input('.card .search input', 'Cliente');
+  await click('Buscar');
+}
+
+it('keeps pending drafts independent while creating and continuing multiple orders', async () => {
+ await mount(); await click('Nueva orden'); const first=disk!.id;
+ await input('[data-field=identification]','12');
+ await click('Inicio'); await click('Nueva orden'); const second=disk!.id;
+ expect(second).not.toBe(first);
+ expect(records.get(first)?.draft.identification).toBe('12');
+ await click('Órdenes abiertas');
+ const buttons=[...container.querySelectorAll<HTMLButtonElement>('.order-card button')];
+ expect(buttons).toHaveLength(2);
+ await act(async()=>buttons[0]!.click());
+ expect(container.querySelector<HTMLInputElement>('[data-field=identification]')?.value).toBe('12');
+ expect(records.get(second)?.draft.identification).toBe('');
+});
+it('ADMIN gets active assignees on OPEN; MECHANIC remains read-only and year has no max', async () => {
+ seed(); await mount(); await click('Órdenes abiertas'); await click('Continuar');
+ expect(container.querySelector('select[aria-label="Mecánico asignado"]')).toBeNull();
+ expect(container.querySelector('[data-field=year]')?.getAttribute('min')).toBe('1950');
+ expect(container.querySelector('[data-field=year]')?.hasAttribute('max')).toBe(false);
+});
+it('owner mismatch preserves chosen customer and requires an explicit decision', async () => {
+ seed(); await mount(); await click('Órdenes abiertas'); await click('Continuar');
+ await input('.lookup input','XYZ987'); await click('Buscar'); await click('XYZ987');
+ expect(container.querySelector('[aria-label="Dueño actual del vehículo"]')?.textContent).toContain('Existente');
+ expect(container.querySelector('[aria-label="Dueño actual del vehículo"]')?.textContent).toContain('Cliente de prueba');
+ expect(container.querySelector<HTMLInputElement>('[data-field=identification]')?.value).toBe('123456789');
+ expect(vi.mocked(api).mock.calls.some(([,options])=>options?.body?.toString().includes('transfer-owner'))).toBe(false);
+ await click('Mantener dueño actual');
+ expect(container.querySelector('[aria-label="Dueño actual del vehículo"]')).toBeNull();
+});
+it('ADMIN can select an active mechanic and owner update is explicitly labeled', async () => {
+ const selected=seed(); selected.draft.customerId='33333333-3333-4333-8333-333333333333'; disk!.draft.customerId=selected.draft.customerId; records.set(selected.id,clone(disk!)); vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
+ const implementation=vi.mocked(api).getMockImplementation()!;
+ const next=crypto.randomUUID();
+ vi.mocked(api).mockImplementation(async(path,options)=>path==='/admin/users' ? {users:[{id:next,fullName:'Otro mecánico',role:'MECHANIC',active:true},{id:crypto.randomUUID(),fullName:'Inactivo',role:'MECHANIC',active:false}]} as never : implementation(path,options));
+ await mount(); await click('Órdenes abiertas'); await click('Continuar');
+ const select=container.querySelector<HTMLSelectElement>('[aria-label="Mecánico asignado"]')!;
+ expect(select.textContent).toContain('Otro mecánico');expect(select.textContent).not.toContain('Inactivo');
+ await act(async()=>{select.value=next;select.dispatchEvent(new Event('change',{bubbles:true}));});
+ expect(disk?.draft.mechanicId).toBe(next);
+ await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
+ // Exact selections become valid UUIDs in the real API; the UI test fixture uses short identifiers.
+ expect(button('Actualizar dueño a Cliente de prueba')).toBeTruthy();
+});
+it('notes empty still opens the close confirmation', async()=>{
+ const selected=seed(); selected.draft.notes=''; disk!.draft.notes=''; records.set(selected.id,clone(disk!));
+ await mount();await click('Órdenes abiertas');await click('Continuar');await click('Cerrar orden');
+ expect(container.querySelector('[role=dialog]')).toBeTruthy();
+});
+
+it('history searches on submit and loads the next page using the last server UUID',async()=>{
+ const list=Array.from({length:55},(_,i)=>({id:crypto.randomUUID(),version:'v',status:'CLOSED' as const,mechanicId:session.userId,draft:{...complete,customerName:'Jose '+i},displayOrderId:'OT-'+i}));
+ vi.mocked(api).mockImplementation(async path=>{
+  const url=new URL('http://test'+path);
+  return {orders:url.searchParams.get('before')?list.slice(50):list.slice(0,50)} as never;
+ });
+ await act(async()=>root.render(<OrderList status="CLOSED" onOpen={()=>{}}/>));
+ expect(vi.mocked(api)).not.toHaveBeenCalled();
+ await input('.card .search input','Jose');await click('Buscar');
+ expect(container.querySelectorAll('.order-card')).toHaveLength(50);
+ await click('Cargar más');expect(container.querySelectorAll('.order-card')).toHaveLength(55);
+ expect(vi.mocked(api).mock.calls.at(-1)?.[0]).toContain('before='+list[49]!.id);
+ expect(button('Cargar más')).toBeUndefined();
 });

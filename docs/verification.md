@@ -1,3 +1,45 @@
+# Phase 3 — cambios 1–7 verificados el 2026-10-05 (America/Guatemala)
+
+Trabajo en C:\j5repo, branch feature/orders-mvp inspeccionado antes de editar. Sin merge, push, staging, commit ni despliegue. El cambio previo en .env.example se conservó. CarsXE, catálogos, seed y llamadas externas no se implementaron.
+
+## Cambios entregados
+
+- Nueva orden crea un UUID nuevo por acción explícita aunque el usuario ya tenga OPEN. Una guarda impide ejecuciones concurrentes del mismo clic. Login, refresh y re-render no crean órdenes.
+- IndexedDB usa [userId, orderId], con migración atómica del borrador legacy. Cada orden conserva su payload, revisión, ETag y clave de idempotencia. La lista OPEN pagina todas las órdenes del taller e incorpora borradores locales pendientes; Continuar recupera la copia de la orden elegida. Ver CLOSED no descarta las OPEN.
+- ADMIN puede seleccionar usuarios activos MECHANIC o ADMIN en OPEN: ambos roles pueden trabajar como mecánicos. MECHANIC ve el nombre sin selector; cambiarlo por API devuelve 403. CLOSED/VOID no admiten reasignación, ni usando reopen/admin-edit. AuditLogs guarda actor_id, entity_id de orden y action=ORDER_MECHANIC:<nuevo UUID> sin migrar el schema de auditoría.
+- Seleccionar una placa existente mantiene el cliente elegido. Solo si el dueño difiere se muestran ambos nombres, Mantener dueño actual y, para ADMIN con referencias válidas, Actualizar dueño a [nombre] con confirmación. Un guardado normal nunca modifica owner_id; transfer-owner conserva Orders.customer_id histórico.
+- Historial inicia vacío sin consultar el endpoint. CLOSED requiere q de al menos dos caracteres en API y repositorio. Nombre parcial con Latin1_General_100_CI_AI, cédula exacta, placa exacta normalizada y OT por prefijo literal. SQL parametrizado CHARINDEX/LEFT trata %, _ y [ como texto. Páginas de 50 con cursor before y desempate por order_number.
+- Observaciones y recomendaciones opcionales en OPEN/CLOSED; se conserva validación de cliente/cédula/teléfono/placa/marca/modelo/año/kilometraje y servicios válidos con total calculado en backend.
+- Año entero >=1950, sin máximo funcional ni atributo max. SQL conserva su tipo int. Probados 1949 (rechazo), 1950, 2028, 2035, 100000 y 2147483647 (aceptación).
+
+## Endpoints afectados
+
+- GET /api/orders?status=OPEN|CLOSED&q=...&before=uuid: CLOSED exige criterio; búsqueda exacta/parcial según campo; límite server-side 50.
+- PUT /api/orders/:uuid: intención mechanicId para ADMIN OPEN; notas vacías y años futuros válidos; mantiene ETag, rowversion, idempotencia y total oficial.
+- GET /api/customers?q=...: nombre parcial case/accent-insensitive; cédula exacta; máximo 20.
+- GET /api/vehicles?q=...: placa exacta normalizada; devuelve dueño para la decisión explícita.
+- GET /api/admin/users: endpoint existente reutilizado para listar candidatos activos; no se cambió su contrato ni se exponen hashes.
+
+## Migraciones y validación
+
+Preflight SQL confirmó 001–006 aplicadas y tres vehículos antes de trabajar. No se editaron los archivos aplicados ni sus checksums.
+
+- 007_optional_notes_year.sql elimina CK_Orders_ClosedNotes y reemplaza CK_Vehicles_Year por year >=1950. Solo metadata.
+- 008_open_mechanic_reassignment.sql conserva los guards existentes y permite cambio de mecánico solo entre estados OPEN con contexto autorizado por backend.
+- pnpm check final: tipos y builds backend/frontend/PWA aprobados, 150 tests locales aprobados; 13 SQL omitidos intencionalmente en este comando.
+- pnpm db:migrate después de pnpm check: únicamente 007 y 008 aplicadas.
+- pnpm --filter @j5/backend db:verify: 9 tablas, 8 migraciones, 21 CHECK habilitados/trusted, 2 triggers activos y 1 ADMIN activo. Tres vehículos, todos con modelo, y tres órdenes CLOSED. Las migraciones no modificaron filas reales.
+- pnpm test:sql: 13 aprobados en 123.50 s, dos suites secuenciales. Fixtures nuevos, rollback-only y comprobaciones de ausencia de las órdenes/usuarios temporales. Incluye auth/permisos, idempotencia, ETag/rowversion, totales, guards, selección de cliente, propiedad histórica, reasignación, notas vacías y whitespace, límites/paginación y año.
+- UI automatizada y fake-indexeddb: múltiples OPEN, continuaciones independientes, refresh/re-render, legacy, colas/claves distintas, selector por rol/estado, decisión de dueño sin transferencia implícita, cierre sin notas, historia sin consulta inicial y Cargar más.
+
+## Límites antes del catálogo
+
+No hay blocker detectado para retomar el catálogo como trabajo separado. No se hizo un nuevo smoke visual autenticado con credenciales humanas. Las pruebas SQL con rollback no acreditan COMMIT ambiguo ni concurrencia real entre procesos; permanecen en Phase 4, junto a recuperación guiada de conflictos, despliegue, Managed Identity, limitador compartido y PWA en dispositivos reales. El límite por usuario del Web Lock se conserva, aunque se permiten múltiples órdenes por usuario en almacenamiento y SQL.
+
+---
+
+Los reportes siguientes son históricos y sus conteos/reglas anteriores fueron sustituidos por el estado de entrega descrito arriba.
+
 # Phase 3 — Orders MVP verificado el 2026-10-05 (America/Guatemala)
 
 ## Entrega vigente

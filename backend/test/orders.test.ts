@@ -56,7 +56,7 @@ it('lists orders from any mechanic, filters CLOSED history and requires auth', a
     ),
   ).toEqual([a.id]);
   expect(
-    (await (await call('/orders?status=CLOSED&q=XYZ')).json()).orders.map(
+    (await (await call('/orders?status=CLOSED&q=XYZ987')).json()).orders.map(
       (o: { id: string }) => o.id,
     ),
   ).toEqual([b.id]);
@@ -125,4 +125,25 @@ it('a mechanic cannot transfer vehicle ownership using order actions', async () 
     }),
   );
   expect(response.status).toBe(403);
+});
+
+it('history rejects missing criteria before reaching the repository', async()=>{
+ const {repo,call}=setup();const spy=vi.spyOn(repo,'listOrders');
+ for(const q of ['', ' ', 'a']) expect((await call('/orders?status=CLOSED&q='+encodeURIComponent(q))).status).toBe(400);
+ expect(spy).not.toHaveBeenCalled();
+});
+it('partial names are accent/case insensitive, exact identity and pages remain bounded',async()=>{
+ const {repo,call}=setup();const ids=[];
+ for(let i=0;i<55;i++){
+   const order=await repo.saveOrder(randomUUID(),userId,{customerName:i%2?'José Ramírez':'Jose Mora',identification:'123456789',plate:'ABC123',mileage:0,notes:'',recommendations:'',action:'close'});
+   ids.push(order.id);
+ }
+ const search=async(q:string,before?:string)=>(await (await call('/orders?status=CLOSED&q='+encodeURIComponent(q)+(before?'&before='+before:''))).json()).orders;
+ const first=await search('JOSE');expect(first).toHaveLength(50);
+ const next=await search('Jose',first.at(-1).id);expect(next).toHaveLength(5);
+ expect(new Set([...first,...next].map(o=>o.id)).size).toBe(55);
+ expect(await search('Jose Ramirez')).toHaveLength(27);
+ expect(await search('12345678')).toEqual([]);expect(await search('ABC12')).toEqual([]);
+ expect(await search('abc-123')).toHaveLength(50);
+ expect(await search('%_[')).toEqual([]);
 });

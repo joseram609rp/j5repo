@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from './api';
 import type { Draft } from './autosave';
 
@@ -28,10 +28,29 @@ const customerFields = (c: Customer) => ({
 export function EntitySearch({
   draft,
   onSelect,
+  allowTransfer,
+  ownerRevision,
+  onTransfer,
 }: {
+  ownerRevision?: number;
+  allowTransfer?: boolean;
+  onTransfer?: () => void;
   draft: Draft;
   onSelect: (draft: Draft) => void;
 }) {
+  const [ownerVehicle, setOwnerVehicle] = useState<Vehicle | null>(null);
+  const [ownerDecision, setOwnerDecision] = useState('');
+  const identity = draft.plate + ':' + (draft.identification ?? '') + ':' + (draft.customerId ?? '');
+  useEffect(() => {
+    let current = true;
+    setOwnerVehicle(null);
+    if (!/^[A-Z]{3}\d{3}$/.test(draft.plate)) return;
+    void api<{vehicles: Vehicle[]}>(`/vehicles?q=${encodeURIComponent(draft.plate)}`)
+      .then(data => { if(current) setOwnerVehicle(data.vehicles.find(v => v.plate === draft.plate) ?? null); })
+      .catch(() => { if(current) setMessage('No se pudo comprobar el dueño actual. Reintenta la búsqueda.'); });
+    return () => { current = false; };
+  }, [draft.plate, draft.vehicleId, ownerRevision]);
+  const mismatch = ownerVehicle?.owner && !!draft.identification && ownerVehicle.owner.identification !== draft.identification;
   const [keepVehicle, setKeepVehicle] = useState(false);
   const [query, setQuery] = useState(''),
     [customers, setCustomers] = useState<Customer[]>([]),
@@ -96,7 +115,7 @@ export function EntitySearch({
     setKeepVehicle(false);
     onSelect({
       ...draft,
-      ...(v.owner ? customerFields(v.owner) : {}),
+      ...(!draft.identification && v.owner ? customerFields(v.owner) : {}),
       vehicleId: v.id,
       plate: v.plate,
       make: v.make,
@@ -105,7 +124,9 @@ export function EntitySearch({
     });
     setVehicles([]);
     setCustomers([]);
-    setMessage('Vehículo y dueño actual seleccionados.');
+    setOwnerVehicle(v);
+    setOwnerDecision('');
+    setMessage('Vehículo seleccionado.');
   }
   return (
     <section className="lookup">
@@ -130,6 +151,12 @@ export function EntitySearch({
         </button>
       </div>
       <p role="status">{message}</p>
+      {mismatch && ownerDecision !== identity && <div className="confirmation" role="group" aria-label="Dueño actual del vehículo">
+        <p>Este vehículo está registrado actualmente a nombre de {ownerVehicle?.owner?.fullName}. El cliente de esta orden es {draft.customerName}.</p>
+        <button type="button" className="quiet" onClick={() => setOwnerDecision(identity)}>Mantener dueño actual</button>
+        {allowTransfer && draft.customerId && draft.vehicleId && <button type="button" onClick={onTransfer}>Actualizar dueño a {draft.customerName}</button>}
+        {!allowTransfer && <small>Un administrador puede actualizar el dueño. La orden conservará el cliente elegido.</small>}
+      </div>}
       <div className="search-results">
         {customers.map((c) => (
           <button

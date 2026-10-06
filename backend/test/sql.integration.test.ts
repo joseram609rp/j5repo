@@ -69,7 +69,7 @@ it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer
     const close=(payload:unknown,expected=latest.version)=>call('/orders/'+orderId,'PUT',payload,{...mechanic.headers,'idempotency-key':randomUUID(),'if-match':'"'+expected+'"'});
     expect((await close({...closeDraft,items:[]})).status).toBe(400);
     expect((await close({...closeDraft,mileage:null})).status).toBe(400);
-    for (const missing of [{notes:''},{notes:'   '},{notes:'\t\n'},{customerName:'   '},{year:null},{model:''}]) expect((await close({...closeDraft,...missing})).status).toBe(400);
+    for (const missing of [{customerName:'   '},{year:null},{model:''}]) expect((await close({...closeDraft,...missing})).status).toBe(400);
     expect((await close({...closeDraft,totalAmount:1})).status).toBe(400);
     const closedResponse=await close(closeDraft);
     expect(closedResponse.status).toBe(200);
@@ -157,13 +157,13 @@ it.skipIf(!enabled).each([
   expect(await sql.run(tx=>tx.order(orderId))).toBeUndefined();
  },60000);
 
-it.skipIf(!enabled).each(['','   ','\t\n','\u00a0'])('SQL rejects CLOSED with whitespace notes %j and rolls back',async notes=>{
+it.skipIf(!enabled).each(['','   ','\t\n','\u00a0'])('SQL permits CLOSED with optional notes %j and rolls back',async notes=>{
  const userId=randomUUID();const orderId=randomUUID();
- await expect(sql.runSql(async tx=>{
+ await sql.runSql(async tx=>{
   await tx.insertUser({id:userId,username:'notes-'+randomUUID().slice(0,8),fullName:'Notes fixture',passwordHash:await hashPassword('Fixture-'+randomUUID()),role:'MECHANIC',active:true});
   const draft={customerName:'Notes fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'NTS'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',model:'Corolla',year:2020,mileage:128400,notes,recommendations:'',items:[{description:'Frenos',price:1}]};
   const open=await tx.saveOrder(orderId,userId,draft);expect(open.status).toBe('OPEN');expect(open.draft.notes).toBe(notes);expect(open.draft.mileage).toBe(128400);
-  await tx.saveOrder(orderId,userId,{...draft,action:'close'},open);
- },undefined,true)).rejects.toMatchObject({number:547});
+  const closed=await tx.saveOrder(orderId,userId,{...draft,action:'close'},open);expect(closed.status).toBe('CLOSED');expect(closed.draft.notes).toBe(notes);
+ },undefined,true);
  expect(await sql.run(tx=>tx.order(orderId))).toBeUndefined();
 },60000);

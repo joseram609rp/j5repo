@@ -200,7 +200,7 @@ describe('persistent API contracts (transactional test double)', () => {
     const complete={...draft,notes:'Frenos revisados',identification:'123456789',phone:'88888888',make:'Toyota',model:'Corolla',year:2020,mileage:0,items:[{description:'Frenos',price:100.1},{description:'Ajuste',price:0.2}],action:'close'};
     expect((await save({...complete,items:[]},mechanic.headers,initial.version)).status).toBe(400);
     expect((await save({...complete,mileage:null},mechanic.headers,initial.version)).status).toBe(400);
-    for (const missing of [{notes:''},{notes:'   '},{notes:'\t\n'},{customerName:''},{customerName:'   '},{year:null},{model:''},{model:'   '}]) expect((await save({...complete,...missing},mechanic.headers,initial.version)).status).toBe(400);
+    for (const missing of [{customerName:''},{customerName:'   '},{year:null},{model:''},{model:'   '}]) expect((await save({...complete,...missing},mechanic.headers,initial.version)).status).toBe(400);
     expect((await save({...complete,totalAmount:1},mechanic.headers,initial.version)).status).toBe(400);
     const closed=await (await save(complete,mechanic.headers,initial.version)).json();expect(closed.status).toBe('CLOSED');expect(closed.totalAmount).toBe(100.3);
     expect((await save(draft,mechanic.headers,closed.version)).status).toBe(409);
@@ -227,4 +227,22 @@ it('password reset persists the new hash and rejects the previous password', asy
   expect((await call('/admin/users/' + mechanicId, 'PATCH', { password: changed }, { ...headers, 'idempotency-key': crypto.randomUUID() })).status).toBe(200);
   expect((await login('mechanic')).response.status).toBe(401);
   expect((await login('mechanic', changed)).response.status).toBe(200);
+});
+
+it('same mechanic creates multiple OPEN; ADMIN reassigns OPEN with ETag, replay and audit',async()=>{
+ const {repo,call,login}=setup();const mechanic=await login('mechanic'),admin=await login();
+ const save=(id:string,body:unknown,headers=mechanic.headers,version?:string,key=crypto.randomUUID())=>call('/orders/'+id,'PUT',body,{...headers,'idempotency-key':key,...(version?{'if-match':'"'+version+'"'}:{})});
+ const a=await (await save(crypto.randomUUID(),draft)).json();const b=await (await save(crypto.randomUUID(),draft)).json();
+ expect(a.id).not.toBe(b.id);expect(a.mechanicId).toBe(mechanicId);expect(b.mechanicId).toBe(mechanicId);expect(repo.orders.size).toBe(2);
+ expect((await save(a.id,{...draft,mechanicId:adminId},mechanic.headers,a.version)).status).toBe(403);
+ expect((await save(a.id,{...draft,mechanicId:crypto.randomUUID()},admin.headers,a.version)).status).toBe(400);
+ const key=crypto.randomUUID(), body={...draft,mechanicId:adminId};
+ const changed=await (await save(a.id,body,admin.headers,a.version,key)).json();
+ expect(changed.mechanicId).toBe(adminId);expect(changed.version).not.toBe(a.version);
+ expect(await (await save(a.id,body,admin.headers,a.version,key)).json()).toEqual(changed);
+ expect(repo.audits.filter(x=>x.action==='ORDER_MECHANIC:'+adminId)).toEqual([{actorId:adminId,action:'ORDER_MECHANIC:'+adminId,entityId:a.id}]);
+ expect((await save(a.id,draft,admin.headers,a.version)).status).toBe(412);
+ const closed=await (await save(a.id,{...draft,customerName:'Cliente',identification:'123456789',phone:'88888888',make:'Toyota',model:'Corolla',year:2035,mileage:0,items:[{description:'Frenos',price:1}],notes:'',action:'close'},admin.headers,changed.version)).json();
+ expect(closed.status).toBe('CLOSED');
+ for(const action of [undefined,'admin-edit','reopen']) expect((await save(a.id,{...closed.draft,mechanicId,action},admin.headers,closed.version)).status).toBe(409);
 });

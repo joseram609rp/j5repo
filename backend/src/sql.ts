@@ -237,16 +237,18 @@ export class SqlUnit implements UnitOfWork {
     );
   }
   async listOrders(status: 'OPEN' | 'CLOSED', search: string, before?: string) {
+    if (status === 'CLOSED' && search.trim().length < 2) throw new HttpError(400, 'HISTORY_SEARCH_REQUIRED');
     const rows = (
       await this.query<OrderRow>(
         `SELECT TOP (50) o.*,u.full_name AS mechanic_name FROM dbo.Orders o
       JOIN dbo.Users u ON u.id=o.mechanic_id LEFT JOIN dbo.Customers c ON c.id=o.customer_id
       WHERE o.status=@status AND (@before IS NULL OR o.created_at < (SELECT created_at FROM dbo.Orders WHERE id=@before)
         OR (o.created_at=(SELECT created_at FROM dbo.Orders WHERE id=@before) AND o.order_number<(SELECT order_number FROM dbo.Orders WHERE id=@before)))
-      AND (@search='' OR CHARINDEX(@search,o.display_order_id)>0 OR CHARINDEX(@search,o.plate_snapshot)>0
-      OR CHARINDEX(@search,o.customer_name_snapshot)>0 OR CHARINDEX(@search,COALESCE(JSON_VALUE(o.draft_data,'$.identification'),c.identification))>0)
+      AND (@search='' OR LEFT(o.display_order_id,LEN(@search))=@search OR o.plate_snapshot=@plate
+      OR CHARINDEX(@search COLLATE Latin1_General_100_CI_AI,o.customer_name_snapshot COLLATE Latin1_General_100_CI_AI)>0
+      OR COALESCE(JSON_VALUE(o.draft_data,'$.identification'),c.identification)=@search)
       ORDER BY o.created_at DESC,o.order_number DESC`,
-        { status, search, before: before ?? null },
+        { status, search, plate: search.toUpperCase().replace(/[\s-]/g, ''), before: before ?? null },
       )
     ).recordset;
     return rows.map(order);
@@ -255,7 +257,7 @@ export class SqlUnit implements UnitOfWork {
     return (
       await this.query<Customer>(
         `SELECT TOP (20) LOWER(CONVERT(varchar(36),id)) AS id, full_name AS fullName,identification,phone,email
-      FROM dbo.Customers WHERE identification=@search OR CHARINDEX(@search,full_name)>0 ORDER BY full_name,id`,
+      FROM dbo.Customers WHERE identification=@search OR CHARINDEX(@search COLLATE Latin1_General_100_CI_AI,full_name COLLATE Latin1_General_100_CI_AI)>0 ORDER BY full_name,id`,
         { search },
       )
     ).recordset;
@@ -273,7 +275,7 @@ export class SqlUnit implements UnitOfWork {
         `SELECT TOP (20)
       LOWER(CONVERT(varchar(36),v.id)) AS id,LOWER(CONVERT(varchar(36),v.owner_id)) AS ownerId,v.plate,v.make,v.model,v.year,
       c.full_name AS fullName,c.identification,c.phone,c.email FROM dbo.Vehicles v JOIN dbo.Customers c ON c.id=v.owner_id
-      WHERE (@customerId IS NULL OR v.owner_id=@customerId) AND (@search='' OR CHARINDEX(@search,v.plate_normalized)>0)
+      WHERE (@customerId IS NULL OR v.owner_id=@customerId) AND (@search='' OR v.plate_normalized=@search)
       ORDER BY v.plate_normalized`,
         {
           search: search.toUpperCase().replace(/[\s-]/g, ''),
@@ -302,6 +304,14 @@ export class SqlUnit implements UnitOfWork {
     return result;
   }
   async saveOrder(id: string, userId: string, draft: Draft, previous?: Order) {
+    const assignedMechanic = draft.mechanicId ?? previous?.mechanicId ?? userId;
+    if (assignedMechanic !== (previous?.mechanicId ?? userId)) {
+      const actor = await this.userById(userId);
+      if (actor?.role !== 'ADMIN') throw new HttpError(403, 'ADMIN_REQUIRED');
+      if (previous?.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');
+      const target = await this.userById(assignedMechanic);
+      if (!target?.active) throw new HttpError(400, 'INVALID_MECHANIC');
+    }
     let customerId =
       draft.customerId ??
       (previous?.status !== 'OPEN' ||
@@ -491,10 +501,12 @@ export class SqlUnit implements UnitOfWork {
             : action === 'admin-edit' && dataClosed
               ? 'CLOSED'
               : (previous?.status ?? 'OPEN');
-    const { action: _, ...data } = draft;
+    await this.query("EXEC sys.sp_set_session_context @key=N'j5_mechanic_reassignment',@value=@allow", { allow: actor?.role === 'ADMIN' && previous?.status === 'OPEN' });
+    const { action: _, mechanicId: _mechanic, ...data } = draft;
     const params: Params = {
       id,
       userId,
+      assignedMechanic,
       customerId,
       vehicleId,
       name: draft.customerName,
@@ -506,7 +518,7 @@ export class SqlUnit implements UnitOfWork {
     };
     if (previous) {
       const r = await this.query(
-        'UPDATE dbo.Orders SET draft_data=@data,customer_id=@customerId,vehicle_id=@vehicleId,customer_name_snapshot=@name,plate_snapshot=@plate,mileage=@mileage,notes=@notes,recommendations=@recommendations,updated_at=SYSUTCDATETIME() WHERE id=@id AND version=@version',
+        'UPDATE dbo.Orders SET mechanic_id=@assignedMechanic,draft_data=@data,customer_id=@customerId,vehicle_id=@vehicleId,customer_name_snapshot=@name,plate_snapshot=@plate,mileage=@mileage,notes=@notes,recommendations=@recommendations,updated_at=SYSUTCDATETIME() WHERE id=@id AND version=@version',
         { ...params, version: Buffer.from(previous.version, 'hex') },
       );
       if (r.rowsAffected[0] !== 1) throw new HttpError(412, 'VERSION_CONFLICT');
@@ -541,6 +553,7 @@ export class SqlUnit implements UnitOfWork {
     await this.query(
       "EXEC sys.sp_set_session_context @key=N'j5_admin_mutation',@value=NULL",
     );
+    await this.query("EXEC sys.sp_set_session_context @key=N'j5_mechanic_reassignment',@value=NULL");
     return (await this.order(id))!;
   }
   async receipt(userId: string, key: string) {

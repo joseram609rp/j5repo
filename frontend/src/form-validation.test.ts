@@ -6,7 +6,7 @@ it('empty first render is quiet; blur reveals only touched required fields',()=>
  expect(visibleErrors(fresh().draft,new Set())).toEqual([]);
  expect(visibleErrors(fresh().draft,new Set(['customerName'])).map(e=>e.field)).toEqual(['customerName']);
 });
-it.each(['customerName','mileage','year','model','notes'] as const)('requires %s inline and when closing',field=>{
+it.each(['customerName','mileage','year','model'] as const)('requires %s inline and when closing',field=>{
  const draft={...complete,[field]:['mileage','year'].includes(field)?null:'   '};
  expect(fieldErrors(draft).some(e=>e.field===field)).toBe(true);
  expect(visibleErrors(draft,new Set(),true).some(e=>e.field===field)).toBe(true);
@@ -34,5 +34,5 @@ it('formats mileage without mutating draft values; blanks and invalid numbers st
  expect(formatMileage(128400)).toBe('128,400 km');expect(formatMileage(0)).toBe('0 km');
  for(const value of [null,undefined,NaN,Infinity,-1,1.5]) expect(formatMileage(value)).toBe('');
  expect(visibleErrors({...complete,notes:''},new Set())).toEqual([]);
- expect(visibleErrors({...complete,notes:'   '},new Set(['notes']))[0]?.message).toBe('Escribe las observaciones de la orden.');
+ expect(visibleErrors({...complete,notes:'   '},new Set(['notes']))).toEqual([]);
 });

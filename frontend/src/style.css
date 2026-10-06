@@ -20,6 +20,7 @@ body {
 }
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
@@ -122,6 +123,7 @@ label {
   margin-top: 16px;
 }
 input,
+select,
 textarea {
   display: block;
   width: 100%;
@@ -263,6 +265,7 @@ main {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 input,
+select,
 textarea {
   min-width: 0;
 }
@@ -395,6 +398,7 @@ label {
   font-size: 15px;
 }
 input,
+select,
 textarea {
   font-size: 16px;
   min-height: 48px;
