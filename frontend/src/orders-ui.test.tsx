@@ -8,13 +8,13 @@ import { api, ApiError } from './api';
 import { amounts } from '../../backend/src/validation';
 import { bootstrapSession } from './bootstrap';
 import { fresh, storage, type Order, type RecordState } from './autosave';
-import type { Session } from './session';
+import { trackActivity, type Session } from './session';
 vi.mock('./api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./api')>()),
   api: vi.fn(),
 }));
 vi.mock('./bootstrap', () => ({ bootstrapSession: vi.fn() }));
-vi.mock('./session', () => ({ trackActivity: () => () => {} }));
+vi.mock('./session', () => ({ trackActivity: vi.fn(() => () => {}) }));
 vi.mock('./autosave', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./autosave')>();
   actual.storage.read = vi.fn();
@@ -646,4 +646,73 @@ it('line IVA and subtotal/final totals recalculate while optional item notes per
  await input('[data-field=item-0-price]','1000');expect(container.querySelector('[aria-label="Resumen de importes"]')?.textContent).toContain('Subtotal: ₡ 1');expect(container.querySelector('[aria-label="Resumen de importes"]')?.textContent).toContain('IVA 13%: ₡ 130');expect(container.querySelector('[aria-label="Resumen de importes"]')?.textContent).toContain('Precio final: ₡ 1');
  await act(async()=>{const e=container.querySelector<HTMLTextAreaElement>('[data-field=item-0-notes]')!;Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value')!.set!.call(e,'Detalle opcional');e.dispatchEvent(new Event('input',{bubbles:true}));});
  expect(disk?.draft.items?.[0]?.notes).toBe('Detalle opcional');
+});
+
+// Inspect all status nodes, including the hidden editor, to catch retained ghost messages.
+const notices = () => [...container.querySelectorAll('[role=status], [role=alert], .status')].map(e => e.textContent).join(' ');
+it.each([
+ ['Cerrar orden', 'Orden cerrada correctamente.'],
+ ['Cancelar orden', 'Orden cancelada. Se conserva su información.'],
+])('%s notice belongs only to its terminal order', async (action, message) => {
+ const first=seed(); await mount(); await click('Órdenes abiertas'); await click('Continuar');
+ await click(action); await click('Confirmar'); expect(notices()).toContain(message);
+ await click('Inicio'); expect(notices()).not.toContain(message);
+ await click('Nueva orden'); expect(disk!.id).not.toBe(first.id); expect(notices()).not.toContain(message);
+ await click('Historial'); expect(notices()).not.toContain(message);
+});
+it('remote update and cancellation reports disappear outside the originating editor', async () => {
+ const first=seed(); await mount(); await click('Órdenes abiertas'); await click('Continuar');
+ const refresh=async()=>act(async()=>{window.dispatchEvent(new Event('focus'));for(let i=0;i<30;i++)await Promise.resolve();});
+ orders.set(first.id,{...first,version:'updated'}); await refresh(); expect(notices()).toContain('Orden actualizada.');
+ await click('Historial'); expect(notices()).not.toContain('Orden actualizada.');
+ await click('Órdenes abiertas'); await click('Continuar');
+ orders.set(first.id,{...first,status:'VOID',version:'void'}); await refresh(); expect(notices()).toContain('Esta orden fue cancelada.');
+ await click('Inicio'); await click('Nueva orden'); expect(notices()).not.toContain('Esta orden fue cancelada.');
+});
+it('reopen and reassignment confirmations are cleared on navigation and another order', async () => {
+ seed('CLOSED'); vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
+ const implementation=vi.mocked(api).getMockImplementation()!; const mechanic=crypto.randomUUID();
+ vi.mocked(api).mockImplementation(async(path,options)=>path==='/admin/users'?{users:[{id:mechanic,fullName:'Otro',role:'MECHANIC',active:true}]} as never:implementation(path,options));
+ await mount(); await click('Historial'); await historySearch(); await click('Ver detalle'); await click('Reabrir orden'); await click('Confirmar');
+ expect(notices()).toContain('Orden reabierta.'); await click('Inicio'); expect(notices()).not.toContain('Orden reabierta.');
+ await click('Órdenes abiertas'); await click('Continuar');
+ await act(async()=>{const e=container.querySelector<HTMLSelectElement>('[aria-label="Mecánico asignado"]')!;e.value=mechanic;e.dispatchEvent(new Event('change',{bubbles:true}));});
+ await click('Actualizar mecánico'); expect(notices()).toContain('Mecánico actualizado.');
+ await click('Inicio'); await click('Nueva orden'); expect(notices()).not.toContain('Mecánico actualizado.');
+});
+it('history search errors and empty results are local and reset on reentry', async () => {
+ seed(); await mount(); await click('Historial'); await historySearch(); expect(text()).toContain('No hay órdenes que coincidan');
+ await click('Inicio'); expect(text()).not.toContain('No hay órdenes que coincidan');
+ await click('Historial'); const implementation=vi.mocked(api).getMockImplementation()!;
+ vi.mocked(api).mockImplementation(async(path,options)=>path.startsWith('/orders?status=CLOSED')?Promise.reject(new Error('offline')):implementation(path,options));
+ await historySearch(); expect(notices()).toContain('No se pudieron cargar las órdenes.');
+ await click('Inicio'); expect(notices()).not.toContain('No se pudieron cargar las órdenes.');
+ await click('Historial'); expect(notices()).not.toContain('No se pudieron cargar las órdenes.');
+});
+it('save status is scoped to the editor while global health errors survive navigation', async () => {
+ seed(); vi.mocked(bootstrapSession).mockResolvedValue({session,status:'authenticated',healthOk:false});
+ await mount(); await click('Órdenes abiertas'); await click('Continuar');
+ await input('[data-field=identification]','12'); expect(notices()).toContain('guardados en este dispositivo');
+ await click('Inicio'); expect(notices()).not.toContain('Cambios guardados en este dispositivo');
+ expect(notices()).toContain('La base de datos no está disponible.');
+ await click('Nueva orden'); expect(notices()).not.toContain('Cambios guardados en este dispositivo'); expect(notices()).toContain('La base de datos no está disponible.');
+});
+
+it('a late refresh cannot restore a notice after navigation or overwrite another editor', async () => {
+ const first=seed(); await mount(); await click('Órdenes abiertas'); await click('Continuar');
+ const implementation=vi.mocked(api).getMockImplementation()!;
+ let resolve!: (order: Order) => void;
+ vi.mocked(api).mockImplementation(async(path,options)=>path==='/orders/'+first.id && !options?.method ? new Promise<Order>(r=>{resolve=r;}) as never : implementation(path,options));
+ await act(async()=>{window.dispatchEvent(new Event('focus'));await Promise.resolve();});
+ await click('Inicio'); await click('Nueva orden'); const next=disk!.id;
+ await act(async()=>{resolve({...first,status:'VOID',version:'late'});for(let i=0;i<30;i++)await Promise.resolve();});
+ expect(notices()).not.toContain('Esta orden fue cancelada.');
+ expect(container.querySelector('.badge')?.textContent).toBe('ABIERTA'); expect(disk!.id).toBe(next);
+});
+it('session expiry clears editor notices and remains visible on the login screen', async () => {
+ seed(); await mount(); await click('Órdenes abiertas'); await click('Continuar');
+ await click('Cancelar orden'); await click('Confirmar');
+ const expire=vi.mocked(trackActivity).mock.calls.at(-1)![1];
+ await act(async()=>{expire();for(let i=0;i<30;i++)await Promise.resolve();});
+ expect(notices()).toContain('La sesión terminó.'); expect(notices()).not.toContain('Orden cancelada.'); expect(button('Entrar')).toBeTruthy();
 });

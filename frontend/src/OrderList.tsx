@@ -6,7 +6,6 @@ import { storage, type Order } from './autosave';
 export function OrderList({
   status,
   onOpen,
-  active,
   userId,
   role,
   onCancel,
@@ -16,7 +15,6 @@ export function OrderList({
   userId?: string;
   status: 'OPEN' | 'CLOSED';
   onOpen: (order: Order) => void;
-  active?: { id: string; message: string };
 }) {
   const [localOrders, setLocalOrders] = useState<Order[]>([]);
   const [orders, setOrders] = useState<Order[]>([]),
@@ -131,8 +129,8 @@ export function OrderList({
                 new Date(order.openedAt).toLocaleString('es-CR')}
             </p>
             <p className="total">{formatCRC(order.totalAmount ?? 0)}</p>
-            {active?.id === order.id && (
-              <p className="status">{active.message}</p>
+            {localOrders.some(local => local.id === order.id) && (
+              <p className="status">Cambios guardados en este dispositivo; pendientes de sincronizar.</p>
             )}
             <button disabled={loading} onClick={() => onOpen(order)}>
               {status === 'OPEN' ? 'Continuar' : 'Ver detalle'}

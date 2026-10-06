@@ -38,8 +38,22 @@ export function App() {
   const [bootstrapError, setBootstrapError] = useState(false);
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [draft, setDraft] = useState<Draft | null>(null);
-  const [message, setMessage] = useState('');
-  const [retryable, setRetryable] = useState(false);
+  const [globalMessage, setGlobalMessage] = useState('');
+  const [editorId, setEditorId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ page: typeof page; orderId: string | null; message: string; retryable: boolean } | null>(null);
+  const noticeGeneration = useRef(0);
+  const generation = noticeGeneration.current;
+  const message = notice?.page === page && notice.orderId === (page === 'editor' ? editorId : null) ? notice.message : '';
+  const retryable = !!message && !!notice?.retryable;
+  function setMessage(next: string | ((previous: string) => string)) {
+    if (generation !== noticeGeneration.current) return;
+    setNotice(previous => ({ page, orderId: page === 'editor' ? editorId : null,
+      message: typeof next === 'function' ? next(previous?.message ?? '') : next, retryable: false }));
+  }
+  function clearNotice() {
+    noticeGeneration.current++;
+    setNotice(null);
+  }
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -78,6 +92,7 @@ export function App() {
     finally { setBusy(false); }
   }
   async function checkSession() {
+    setGlobalMessage('');
     setBootstrapError(false);
     setSessionStatus('checking');
     try {
@@ -85,9 +100,9 @@ export function App() {
       setSession(result.session);
       setSessionStatus(result.status);
       if (result.status === 'anonymous')
-        setMessage('Inicia sesión para continuar.');
+        setGlobalMessage('Inicia sesión para continuar.');
       if (!result.healthOk)
-        setMessage(
+        setGlobalMessage(
           'La base de datos no está disponible. Tu copia local está protegida.',
         );
     } catch {
@@ -104,6 +119,7 @@ export function App() {
     const expire = () => {
       if (disposed) return;
       void saver.current?.pause().catch(() => undefined);
+      clearNotice();
       setDraft(null);
       setOrder(null);
       setPage('dashboard');
@@ -112,13 +128,13 @@ export function App() {
       setOrder(null);
       setSessionStatus('anonymous');
       setTouched(new Set());
-      setMessage(
+      setGlobalMessage(
         'La sesión terminó. Vuelve a entrar para recuperar tu borrador.',
       );
     };
     const stop = trackActivity(session, expire);
     if (!navigator.locks) {
-      setMessage(
+      setGlobalMessage(
         'Este navegador no admite el bloqueo de edición. Usa una versión reciente.',
       );
       return stop;
@@ -129,7 +145,7 @@ export function App() {
       async (lock) => {
         if (disposed) return;
         if (!lock) {
-          setMessage(
+          setGlobalMessage(
             'El borrador está abierto en otra pestaña. Ciérrala y recarga aquí.',
           );
           return;
@@ -142,7 +158,7 @@ export function App() {
           });
           await saver.current?.pause();
         } catch {
-          setMessage(
+          setGlobalMessage(
             'No se pudo abrir el almacenamiento local. Revisa los permisos del navegador.',
           );
         }
@@ -170,10 +186,11 @@ export function App() {
           body: JSON.stringify({ username, password }),
         }),
       );
+      setGlobalMessage('');
       setSessionStatus('authenticated');
       setPage('dashboard');
     } catch (error) {
-      setMessage(loginErrorMessage(error));
+      setGlobalMessage(loginErrorMessage(error));
     } finally {
       setPassword('');
       setBusy(false);
@@ -189,10 +206,11 @@ export function App() {
       setSession(null);
       setSessionStatus('anonymous');
       setTouched(new Set());
+      clearNotice();
       setDraft(null);
-      setMessage('Sesión cerrada. Borrador conservado en este dispositivo.');
+      setGlobalMessage('Sesión cerrada. Borrador conservado en este dispositivo.');
     } catch {
-      setMessage(
+      setGlobalMessage(
         'No se pudo cerrar la sesión. Reintenta antes de dejar el dispositivo.',
       );
     }
@@ -201,13 +219,17 @@ export function App() {
     if (!session) return;
     await saver.current?.pause();
     await storage.write(session.userId, record);
+    clearNotice();
+    setEditorId(record.id);
+    const serviceGeneration = noticeGeneration.current;
     const service = new Autosave(
       record,
       session.userId,
       session.csrf,
       (text, retry = false) => {
-        setMessage(text);
-        setRetryable(retry);
+        // Ignore UI reports from an editor left or replaced while work was in flight.
+        if (serviceGeneration !== noticeGeneration.current || saver.current !== service) return;
+        setNotice({ page: 'editor', orderId: record.id, message: text, retryable: retry });
         setOrder(service.state.order ?? null);
         if (!service.state.pending && !service.state.draft.action)
           setConfirmAction(null);
@@ -216,6 +238,8 @@ export function App() {
       () => {
         setSession(null);
         setSessionStatus('anonymous');
+        setGlobalMessage('La sesión terminó. Vuelve a entrar para recuperar tu borrador.');
+        clearNotice();
         setPage('dashboard');
       },
     );
@@ -246,6 +270,7 @@ export function App() {
       return;
     }
     // Leaving the module preserves local changes and the editor lock; entering another order requires sync.
+    if (next !== page) clearNotice();
     setPage(next);
   }
   async function newOrder() {
@@ -282,6 +307,8 @@ export function App() {
       await saver.current?.pause();
       const remote = await api<Order>('/orders/' + selected.id);
       if (remote.status !== 'OPEN') {
+        clearNotice();
+        setEditorId(remote.id);
         setDraft(remote.draft);
         setOrder(remote);
         setTouched(new Set());
@@ -327,7 +354,7 @@ export function App() {
       setOrder(saved ?? null);
       setDraft(saver.current.state.draft);
       setConfirmAction(null);
-      setMessage(
+      setNotice({ page: 'editor', orderId: saver.current.state.id, retryable: false, message:
         action === 'void'
           ? 'Orden cancelada. Se conserva su información.'
           : action === 'close'
@@ -335,7 +362,7 @@ export function App() {
           : action === 'reopen'
             ? 'Orden reabierta.'
             : 'Dueño actual actualizado. El historial anterior se conserva.',
-      );
+      });
     } catch {
       if (!saver.current?.state.pending) setConfirmAction(null);
       setMessage(
@@ -481,11 +508,6 @@ export function App() {
             {(page === 'open' || page === 'history') && (
               <OrderList
                 key={page}
-                active={
-                  saver.current?.state
-                    ? { id: saver.current.state.id, message }
-                    : undefined
-                }
                 userId={session.userId}
                 role={session.role}
                 onCancel={async selected => {
@@ -500,6 +522,7 @@ export function App() {
             {page === 'users' && session.role === 'ADMIN' && (
               <Users session={session} />
             )}
+            {globalMessage && <p role="status">{globalMessage}</p>}
             {!editor && message && <p role="status">{message}</p>}
           </>
         )}
@@ -620,7 +643,7 @@ export function App() {
                     </div>
                   )}
                   {(!order || order.status === 'OPEN') && !confirmAction && !busy && (
-                    <EntitySearch key={saver.current?.state.id} ownerRevision={ownerRevision} draft={draft} onSelect={saveDraft} allowTransfer={session.role === 'ADMIN'} onTransfer={() => {
+                    <EntitySearch key={`${page}:${editorId}`} ownerRevision={ownerRevision} draft={draft} onSelect={saveDraft} allowTransfer={session.role === 'ADMIN'} onTransfer={() => {
                       setBusy(true);
                       void saver.current?.flush().then(() => { setOrder(saver.current?.state.order ?? null); setConfirmAction('transfer-owner'); })
                         .catch(() => setMessage('Sincroniza la orden antes de actualizar el dueño.')).finally(() => setBusy(false));
@@ -976,7 +999,7 @@ export function App() {
             }
           />
           <SyncStatus
-            message={message}
+            message={sessionStatus === 'authenticated' ? (editor ? message : '') : globalMessage}
             retryable={
               retryable && !!draft && sessionStatus === 'authenticated'
             }
