@@ -310,7 +310,9 @@ export function App() {
     const action = confirmAction;
     setBusy(true);
     try {
-      if (action === 'reopen' && saver.current?.state.id !== order.id)
+      // History pauses the previous saver, including when it owns this same order.
+      // Keep only a pending reopen receipt; otherwise attach a fresh active editor.
+      if (action === 'reopen' && (saver.current?.state.id !== order.id || saver.current.state.pending?.draft.action !== 'reopen'))
         await attach({
           id: order.id,
           draft: order.draft,
@@ -337,7 +339,7 @@ export function App() {
     } catch {
       if (!saver.current?.state.pending) setConfirmAction(null);
       setMessage(
-        'La acción no se confirmó. La copia local está protegida; reintenta para recuperar el resultado.',
+        previous => previous.includes('Conflicto de versión.') ? previous : 'La acción no se confirmó. La copia local está protegida; reintenta para recuperar el resultado.',
       );
     } finally {
       setBusy(false);
@@ -888,9 +890,7 @@ export function App() {
                       />
                     </label>
                   </fieldset>
-                  {order?.status === 'OPEN' && (session.role === 'ADMIN' || order.mechanicId === session.userId) && (
-                    <button type="button" className="danger" disabled={busy || !!confirmAction} onClick={() => setConfirmAction('void')}>Cancelar orden</button>
-                  )}
+                  <div className="order-actions">
                   {(!order || order.status === 'OPEN') && canFinish && (
                     <button
                       type="button"
@@ -918,6 +918,10 @@ export function App() {
                       Cerrar orden
                     </button>
                   )}
+                  {order?.status === 'OPEN' && (session.role === 'ADMIN' || order.mechanicId === session.userId) && (
+                    <button type="button" className="danger" disabled={busy || !!confirmAction} onClick={() => setConfirmAction('void')}>Cancelar orden</button>
+                  )}
+                  </div>
                   {order?.status === 'CLOSED' && session.role === 'ADMIN' && (
                     <button
                       type="button"

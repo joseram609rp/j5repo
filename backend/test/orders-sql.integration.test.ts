@@ -349,7 +349,15 @@ it.skipIf(!enabled)(
             closed.version,
           );
           expect(reopenedResponse.status).toBe(200);
-          expect((await reopenedResponse.json()).status).toBe('OPEN');
+          const reopened: Order = await reopenedResponse.json();
+          expect(reopened.status).toBe('OPEN');
+          expect(reopened.closedAt).toBeNull();
+          expect(reopened.version).not.toBe(closed.version);
+          expect(reopenedResponse.headers.get('etag')).toBe('"' + reopened.version + '"');
+          expect(reopened.draft).toEqual(closed.draft);
+          expect(reopened.mechanicId).toBe(closed.mechanicId);
+          expect(reopened.taxRate).toBe(closed.taxRate);
+          expect(reopened.totalAmount).toBe(closed.totalAmount);
           expect((await tx.order(orderId))?.draft.customerId).toBe(customer.id);
           const operationalId=randomUUID();
           const created=await call('/orders/'+operationalId,'PUT',draft);

@@ -4,7 +4,7 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { App } from './App';
 import { OrderList } from './OrderList';
-import { api } from './api';
+import { api, ApiError } from './api';
 import { amounts } from '../../backend/src/validation';
 import { bootstrapSession } from './bootstrap';
 import { fresh, storage, type Order, type RecordState } from './autosave';
@@ -318,6 +318,44 @@ it('ADMIN can explicitly confirm reopening a CLOSED order', async () => {
   await click('Confirmar');
   expect(disk?.order?.status).toBe('OPEN');
   expect(container.querySelector('fieldset')?.disabled).toBe(false);
+});
+it('ADMIN reopens the same paused editor after closing and visiting history', async () => {
+  const initial = seed();
+  initial.draft.items![0]!.notes = 'Comentario conservado';
+  initial.taxRate = 13;
+  disk!.draft = clone(initial.draft); disk!.order = clone(initial);
+  vi.mocked(bootstrapSession).mockResolvedValue({ session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true });
+  await mount(); await click('Órdenes abiertas'); await click('Continuar');
+  expect([...container.querySelectorAll('.order-actions button')].map(b => b.textContent?.trim())).toEqual(['Cerrar orden', 'Cancelar orden']);
+  await click('Cerrar orden'); await click('Confirmar');
+  await click('Historial'); await historySearch(); await click('Ver detalle');
+  expect(container.querySelector('fieldset')?.disabled).toBe(true);
+  await click('Reabrir orden'); await click('Confirmar');
+  expect(container.querySelector('fieldset')?.disabled).toBe(false);
+  expect(disk?.order?.status).toBe('OPEN'); expect(disk?.order?.closedAt).toBeNull();
+  expect(disk?.draft.items?.[0]?.notes).toBe('Comentario conservado'); expect(disk?.order?.taxRate).toBe(13);
+  await input('[data-field=mileage]', '128401');
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 850)); });
+  expect(orders.get(initial.id)?.draft.mileage).toBe(128401);
+  expect(orders.get(initial.id)?.draft.items?.[0]?.notes).toBe('Comentario conservado');
+  await click('Órdenes abiertas'); expect(button('Continuar')).toBeTruthy();
+});
+it('ADMIN reopening with stale ETag refetches and keeps the conflict message', async () => {
+  const initial = seed('CLOSED');
+  vi.mocked(bootstrapSession).mockResolvedValue({ session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true });
+  const normal = vi.mocked(api).getMockImplementation()!;
+  vi.mocked(api).mockImplementation(async (path, options = {}) => {
+    if (options.method === 'PUT') {
+      orders.get(initial.id)!.version = 'new-version';
+      throw new ApiError(412, 'VERSION_CONFLICT');
+    }
+    return normal(path, options);
+  });
+  await mount(); await click('Historial'); await historySearch(); await click('Ver detalle');
+  await click('Reabrir orden'); await click('Confirmar');
+  expect(text()).toContain('Conflicto de versión.');
+  expect(disk?.order?.version).toBe('new-version');
+  expect(container.querySelector('fieldset')?.disabled).toBe(true);
 });
 it('selects exact vehicle and current owner from search results', async () => {
   await mount();
