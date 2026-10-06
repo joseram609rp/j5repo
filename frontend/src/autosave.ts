@@ -2,6 +2,8 @@ import { draftSchema } from '../../backend/src/validation';
 import { openDB } from 'idb';
 import { api, ApiError } from './api';
 export type Draft = {
+  paymentMethod?: 'SINPE' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CASH' | 'BANK_TRANSFER';
+  electronicInvoice?: boolean;
   mechanicId?: string;
   customerId?: string;
   vehicleId?: string;
@@ -17,7 +19,7 @@ export type Draft = {
   make?: string;
   model?: string;
   year?: number | null;
-  items?: { description: string; price: number }[];
+  items?: { description: string; price: number; notes?: string }[];
 };
 export type Order = {
   id: string;
@@ -30,6 +32,9 @@ export type Order = {
   openedAt?: string;
   closedAt?: string | null;
   totalAmount?: number;
+  subtotalAmount?: number;
+  taxAmount?: number;
+  taxRate?: number;
 };
 type Mutation = {
   key: string;

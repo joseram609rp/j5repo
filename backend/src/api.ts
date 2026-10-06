@@ -402,6 +402,8 @@ export function createApi(
                 !(user.role === 'ADMIN' && draft.action)
               )
                 throw new HttpError(409, 'ORDER_NOT_OPEN');
+              if (draft.action === 'close' && existing && user.role !== 'ADMIN' && existing.mechanicId !== user.id)
+                throw new HttpError(403, 'ASSIGNED_MECHANIC_REQUIRED');
               if (
                 draft.action === 'close' &&
                 (!existing || existing.status !== 'OPEN' || !canClose(draft))

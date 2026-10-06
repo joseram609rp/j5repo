@@ -5,6 +5,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { App } from './App';
 import { OrderList } from './OrderList';
 import { api } from './api';
+import { amounts } from '../../backend/src/validation';
 import { bootstrapSession } from './bootstrap';
 import { fresh, storage, type Order, type RecordState } from './autosave';
 import type { Session } from './session';
@@ -40,7 +41,7 @@ const complete = {
   year: 2020,
   mileage: 128400,
   items: [{ description: 'Frenos', price: 185000 }],
-  notes: 'Revisado',
+  paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Revisado',
   recommendations: '',
 };
 let container: HTMLDivElement,
@@ -117,11 +118,8 @@ beforeEach(() => {
           closedAt: d.action === 'close' ? '2026-10-05T11:00:00Z' : null,
           mechanicId: d.mechanicId ?? old?.mechanicId ?? session.userId,
           mechanicName: session.fullName,
-          totalAmount:
-            d.items?.reduce(
-              (sum: number, i: { price: number }) => sum + i.price,
-              0,
-            ) ?? 0,
+          taxRate: old && old.status !== 'OPEN' ? old.taxRate ?? 0 : 13,
+          totalAmount: amounts(d.items, old && old.status !== 'OPEN' ? old.taxRate ?? 0 : 13).total,
         };
         delete o.draft.action;
         delete o.draft.mechanicId;
@@ -297,7 +295,7 @@ it('lists OPEN, resumes, confirms closure, locks CLOSED and finds history detail
   expect(disk?.order?.status).toBe('CLOSED');
   expect(container.querySelector('fieldset')?.disabled).toBe(true);
   expect(button('Reabrir orden')).toBeUndefined();
-  expect(text()).toContain('Total oficial');
+  expect(text()).toContain('Precio final');
   await click('Historial');
   await historySearch();
   expect(text()).toContain('OT-2026-000007');
@@ -588,4 +586,26 @@ it('list hides cancellation for orders assigned to another mechanic',async()=>{
  const initial=seed();initial.mechanicId=crypto.randomUUID();orders.set(initial.id,clone(initial));
  await mount();await click('Órdenes abiertas');expect(button('Cancelar orden')).toBeUndefined();
  await click('Continuar');expect(button('Cancelar orden')).toBeUndefined();
+});
+
+
+it('refetch removes close permission from the previous mechanic',async()=>{
+ const initial=seed();await mount();await click('Órdenes abiertas');await click('Continuar');expect(button('Cerrar orden')).toBeTruthy();
+ orders.set(initial.id,{...initial,mechanicId:crypto.randomUUID(),mechanicName:'Nuevo',version:'new'});
+ await act(async()=>{window.dispatchEvent(new Event('focus'));for(let i=0;i<30;i++)await Promise.resolve();});
+ expect(button('Cerrar orden')).toBeUndefined();expect(container.querySelector('fieldset')?.disabled).toBe(false);
+});
+it('payment and electronic invoice require an explicit choice; No is valid; all observations are optional',async()=>{
+ const initial=seed();delete initial.draft.paymentMethod;delete initial.draft.electronicInvoice;initial.draft.notes='';initial.draft.recommendations='';orders.set(initial.id,clone(initial));disk!.draft=clone(initial.draft);disk!.order=clone(initial);records.set(initial.id,clone(disk!));
+ await mount();await click('Órdenes abiertas');await click('Continuar');await click('Cerrar orden');
+ expect(container.querySelector('[role=dialog]')).toBeNull();expect(text()).toContain('Selecciona el método de pago.');expect(text()).toContain('Indica si requiere factura electrónica');expect(text()).not.toContain('Escribe las observaciones');
+ const select=async(field:string,value:string)=>act(async()=>{const e=container.querySelector<HTMLSelectElement>(`[data-field=${field}]`)!;e.value=value;e.dispatchEvent(new Event('change',{bubbles:true}));});
+ await select('paymentMethod','SINPE');await select('electronicInvoice','false');await click('Cerrar orden');expect(container.querySelector('[role=dialog]')).toBeTruthy();await click('Confirmar');
+ expect(disk?.order?.status).toBe('CLOSED');expect(disk?.draft.paymentMethod).toBe('SINPE');expect(disk?.draft.electronicInvoice).toBe(false);expect(disk?.draft.notes).toBe('');expect(disk?.draft.recommendations).toBe('');
+});
+it('line IVA and subtotal/final totals recalculate while optional item notes persist',async()=>{
+ seed();await mount();await click('Órdenes abiertas');await click('Continuar');
+ await input('[data-field=item-0-price]','1000');expect(container.querySelector('[aria-label="Resumen de importes"]')?.textContent).toContain('Subtotal: ₡ 1');expect(container.querySelector('[aria-label="Resumen de importes"]')?.textContent).toContain('IVA 13%: ₡ 130');expect(container.querySelector('[aria-label="Resumen de importes"]')?.textContent).toContain('Precio final: ₡ 1');
+ await act(async()=>{const e=container.querySelector<HTMLTextAreaElement>('[data-field=item-0-notes]')!;Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value')!.set!.call(e,'Detalle opcional');e.dispatchEvent(new Event('input',{bubbles:true}));});
+ expect(disk?.draft.items?.[0]?.notes).toBe('Detalle opcional');
 });

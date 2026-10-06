@@ -13,6 +13,7 @@ async function main() {
   for(const name of ['Users','Customers','Vehicles','Orders','OrderItems','Sessions','AuditLogs','IdempotencyRequests','SchemaMigrations']) if(!tables.includes(name)) throw new Error('SCHEMA_INCOMPLETE');
   const columns=(await tx.query("SELECT t.name AS table_name,c.name AS column_name,c.is_nullable FROM sys.tables t JOIN sys.columns c ON t.object_id=c.object_id WHERE t.name IN ('Users','Customers','Vehicles','Orders','OrderItems') ORDER BY t.name,c.column_id")).recordset;
   if (!columns.some(c => c.table_name === 'Vehicles' && c.column_name === 'model')) throw new Error('SCHEMA_INCOMPLETE');
+  for(const [table,column] of [['Orders','tax_rate'],['OrderItems','notes']]) if(!columns.some(c=>c.table_name===table && c.column_name===column)) throw new Error('SCHEMA_INCOMPLETE');
   console.log('Columns: '+JSON.stringify(columns));
   console.log('Vehicles missing model: '+(await tx.query<{count:number}>('SELECT COUNT(*) AS count FROM dbo.Vehicles WHERE model IS NULL')).recordset[0]!.count);
   const notesGuard=(await tx.query<{is_disabled:boolean;is_not_trusted:boolean}>("SELECT is_disabled,is_not_trusted FROM sys.check_constraints WHERE name='CK_Orders_ClosedNotes'")).recordset[0];

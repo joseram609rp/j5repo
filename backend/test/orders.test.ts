@@ -41,14 +41,14 @@ it('lists orders from any mechanic, filters CLOSED history and requires auth', a
     identification: '123456789',
     plate: 'ABC123',
     mileage: 0,
-    notes: 'Revisado',
+    paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Revisado',
     recommendations: '',
   });
   const b = await repo.saveOrder(randomUUID(), userId, {
     customerName: 'Beto',
     plate: 'XYZ987',
     mileage: 0,
-    notes: 'Revisado',
+    paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Revisado',
     recommendations: '',
     action: 'close',
   });
@@ -97,7 +97,7 @@ it('a mechanic cannot transfer vehicle ownership using order actions', async () 
     customerName: 'Ana',
     plate: 'ABC123',
     mileage: 0,
-    notes: 'Revisado',
+    paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Revisado',
     recommendations: '',
   });
   const raw = randomBytes(32).toString('base64url');
@@ -138,7 +138,7 @@ it('history rejects missing criteria before reaching the repository', async()=>{
 it('partial names are accent/case insensitive, exact identity and pages remain bounded',async()=>{
  const {repo,call}=setup();const ids=[];
  for(let i=0;i<55;i++){
-   const order=await repo.saveOrder(randomUUID(),userId,{customerName:i%2?'José Ramírez':'Jose Mora',identification:'123456789',plate:'ABC123',mileage:0,notes:'',recommendations:'',action:'close'});
+   const order=await repo.saveOrder(randomUUID(),userId,{customerName:i%2?'José Ramírez':'Jose Mora',identification:'123456789',plate:'ABC123',mileage:0,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: '',recommendations:'',action:'close'});
    ids.push(order.id);
  }
  const search=async(q:string,before?:string)=>(await (await call('/orders?status=CLOSED&q='+encodeURIComponent(q)+(before?'&before='+before:''))).json()).orders;
@@ -152,12 +152,12 @@ it('partial names are accent/case insensitive, exact identity and pages remain b
 });
 
 
-const operationalDraft = { customerName: '', plate: '', mileage: null, notes: '', recommendations: '', items: [{description:'Servicio',price:10}] };
+const operationalDraft = { customerName: '', plate: '', mileage: null, paymentMethod: 'CASH' as const, electronicInvoice: false, notes: '', recommendations: '', items: [{description:'Servicio',price:10}] };
 it.each(['MECHANIC', 'ADMIN'] as const)('%s can VOID an assigned OPEN with replay and preserved data', async role => {
  const {repo,mutate,call,hash}=setup(); repo.accounts.get(userId)!.role=role;
  const id=randomUUID(), initial=await repo.saveOrder(id,userId,operationalDraft),key=randomUUID();
  repo.clock+=30000; const last=repo.sessions.get(hash)!.lastActivity;
- const payload={...operationalDraft,notes:'must not overwrite',action:'void'};
+ const payload={...operationalDraft,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'must not overwrite',action:'void'};
  const first=await mutate(id,payload,initial.version,key);expect(first.status).toBe(200);
  const voided=await first.json();expect(voided.status).toBe('VOID');expect(voided.draft).toEqual(initial.draft);
  expect(first.headers.get('etag')).toBe('"'+voided.version+'"');expect(voided.version).not.toBe(initial.version);
@@ -180,7 +180,7 @@ it('explicit ADMIN reassignment validates target, changes ETag/list and rejects 
  const {repo,mutate,call,hash}=setup();const id=randomUUID(), target=randomUUID();
  repo.accounts.set(target,{...repo.accounts.get(userId)!,id:target,fullName:'Nuevo mecánico'});
  const initial=await repo.saveOrder(id,userId,operationalDraft);
- const payload={...operationalDraft,notes:'must not overwrite',action:'assign-mechanic',mechanicId:target};
+ const payload={...operationalDraft,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'must not overwrite',action:'assign-mechanic',mechanicId:target};
  expect((await mutate(id,payload)).status).toBe(403);repo.accounts.get(userId)!.role='ADMIN';
  repo.accounts.get(target)!.active=false;expect((await mutate(id,payload)).status).toBe(400);repo.accounts.get(target)!.active=true;
  const response=await mutate(id,payload);expect(response.status).toBe(200);const updated=await response.json();
@@ -193,4 +193,19 @@ it('explicit ADMIN reassignment validates target, changes ETag/list and rejects 
  for(let i=0;i<3;i++) { await call('/orders/'+id); const list=await (await call('/orders?status=OPEN')).json();expect(list.orders[0].mechanicName).toBe('Nuevo mecánico'); }
  expect(repo.sessions.get(hash)!.lastActivity).toBe(last);
  expect(repo.audits.some(a=>a.action==='ORDER_MECHANIC_CHANGED' && a.entityId===id)).toBe(true);
+});
+
+
+const billingDraft={customerName:'Cliente',identification:'123456789',phone:'88888888',plate:'ABC123',make:'Toyota',model:'Corolla',year:2020,mileage:0,paymentMethod:'CASH' as const,electronicInvoice:false,items:[{description:'Trabajo',price:100,notes:'Observación opcional'}]};
+it('assigned mechanic closes with blank/missing general notes and required billing',async()=>{
+ const {repo,mutate}=setup();const id=randomUUID();await repo.saveOrder(id,userId,{...billingDraft,notes:'',recommendations:''});
+ for(const missing of [{paymentMethod:undefined},{electronicInvoice:undefined}]) expect((await mutate(id,{...billingDraft,...missing,action:'close'})).status).toBe(400);
+ const response=await mutate(id,{...billingDraft,action:'close'});expect(response.status).toBe(200);const saved=await response.json();
+ expect(saved.status).toBe('CLOSED');expect(saved.draft.notes).toBe('');expect(saved.draft.recommendations).toBe('');expect(saved.draft.items[0].notes).toBe('Observación opcional');expect(saved.totalAmount).toBe(113);
+});
+it('after reassignment the previous mechanic cannot close; ADMIN retains that permission',async()=>{
+ const {repo,mutate}=setup();const id=randomUUID(),other=randomUUID();repo.accounts.set(other,{...repo.accounts.get(userId)!,id:other});
+ await repo.saveOrder(id,userId,{...billingDraft,notes:'',recommendations:''});repo.accounts.get(userId)!.role='ADMIN';
+ expect((await mutate(id,{...billingDraft,action:'assign-mechanic',mechanicId:other})).status).toBe(200);repo.accounts.get(userId)!.role='MECHANIC';
+ expect((await mutate(id,{...billingDraft,action:'close'})).status).toBe(403);repo.accounts.get(userId)!.role='ADMIN';expect((await mutate(id,{...billingDraft,action:'close'})).status).toBe(200);
 });

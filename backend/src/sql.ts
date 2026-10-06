@@ -78,6 +78,8 @@ type OrderRow = {
   recommendations: string;
   display_order_id: string;
   total_amount: number;
+  tax_amount: number;
+  tax_rate: number;
   closed_at: Date | null;
   draft_data: string;
   created_at: Date;
@@ -89,6 +91,9 @@ function order(r: OrderRow): Order {
     mechanicName: r.mechanic_name,
     displayOrderId: r.display_order_id,
     totalAmount: r.total_amount,
+    taxAmount: r.tax_amount,
+    subtotalAmount: Math.round((r.total_amount - r.tax_amount) * 100) / 100,
+    taxRate: r.tax_rate,
     closedAt: r.closed_at?.toISOString() ?? null,
     id: r.id.toLowerCase(),
     status: r.status,
@@ -240,7 +245,7 @@ export class SqlUnit implements UnitOfWork {
     if (status === 'CLOSED' && search.trim().length < 2) throw new HttpError(400, 'HISTORY_SEARCH_REQUIRED');
     const rows = (
       await this.query<OrderRow>(
-        `SELECT TOP (50) o.*,u.full_name AS mechanic_name FROM dbo.Orders o
+        `SELECT TOP (50) o.*,(SELECT COALESCE(SUM(ROUND(oi.price*b.tax_rate/100,2)),0) FROM dbo.OrderItems oi JOIN dbo.Orders b ON b.id=oi.order_id WHERE oi.order_id=o.id) AS tax_amount,u.full_name AS mechanic_name FROM dbo.Orders o
       JOIN dbo.Users u ON u.id=o.mechanic_id LEFT JOIN dbo.Customers c ON c.id=o.customer_id
       WHERE o.status=@status AND (@before IS NULL OR o.created_at < (SELECT created_at FROM dbo.Orders WHERE id=@before)
         OR (o.created_at=(SELECT created_at FROM dbo.Orders WHERE id=@before) AND o.order_number<(SELECT order_number FROM dbo.Orders WHERE id=@before)))
@@ -290,20 +295,24 @@ export class SqlUnit implements UnitOfWork {
   }
   async order(id: string) {
     const r = await this.query<OrderRow>(
-      'SELECT o.*,u.full_name AS mechanic_name FROM dbo.Orders o WITH (UPDLOCK,HOLDLOCK) JOIN dbo.Users u ON u.id=o.mechanic_id WHERE o.id=@id',
+      'SELECT o.*,(SELECT COALESCE(SUM(ROUND(oi.price*b.tax_rate/100,2)),0) FROM dbo.OrderItems oi JOIN dbo.Orders b ON b.id=oi.order_id WHERE oi.order_id=o.id) AS tax_amount,u.full_name AS mechanic_name FROM dbo.Orders o WITH (UPDLOCK,HOLDLOCK) JOIN dbo.Users u ON u.id=o.mechanic_id WHERE o.id=@id',
       { id },
     );
     if (!r.recordset[0]) return undefined;
     const result = order(r.recordset[0]);
     result.draft.items = (
-      await this.query<{ description: string; price: number }>(
-        'SELECT description,price FROM dbo.OrderItems WHERE order_id=@id ORDER BY id',
+      await this.query<{ description: string; price: number; notes: string }>(
+        'SELECT description,price,notes FROM dbo.OrderItems WHERE order_id=@id ORDER BY id',
         { id },
       )
     ).recordset;
     return result;
   }
   async saveOrder(id: string, userId: string, draft: Draft, previous?: Order) {
+    if (draft.action === 'close') {
+      const actor = await this.userById(userId);
+      if (previous && actor?.role !== 'ADMIN' && previous.mechanicId !== userId) throw new HttpError(403, 'ASSIGNED_MECHANIC_REQUIRED');
+    }
     if (draft.action === 'void' || draft.action === 'assign-mechanic') {
       if (!previous || previous.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');
       const actor = await this.userById(userId);
@@ -328,6 +337,7 @@ export class SqlUnit implements UnitOfWork {
       }
       return (await this.order(id))!;
     }
+    const taxRate = previous && previous.status !== 'OPEN' ? previous.taxRate ?? 0 : 13;
     const assignedMechanic = draft.mechanicId ?? previous?.mechanicId ?? userId;
     if (assignedMechanic !== (previous?.mechanicId ?? userId)) {
       const actor = await this.userById(userId);
@@ -529,6 +539,7 @@ export class SqlUnit implements UnitOfWork {
       id,
       userId,
       assignedMechanic,
+      taxRate,
       customerId,
       vehicleId,
       name: draft.customerName,
@@ -540,32 +551,34 @@ export class SqlUnit implements UnitOfWork {
     };
     if (previous) {
       const r = await this.query(
-        'UPDATE dbo.Orders SET mechanic_id=@assignedMechanic,draft_data=@data,customer_id=@customerId,vehicle_id=@vehicleId,customer_name_snapshot=@name,plate_snapshot=@plate,mileage=@mileage,notes=@notes,recommendations=@recommendations,updated_at=SYSUTCDATETIME() WHERE id=@id AND version=@version',
+        'UPDATE dbo.Orders SET tax_rate=@taxRate,total_amount=(SELECT COALESCE(SUM(price+ROUND(price*@taxRate/100,2)),0) FROM dbo.OrderItems WHERE order_id=@id),mechanic_id=@assignedMechanic,draft_data=@data,customer_id=@customerId,vehicle_id=@vehicleId,customer_name_snapshot=@name,plate_snapshot=@plate,mileage=@mileage,notes=@notes,recommendations=@recommendations,updated_at=SYSUTCDATETIME() WHERE id=@id AND version=@version',
         { ...params, version: Buffer.from(previous.version, 'hex') },
       );
       if (r.rowsAffected[0] !== 1) throw new HttpError(412, 'VERSION_CONFLICT');
     } else {
       await this.query(
-        'INSERT dbo.Orders(id,customer_id,vehicle_id,mechanic_id,draft_data,customer_name_snapshot,plate_snapshot,mileage,notes,recommendations) VALUES(@id,@customerId,@vehicleId,@userId,@data,@name,@plate,@mileage,@notes,@recommendations)',
+        'INSERT dbo.Orders(id,customer_id,vehicle_id,mechanic_id,draft_data,customer_name_snapshot,plate_snapshot,mileage,notes,recommendations,tax_rate) VALUES(@id,@customerId,@vehicleId,@userId,@data,@name,@plate,@mileage,@notes,@recommendations,@taxRate)',
         params,
       );
     }
     await this.query('DELETE dbo.OrderItems WHERE order_id=@id', { id });
     for (const item of draft.items ?? [])
       await this.query(
-        'INSERT dbo.OrderItems(id,order_id,description,price) VALUES(@itemId,@id,@description,CAST(@price AS decimal(12,2)))',
+        'INSERT dbo.OrderItems(id,order_id,description,price,notes) VALUES(@itemId,@id,@description,CAST(@price AS decimal(12,2)),@itemNotes)',
         {
           itemId: randomUUID(),
           id,
           description: item.description,
+          itemNotes: item.notes ?? '',
           price: item.price.toFixed(2),
         },
       );
     await this.query(
-      "UPDATE dbo.Orders SET total_amount=(SELECT COALESCE(SUM(price),0) FROM dbo.OrderItems WHERE order_id=@id),status=@status,closed_at=CASE WHEN @status='CLOSED' THEN COALESCE(@originalClosedAt,closed_at,SYSUTCDATETIME()) ELSE NULL END WHERE id=@id",
+      "UPDATE dbo.Orders SET total_amount=(SELECT COALESCE(SUM(price+ROUND(price*@taxRate/100,2)),0) FROM dbo.OrderItems WHERE order_id=@id),status=@status,closed_at=CASE WHEN @status='CLOSED' THEN COALESCE(@originalClosedAt,closed_at,SYSUTCDATETIME()) ELSE NULL END WHERE id=@id",
       {
         id,
         status,
+        taxRate,
         originalClosedAt:
           action === 'admin-edit' && originalClosedAt
             ? new Date(originalClosedAt)

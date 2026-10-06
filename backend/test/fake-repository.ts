@@ -1,4 +1,4 @@
-import { totalAmount } from '../src/validation.js';
+import { amounts } from '../src/validation.js';
 import { HttpError } from '../src/reliability.js';
 import {
   IDLE_MS,
@@ -128,7 +128,8 @@ export class FakeRepository implements Repository, UnitOfWork {
             : draft.action === 'reopen'
               ? 'OPEN'
               : (previous?.status ?? 'OPEN'),
-      totalAmount: totalAmount(draft.items),
+      taxRate: previous && previous.status !== 'OPEN' ? previous.taxRate ?? 0 : 13,
+      totalAmount: amounts(draft.items, previous && previous.status !== 'OPEN' ? previous.taxRate ?? 0 : 13).total,
       mechanicId: draft.mechanicId ?? previous?.mechanicId ?? userId,
       version: (BigInt('0x' + (previous?.version ?? '0')) + 1n)
         .toString(16)

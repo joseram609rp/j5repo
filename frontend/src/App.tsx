@@ -1,6 +1,6 @@
 import { SyncStatus } from './SyncStatus';
 import { SessionGate } from './SessionGate';
-import { totalAmount } from '../../backend/src/validation';
+import { amounts } from '../../backend/src/validation';
 import { bootstrapSession, type SessionStatus } from './bootstrap';
 import { Dashboard } from './Dashboard';
 import { OrderList } from './OrderList';
@@ -356,7 +356,7 @@ export function App() {
   }
   function editItem(
     index: number,
-    field: 'description' | 'price',
+    field: 'description' | 'price' | 'notes',
     value: string,
   ) {
     if (!draft) return;
@@ -384,6 +384,9 @@ export function App() {
     };
     saveDraft(next);
   }
+  const canFinish = !order || session?.role === 'ADMIN' || order.mechanicId === session?.userId;
+  const taxRate = order && order.status !== 'OPEN' ? order.taxRate ?? 0 : 13;
+  const totals = amounts(draft?.items, taxRate);
   const errors = draft ? visibleErrors(draft, touched, closing) : [];
   const readOnly =
     (!!order && order.status !== 'OPEN') ||
@@ -784,7 +787,7 @@ export function App() {
                           {validation(`item-${index}-description`)}
                         </label>
                         <label>
-                          Precio final
+                          Precio sin IVA
                           <input
                             data-field={`item-${index}-price`}
                             {...accessibility(`item-${index}-price`)}
@@ -801,6 +804,10 @@ export function App() {
                             {formatCRC(item.price)}
                           </small>
                           {validation(`item-${index}-price`)}
+                          <small className="currency-preview">IVA {taxRate}%: {formatCRC(amounts([item], taxRate).tax)}</small>
+                        </label>
+                        <label>Observación del trabajo (opcional)
+                          <textarea data-field={`item-${index}-notes`} rows={2} maxLength={2000} value={item.notes ?? ''} onChange={e => editItem(index, 'notes', e.target.value)} />
                         </label>
                         <button
                           type="button"
@@ -838,38 +845,43 @@ export function App() {
                     >
                       Agregar trabajo
                     </button>
-                    <p className="total">
-                      {order?.status === 'CLOSED'
-                        ? 'Total oficial'
-                        : 'Total estimado'}
-                      :{' '}
-                      {formatCRC(
-                        order?.status === 'CLOSED'
-                          ? (order.totalAmount ?? 0)
-                          : totalAmount(draft.items),
-                      )}
-                    </p>
+                    <div className="totals" aria-label="Resumen de importes">
+                      <p>Subtotal: {formatCRC(order && order.status !== 'OPEN' ? order.subtotalAmount ?? totals.subtotal : totals.subtotal)}</p>
+                      <p>IVA {taxRate}%: {formatCRC(order && order.status !== 'OPEN' ? order.taxAmount ?? totals.tax : totals.tax)}</p>
+                      <p className="total">Precio final: {formatCRC(order && order.status !== 'OPEN' ? order.totalAmount ?? totals.total : totals.total)}</p>
+                    </div>
+                    <h3>Pago y factura</h3>
+                    <label>Método de pago (obligatorio)
+                      <select data-field="paymentMethod" {...accessibility('paymentMethod')} value={draft.paymentMethod ?? ''} onChange={e => saveDraft({...draft, paymentMethod: e.target.value ? e.target.value as Draft['paymentMethod'] : undefined})}>
+                        <option value="">Selecciona un método</option><option value="SINPE">SINPE</option><option value="CREDIT_CARD">Tarjeta de crédito</option><option value="DEBIT_CARD">Tarjeta de débito</option><option value="CASH">Efectivo</option><option value="BANK_TRANSFER">Transferencia bancaria</option>
+                      </select>{validation('paymentMethod')}
+                    </label>
+                    <label>¿Requiere factura electrónica? (obligatorio)
+                      <select data-field="electronicInvoice" {...accessibility('electronicInvoice')} value={draft.electronicInvoice === undefined ? '' : String(draft.electronicInvoice)} onChange={e => saveDraft({...draft, electronicInvoice: e.target.value === '' ? undefined : e.target.value === 'true'})}>
+                        <option value="">Selecciona Sí o No</option><option value="true">Sí</option><option value="false">No</option>
+                      </select>{validation('electronicInvoice')}
+                    </label>
                     <small>
                       El servidor calcula el total oficial al guardar.
                     </small>
                     <label>
-                      Observaciones generales
+                      Observaciones generales (opcional)
                       <textarea
                         data-field="notes"
                         {...accessibility('notes')}
                         rows={3}
                         maxLength={5000}
-                        value={draft.notes}
+                        value={draft.notes ?? ''}
                         onChange={(e) => edit('notes', e.target.value)}
                       />
                       {validation('notes')}
                     </label>
                     <label>
-                      Recomendaciones
+                      Recomendaciones generales (opcional)
                       <textarea
                         rows={3}
                         maxLength={5000}
-                        value={draft.recommendations}
+                        value={draft.recommendations ?? ''}
                         onChange={(e) =>
                           edit('recommendations', e.target.value)
                         }
@@ -879,7 +891,7 @@ export function App() {
                   {order?.status === 'OPEN' && (session.role === 'ADMIN' || order.mechanicId === session.userId) && (
                     <button type="button" className="danger" disabled={busy || !!confirmAction} onClick={() => setConfirmAction('void')}>Cancelar orden</button>
                   )}
-                  {(!order || order.status === 'OPEN') && (
+                  {(!order || order.status === 'OPEN') && canFinish && (
                     <button
                       type="button"
                       className="danger"
@@ -931,7 +943,7 @@ export function App() {
                             ? `¿Reabrir la orden ${order?.displayOrderId}?`
                             : `¿Asignar el vehículo ${draft.plate} a ${draft.customerName} (${draft.identification})? Las órdenes anteriores conservan su cliente.`}
                       </p>
-                      <p>Total: {formatCRC(totalAmount(draft.items))}</p>
+                      <p>Total: {formatCRC(totals.total)}</p>
                       <button
                         type="button"
                         disabled={busy}

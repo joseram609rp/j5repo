@@ -1,8 +1,8 @@
 import { describe,it,expect } from 'vitest';
-import { customerSchema,vehicleSchema,itemSchema,draftSchema,canClose,totalAmount,fullNameSchema } from '../src/validation.js';
+import { customerSchema,vehicleSchema,itemSchema,draftSchema,canClose,totalAmount,fullNameSchema,amounts } from '../src/validation.js';
 const customer={fullName:'Cliente',identification:'123456789',phone:'88888888',email:' EMAIL@example.com '};
 const vehicle={make:'Toyota',model:'Corolla',year:2020,plate:'abc-123',ownerId:crypto.randomUUID()};
-const draft={customerName:'Cliente',identification:'123456789',phone:'88888888',email:'',make:'Toyota',model:'Corolla',year:2020,plate:'ABC123',mileage:0,notes:'Observaciones válidas',recommendations:'',items:[{description:'Frenos',price:123.45}]};
+const draft={customerName:'Cliente',identification:'123456789',phone:'88888888',email:'',make:'Toyota',model:'Corolla',year:2020,plate:'ABC123',mileage:0,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Observaciones válidas',recommendations:'',items:[{description:'Frenos',price:123.45}]};
 describe('validation contracts shared by frontend and backend',()=>{
  it('normalizes names, email and plate',()=>{expect(customerSchema.parse(customer).email).toBe('email@example.com');expect(vehicleSchema.parse(vehicle).plate).toBe('ABC123');expect(fullNameSchema.parse(' Nombre ')).toBe('Nombre');});
  it.each(['','   '])('rejects empty full name %j',fullName=>expect(customerSchema.safeParse({...customer,fullName}).success).toBe(false));
@@ -25,3 +25,20 @@ it.each(['','   ','\t\n'])('OPEN accepts empty notes %j and numeric mileage only
 
 it.each([1950,2028,2035,100000,2147483647])('accepts year %s without a functional maximum',year=>expect(vehicleSchema.safeParse({...vehicle,year}).success).toBe(true));
 it.each(['','   ','\t\n'])('permits close with optional notes %j',notes=>expect(canClose({...draft,notes,recommendations:''})).toBe(true));
+
+
+it.each(['SINPE','CREDIT_CARD','DEBIT_CARD','CASH','BANK_TRANSFER'] as const)('accepts explicit %s and both invoice choices',paymentMethod=>{
+ for(const electronicInvoice of [true,false]) expect(canClose({...draft,paymentMethod,electronicInvoice,notes:'',recommendations:'',items:[{description:'Trabajo',price:1,notes:''}]})).toBe(true);
+});
+it('payment and invoice are required only to close; blank or absent notes are optional',()=>{
+ for(const missing of [{paymentMethod:undefined},{electronicInvoice:undefined}]) {expect(draftSchema.safeParse({...draft,...missing}).success).toBe(true);expect(canClose({...draft,...missing})).toBe(false);}
+ const {notes:_,recommendations:__,...legacy}=draft;const parsed=draftSchema.parse(legacy);expect(parsed.notes).toBe('');expect(parsed.recommendations).toBe('');expect(canClose(parsed)).toBe(true);
+ expect(itemSchema.safeParse({description:'Trabajo',price:1}).success).toBe(true);expect(itemSchema.safeParse({description:'Trabajo',price:1,notes:'x'.repeat(2001)}).success).toBe(false);
+ expect(draftSchema.safeParse({...draft,electronicInvoice:'false'}).success).toBe(false);expect(draftSchema.safeParse({...draft,paymentMethod:'other'}).success).toBe(false);
+});
+it('IVA is rounded per line and totals are derived in cents',()=>{
+ expect(amounts([{price:1000}])).toEqual({subtotal:1000,tax:130,total:1130});
+ expect(amounts([{price:100.1},{price:.2}])).toEqual({subtotal:100.3,tax:13.04,total:113.34});
+ expect(amounts([{price:.05},{price:.05}])).toEqual({subtotal:.1,tax:.02,total:.12});
+ expect(amounts([{price:1000}],0)).toEqual({subtotal:1000,tax:0,total:1000});
+});

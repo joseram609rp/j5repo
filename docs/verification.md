@@ -1,3 +1,27 @@
+# Phase 3 — cierre por asignación, pago e IVA (2026-10-05, America/Guatemala)
+
+Repositorio C:\j5repo limpio al inicio, branch feature/orders-mvp. Esta ronda reemplaza las reglas previas de cierre: MECHANIC solo cierra su OPEN asignada; ADMIN puede cerrar cualquier OPEN. La edición general de OPEN conserva su regla previa. Sin merge, push, staging ni commit.
+
+## Cambios
+
+- API y SqlUnit rechazan cierre por el mecánico anterior después de la reasignación. El refresco actualiza metadata/ETag y oculta Cerrar orden al usuario no asignado; las reglas de cancelación no se relajan.
+- Observaciones y recomendaciones generales opcionales: vacías/espacios aceptados; ausentes normalizan a cadena vacía. Textareas etiquetadas opcionales. El mensaje reportado «Escribe las observaciones de la orden.» no aparece en el código/build inspeccionados; no se confirmó qué versión ejecuta el navegador del usuario.
+- Observación opcional por trabajo en textarea y dbo.OrderItems.notes; precio/descripción mantienen su validación. Máximo 2000 caracteres, vacío o ausente válido.
+- Método de pago requerido para cierre: SINPE, crédito, débito, efectivo o transferencia bancaria. Factura electrónica requiere seleccionar Sí/No; false no se confunde con falta de elección. OPEN permite pago/factura pendientes para conservar autosave.
+- Precio de trabajo sin IVA; cálculo automático de IVA 13% por línea, redondeado a centavos, y subtotal/IVA/precio final al pie. SQL y frontend coinciden; las guardas verifican total. El cliente no puede enviar tasa ni total oficiales.
+- Migración aditiva 009_order_billing.sql aplicada; 001–008 permanecen intactas. tax_rate inicial 0 conserva los importes históricos; órdenes nuevas y guardados OPEN usan 13%. No se recalcularon órdenes históricas ni se modificaron usuarios ADMIN ni referencias reales. La bandera de factura registra la solicitud; no genera factura electrónica.
+
+## Verificación
+
+- pnpm check: typecheck y builds backend/frontend/PWA correctos; 180 pruebas locales aprobadas y 16 SQL omitidas por diseño.
+- pnpm --filter @j5/backend db:verify: conectividad/esquema correctos; migraciones 001–009, nuevas columnas, constraints trusted y triggers activos.
+- pnpm test:sql: 16 pruebas reales aprobadas; todas con fixtures rollback-only.
+- Cobertura local: cierre propio, 403 tras reasignación, ADMIN, todos los métodos de pago, Sí y No, ausencia de campos obligatorios, notas vacías/ausentes, observaciones opcionales por trabajo, límites, IVA por línea y consistencia de totales.
+- Cobertura SQL: pago/factura y nuevos totales end-to-end, cierre bloqueado al mecánico anterior, observación por trabajo persistida, redondeo por línea y órdenes históricas con importes intactos. Pruebas de constraints para cierre sin pago/factura se ejecutan en rollback.
+- git diff --check sin errores. Sesión, idempotencia/ETag, cancelación VOID y refresco permanecen cubiertos. .env local ignorado y sin tracking/staging; no se imprimieron secretos.
+
+---
+
 # Phase 3 — cancelación y reasignación operativas (2026-10-05, America/Guatemala)
 
 Repositorio C:\j5repo inspeccionado limpio, en feature/orders-mvp antes de editar. Sin merge, push, commit, staging ni despliegue; dev/main intactos. CarsXE fuera de scope.

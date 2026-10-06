@@ -46,7 +46,7 @@ it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer
     expect(savedSession?.userId).toBe(mechanicId);
     expect((await call('/admin/users', 'GET', undefined, mechanic.headers)).status).toBe(403);
     expect((await call('/auth/activity', 'POST', undefined, { ...mechanic.headers, 'x-csrf-token': 'wrong' })).status).toBe(403);
-    const draft = { customerName: 'Integration fixture', plate, mileage: null, notes: '', recommendations: '', vehicleId };
+    const draft = { customerName: 'Integration fixture', plate, mileage: null, paymentMethod: 'CASH' as const, electronicInvoice: false, notes: '', recommendations: '', vehicleId };
     const key = randomUUID();
     const save = (k = key, etag?: string, body = draft) => call('/orders/' + orderId, 'PUT', body,
       { ...mechanic.headers, 'idempotency-key': k, ...(etag ? { 'if-match': etag } : {}) });
@@ -57,14 +57,14 @@ it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer
     expect(data.version).toMatch(/^[0-9a-f]{16}$/);
     expect(data.draft.customerId).toBe(customerId);
     expect(await (await save()).json()).toEqual(data);
-    expect((await save(key, undefined, { ...draft, notes: 'changed' })).status).toBe(409);
+    expect((await save(key, undefined, { ...draft, paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'changed' })).status).toBe(409);
     expect((await save(randomUUID())).status).toBe(428);
     await tx.query('UPDATE dbo.Vehicles SET owner_id=@owner WHERE id=@id', { owner: nextOwnerId, id: vehicleId });
     const update = await save(randomUUID(), etag);
     expect(update.status).toBe(200);
     expect((await update.json()).draft.customerId).toBe(customerId);
     expect((await save(randomUUID(), etag)).status).toBe(412);
-    const closeDraft={...draft,notes:'Frenos revisados',identification,phone:'88888888',make:'Toyota',model:'Corolla',year:2020,mileage:100,items:[{description:'Frenos',price:100.10},{description:'Ajuste',price:0.20}],action:'close'};
+    const closeDraft={...draft,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Frenos revisados',identification,phone:'88888888',make:'Toyota',model:'Corolla',year:2020,mileage:100,items:[{description:'Frenos',price:100.10},{description:'Ajuste',price:0.20}],action:'close'};
     const latest=(await tx.order(orderId))!;
     const close=(payload:unknown,expected=latest.version)=>call('/orders/'+orderId,'PUT',payload,{...mechanic.headers,'idempotency-key':randomUUID(),'if-match':'"'+expected+'"'});
     expect((await close({...closeDraft,items:[]})).status).toBe(400);
@@ -74,13 +74,13 @@ it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer
     const closedResponse=await close(closeDraft);
     expect(closedResponse.status).toBe(200);
     const closed=await closedResponse.json();
-    expect(closed.totalAmount).toBe(100.30);
+    expect(closed.totalAmount).toBe(113.34);
     expect(closed.status).toBe('CLOSED');
     expect(closed.closedAt).toBeTruthy();
     expect(closed.displayOrderId).toMatch(/^OT-\d{4}-\d{6,}$/);
     expect((await close({...closeDraft,action:undefined},closed.version)).status).toBe(409);
     expect((await close({...closeDraft,action:'reopen'},closed.version)).status).toBe(403);
-    const edited=await call('/orders/'+orderId,'PUT',{...closeDraft,notes:'Admin correction',action:'admin-edit'},{...admin.headers,'idempotency-key':randomUUID(),'if-match':'"'+closed.version+'"'});
+    const edited=await call('/orders/'+orderId,'PUT',{...closeDraft,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Admin correction',action:'admin-edit'},{...admin.headers,'idempotency-key':randomUUID(),'if-match':'"'+closed.version+'"'});
     expect(edited.status).toBe(200);
     const editedData=await edited.json();expect(editedData.status).toBe('CLOSED');expect(editedData.closedAt).toBe(closed.closedAt);
     const reopened=await call('/orders/'+orderId,'PUT',{...closeDraft,action:'reopen'},{...admin.headers,'idempotency-key':randomUUID(),'if-match':'"'+editedData.version+'"'});
@@ -114,7 +114,7 @@ it.skipIf(!enabled)('database rejects closing an order without mileage; rolls ba
     await tx.insertUser({ id, username: 'constraint-' + randomUUID().slice(0, 8), fullName: 'Test user', passwordHash, role: 'MECHANIC', active: true });
     await tx.query("INSERT dbo.Customers(id,full_name,identification,phone) VALUES(@id,N'Fixture',@identification,'88888888')", { id: customerId, identification });
     await tx.query("INSERT dbo.Vehicles(id,owner_id,plate,make,model,year) VALUES(@id,@owner,@plate,'Toyota','Corolla',2020)", { id: vehicleId, owner: customerId, plate: 'SQL123' });
-    const order = await tx.saveOrder(randomUUID(), id, { customerId, vehicleId, customerName: 'Fixture', plate: 'SQL123', mileage: null, notes: '', recommendations: '' });
+    const order = await tx.saveOrder(randomUUID(), id, { customerId, vehicleId, customerName: 'Fixture', plate: 'SQL123', mileage: null, paymentMethod: 'CASH' as const, electronicInvoice: false, notes: '', recommendations: '' });
     await tx.query("UPDATE dbo.Orders SET status='CLOSED' WHERE id=@id", { id: order.id });
   }, undefined, true)).rejects.toMatchObject({ number: 547 });
   expect(await sql.run(tx => tx.userById(id))).toBeUndefined();
@@ -128,7 +128,7 @@ it.skipIf(!enabled).each([
  const userId=randomUUID();const orderId=randomUUID();const passwordHash=await hashPassword('Fixture-'+randomUUID());
  await expect(sql.runSql(async tx=>{
   await tx.insertUser({id:userId,username:'guard-'+randomUUID().slice(0,8),fullName:'Guard fixture',passwordHash,role:'MECHANIC',active:true});
-  const draft={customerName:'Guard fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'GRD'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',model:'Corolla',year:2020,mileage:0,notes:'Frenos revisados',recommendations:'',items:[{description:'Frenos',price:1}]};
+  const draft={customerName:'Guard fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'GRD'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',model:'Corolla',year:2020,mileage:0,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Frenos revisados',recommendations:'',items:[{description:'Frenos',price:1}]};
   const open=await tx.saveOrder(orderId,userId,draft);
   if(test.status==='CLOSED') await tx.saveOrder(orderId,userId,{...draft,action:'close'},open);
   await tx.query(test.query,{id:orderId});
@@ -140,9 +140,9 @@ it.skipIf(!enabled).each([
   const userId=randomUUID();const orderId=randomUUID();
   await sql.runSql(async tx=>{
    await tx.insertUser({id:userId,username:'model-'+randomUUID().slice(0,8),fullName:'Model fixture',passwordHash:await hashPassword('Fixture-'+randomUUID()),role:'MECHANIC',active:true});
-   const draft={customerName:'Model fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'MDL'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',model:'Hilux',year:2020,mileage:0,notes:'Frenos revisados',recommendations:'',items:[{description:'Frenos',price:125000}]};
+   const draft={customerName:'Model fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'MDL'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',model:'Hilux',year:2020,mileage:0,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Frenos revisados',recommendations:'',items:[{description:'Frenos',price:125000}]};
    const open=await tx.saveOrder(orderId,userId,draft);
-   expect(open.draft.model).toBe('Hilux');expect(open.totalAmount).toBe(125000);
+   expect(open.draft.model).toBe('Hilux');expect(open.totalAmount).toBe(141250);
    const vehicleId=open.draft.vehicleId!;
    expect((await tx.query<{model:string}>('SELECT model FROM dbo.Vehicles WHERE id=@id',{id:vehicleId})).recordset[0]!.model).toBe('Hilux');
    const nullable=(await tx.query<{is_nullable:boolean}>("SELECT is_nullable FROM sys.columns WHERE object_id=OBJECT_ID('dbo.Vehicles') AND name='model'")).recordset[0]!.is_nullable;
@@ -161,7 +161,7 @@ it.skipIf(!enabled).each(['','   ','\t\n','\u00a0'])('SQL permits CLOSED with op
  const userId=randomUUID();const orderId=randomUUID();
  await sql.runSql(async tx=>{
   await tx.insertUser({id:userId,username:'notes-'+randomUUID().slice(0,8),fullName:'Notes fixture',passwordHash:await hashPassword('Fixture-'+randomUUID()),role:'MECHANIC',active:true});
-  const draft={customerName:'Notes fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'NTS'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',model:'Corolla',year:2020,mileage:128400,notes,recommendations:'',items:[{description:'Frenos',price:1}]};
+  const draft={customerName:'Notes fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'NTS'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',model:'Corolla',year:2020,mileage:128400,paymentMethod:'CASH' as const,electronicInvoice:false,notes,recommendations:'',items:[{description:'Frenos',price:1}]};
   const open=await tx.saveOrder(orderId,userId,draft);expect(open.status).toBe('OPEN');expect(open.draft.notes).toBe(notes);expect(open.draft.mileage).toBe(128400);
   const closed=await tx.saveOrder(orderId,userId,{...draft,action:'close'},open);expect(closed.status).toBe('CLOSED');expect(closed.draft.notes).toBe(notes);
  },undefined,true);

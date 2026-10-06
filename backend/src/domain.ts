@@ -36,6 +36,9 @@ export type Order = {
   mechanicId: string;
   displayOrderId?: string;
   totalAmount?: number;
+  subtotalAmount?: number;
+  taxAmount?: number;
+  taxRate?: number;
   closedAt?: string | null;
   openedAt?: string;
   mechanicName?: string;

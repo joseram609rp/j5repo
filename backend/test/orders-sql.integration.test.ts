@@ -102,10 +102,10 @@ it.skipIf(!enabled)(
             model: 'Corolla',
             year: 2020,
             mileage: 128400,
-            notes: 'Frenos revisados',
+            paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Frenos revisados',
             recommendations: '',
             items: [
-              { description: 'Servicio', price: 100.1 },
+              { description: 'Servicio', price: 100.1, notes: 'Observación de servicio' },
               { description: 'Ajuste', price: 0.2 },
             ],
           };
@@ -114,7 +114,7 @@ it.skipIf(!enabled)(
           let open: Order = await first.json();
           expect(open.openedAt).toBeTruthy();
           expect(open.mechanicId).toBe(userId);
-          expect(open.totalAmount).toBe(100.3);
+          expect(open.totalAmount).toBe(113.34);expect(open.subtotalAmount).toBe(100.3);expect(open.taxAmount).toBe(13.04);expect(open.taxRate).toBe(13);expect(open.draft.items?.find(i=>i.description==='Servicio')?.notes).toBe('Observación de servicio');
           const list = await (
             await call(
               '/orders?status=OPEN&q=' + encodeURIComponent(suffix),
@@ -207,27 +207,29 @@ it.skipIf(!enabled)(
           expect(audit).toHaveLength(1);expect(audit[0]!.actor_id.toLowerCase()).toBe(adminId);
           const closeKey = randomUUID(),
             payload = { ...draft, action: 'close' };
+          expect((await call('/orders/'+orderId,'PUT',payload,false,randomUUID(),open.version)).status).toBe(403);
+          for(const missing of [{paymentMethod:undefined},{electronicInvoice:undefined}]) expect((await call('/orders/'+orderId,'PUT',{...payload,...missing},true,randomUUID(),open.version)).status).toBe(400);
           const closedResponse = await call(
             '/orders/' + orderId,
             'PUT',
             payload,
-            false,
+            true,
             closeKey,
             open.version,
           );
           expect(closedResponse.status).toBe(200);
           const closed: Order = await closedResponse.json();
-          expect(closed.status).toBe('CLOSED');
+          expect(closed.status).toBe('CLOSED');expect(closed.draft.electronicInvoice).toBe(false);expect(closed.draft.paymentMethod).toBe('CASH');
           expect((await call('/orders/'+orderId,'PUT',{...closed.draft,mechanicId:userId,action:'admin-edit'},true,randomUUID(),closed.version)).status).toBe(409);
           expect(closed.closedAt).toBeTruthy();
-          expect(closed.totalAmount).toBe(100.3);
+          expect(closed.totalAmount).toBe(113.34);
           expect(
             await (
               await call(
                 '/orders/' + orderId,
                 'PUT',
                 payload,
-                false,
+                true,
                 closeKey,
                 open.version,
               )
@@ -412,7 +414,7 @@ it.skipIf(!enabled)('SQL history: accent-insensitive partial names, literal patt
     INSERT dbo.OrderItems(id,order_id,description,price) SELECT NEWID(),id,N'Servicio',1 FROM OPENJSON(@rows) WITH(id uniqueidentifier '$.id');
     UPDATE o SET status='CLOSED',total_amount=1,closed_at=SYSUTCDATETIME() FROM dbo.Orders o JOIN OPENJSON(@rows) WITH(id uniqueidentifier '$.id') r ON r.id=o.id;`,params);
   const search='Jose Ramirez '+suffix;
-  const first=await tx.listOrders('CLOSED',search);expect(first).toHaveLength(50);
+  const first=await tx.listOrders('CLOSED',search);expect(first).toHaveLength(50);expect(first.every(o=>o.taxRate===0 && o.taxAmount===0 && o.totalAmount===1)).toBe(true);
   const second=await tx.listOrders('CLOSED',search,first.at(-1)!.id);expect(second).toHaveLength(5);
   expect(new Set([...first,...second].map(o=>o.id)).size).toBe(55);
   expect(await tx.listOrders('CLOSED',suffix+'%_[')).toEqual([]);
@@ -436,4 +438,23 @@ it.skipIf(!enabled)('SQL year constraint rejects 1949 without changing real data
   await tx.query("INSERT dbo.Customers(id,full_name,identification,phone) VALUES(@id,N'Year fixture',@identification,'88888888')",{id:customerId,identification:String(randomInt(100000000,999999999))});
   await tx.query("INSERT dbo.Vehicles(id,owner_id,plate,make,model,year) VALUES(@id,@owner,@plate,'Toyota','Corolla',1949)",{id:randomUUID(),owner:customerId,plate:'YER'+String(randomInt(0,1000)).padStart(3,'0')});
  },undefined,true)).rejects.toMatchObject({number:547});
+},60000);
+
+it.skipIf(!enabled)('SQL rounds IVA by line and persists optional work notes without changing base prices (rollback)',async()=>{
+ const repo=new SqlRepository(), userId=randomUUID(),id=randomUUID();
+ await repo.runSql(async tx=>{
+  await tx.insertUser({id:userId,username:'iva-'+randomUUID().slice(0,8),fullName:'IVA fixture',passwordHash:'unused-fixture',role:'MECHANIC',active:true});
+  const draft={customerName:'IVA fixture',plate:'',mileage:null,notes:'',recommendations:'',items:[{description:'A',price:.05,notes:'Detalle opcional'},{description:'B',price:.05}]};
+  const saved=await tx.saveOrder(id,userId,draft);expect(saved.subtotalAmount).toBe(.1);expect(saved.taxAmount).toBe(.02);expect(saved.totalAmount).toBe(.12);
+  expect(saved.draft.items?.find(i=>i.description==='A')).toEqual({description:'A',price:.05,notes:'Detalle opcional'});
+  expect(saved.draft.items?.find(i=>i.description==='B')?.notes).toBe('');
+ },undefined,true);expect(await repo.run(tx=>tx.order(id))).toBeUndefined();
+},60000);
+it.skipIf(!enabled).each([{paymentMethod:undefined},{electronicInvoice:undefined}])('SQL refuses new taxed CLOSED orders missing billing %j (rollback)',async missing=>{
+ const repo=new SqlRepository(),userId=randomUUID(),id=randomUUID();
+ await expect(repo.runSql(async tx=>{
+  await tx.insertUser({id:userId,username:'billing-'+randomUUID().slice(0,8),fullName:'Billing fixture',passwordHash:'unused-fixture',role:'MECHANIC',active:true});
+  const draft={customerName:'Billing fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'BIL'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',model:'Corolla',year:2020,mileage:0,notes:'',recommendations:'',paymentMethod:'CASH' as const,electronicInvoice:false,items:[{description:'Servicio',price:1}],...missing};
+  const open=await tx.saveOrder(id,userId,draft);await tx.saveOrder(id,userId,{...draft,action:'close'},open);
+ },undefined,true)).rejects.toMatchObject({number:547});expect(await repo.run(tx=>tx.order(id))).toBeUndefined();
 },60000);

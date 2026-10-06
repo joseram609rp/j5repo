@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { fieldErrors, visibleErrors, formatCRC, formatMileage } from './form-validation';
 import { fresh } from './autosave';
-const complete={customerName:'Cliente',identification:'123456789',phone:'88888888',email:'',plate:'ABC123',make:'Toyota',model:'Corolla',year:2020,mileage:0,notes:'Observaciones válidas',recommendations:'',items:[{description:'Frenos',price:125000}]};
+const complete={customerName:'Cliente',identification:'123456789',phone:'88888888',email:'',plate:'ABC123',make:'Toyota',model:'Corolla',year:2020,mileage:0,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Observaciones válidas',recommendations:'',items:[{description:'Frenos',price:125000}]};
 it('empty first render is quiet; blur reveals only touched required fields',()=>{
  expect(visibleErrors(fresh().draft,new Set())).toEqual([]);
  expect(visibleErrors(fresh().draft,new Set(['customerName'])).map(e=>e.field)).toEqual(['customerName']);
@@ -33,6 +33,6 @@ it('formats CRC with thousands and preserves cents without changing values',()=>
 it('formats mileage without mutating draft values; blanks and invalid numbers stay quiet',()=>{
  expect(formatMileage(128400)).toBe('128,400 km');expect(formatMileage(0)).toBe('0 km');
  for(const value of [null,undefined,NaN,Infinity,-1,1.5]) expect(formatMileage(value)).toBe('');
- expect(visibleErrors({...complete,notes:''},new Set())).toEqual([]);
- expect(visibleErrors({...complete,notes:'   '},new Set(['notes']))).toEqual([]);
+ expect(visibleErrors({...complete,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: ''},new Set())).toEqual([]);
+ expect(visibleErrors({...complete,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: '   '},new Set(['notes']))).toEqual([]);
 });

@@ -9,7 +9,7 @@ const origin = 'http://localhost:5173';
 const password = 'Local-test-only-123!';
 const adminId = '11111111-1111-4111-8111-111111111111';
 const mechanicId = '22222222-2222-4222-8222-222222222222';
-const draft = { customerName: 'Fixture', plate: 'ABC123', mileage: null, notes: '', recommendations: '' };
+const draft = { customerName: 'Fixture', plate: 'ABC123', mileage: null, paymentMethod: 'CASH' as const, electronicInvoice: false, notes: '', recommendations: '' };
 let passwordHash: string;
 beforeAll(async () => { passwordHash = await hashPassword(password); });
 function setup(production = false) {
@@ -126,7 +126,7 @@ describe('persistent API contracts (transactional test double)', () => {
     expect(await replay.json()).toEqual(response);
     expect(replay.headers.get('etag')).toBe(etag);
     expect(repo.orders.size).toBe(1);
-    expect((await save(key, undefined, { ...draft, notes: 'changed' })).status).toBe(409);
+    expect((await save(key, undefined, { ...draft, paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'changed' })).status).toBe(409);
     expect((await save(key, etag)).status).toBe(409);
     expect((await save(key, undefined, draft, crypto.randomUUID())).status).toBe(409);
     expect((await save(crypto.randomUUID())).status).toBe(428);
@@ -197,12 +197,12 @@ describe('persistent API contracts (transactional test double)', () => {
     const {call,login}=setup();const mechanic=await login('mechanic');const admin=await login();const id=crypto.randomUUID();
     const save=(body:unknown,headers=mechanic.headers,version?:string)=>call('/orders/'+id,'PUT',body,{...headers,'idempotency-key':crypto.randomUUID(),...(version?{'if-match':'"'+version+'"'}:{})});
     const first=await save(draft);const initial=await first.json();
-    const complete={...draft,notes:'Frenos revisados',identification:'123456789',phone:'88888888',make:'Toyota',model:'Corolla',year:2020,mileage:0,items:[{description:'Frenos',price:100.1},{description:'Ajuste',price:0.2}],action:'close'};
+    const complete={...draft,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Frenos revisados',identification:'123456789',phone:'88888888',make:'Toyota',model:'Corolla',year:2020,mileage:0,items:[{description:'Frenos',price:100.1},{description:'Ajuste',price:0.2}],action:'close'};
     expect((await save({...complete,items:[]},mechanic.headers,initial.version)).status).toBe(400);
     expect((await save({...complete,mileage:null},mechanic.headers,initial.version)).status).toBe(400);
     for (const missing of [{customerName:''},{customerName:'   '},{year:null},{model:''},{model:'   '}]) expect((await save({...complete,...missing},mechanic.headers,initial.version)).status).toBe(400);
     expect((await save({...complete,totalAmount:1},mechanic.headers,initial.version)).status).toBe(400);
-    const closed=await (await save(complete,mechanic.headers,initial.version)).json();expect(closed.status).toBe('CLOSED');expect(closed.totalAmount).toBe(100.3);
+    const closed=await (await save(complete,mechanic.headers,initial.version)).json();expect(closed.status).toBe('CLOSED');expect(closed.totalAmount).toBe(113.34);
     expect((await save(draft,mechanic.headers,closed.version)).status).toBe(409);
     expect((await save({...complete,action:'reopen'},mechanic.headers,closed.version)).status).toBe(403);
     expect((await save({...complete,action:'reopen'},admin.headers,closed.version)).status).toBe(200);
@@ -242,7 +242,7 @@ it('same mechanic creates multiple OPEN; ADMIN reassigns OPEN with ETag, replay 
  expect(await (await save(a.id,body,admin.headers,a.version,key)).json()).toEqual(changed);
  expect(repo.audits.filter(x=>x.action==='ORDER_MECHANIC_CHANGED')).toEqual([{actorId:adminId,action:'ORDER_MECHANIC_CHANGED',entityId:a.id}]);
  expect((await save(a.id,draft,admin.headers,a.version)).status).toBe(412);
- const closed=await (await save(a.id,{...draft,customerName:'Cliente',identification:'123456789',phone:'88888888',make:'Toyota',model:'Corolla',year:2035,mileage:0,items:[{description:'Frenos',price:1}],notes:'',action:'close'},admin.headers,changed.version)).json();
+ const closed=await (await save(a.id,{...draft,customerName:'Cliente',identification:'123456789',phone:'88888888',make:'Toyota',model:'Corolla',year:2035,mileage:0,items:[{description:'Frenos',price:1}],paymentMethod: 'CASH' as const, electronicInvoice: false, notes: '',action:'close'},admin.headers,changed.version)).json();
  expect(closed.status).toBe('CLOSED');
  for(const action of [undefined,'admin-edit','reopen']) expect((await save(a.id,{...closed.draft,mechanicId,action},admin.headers,closed.version)).status).toBe(409);
 });

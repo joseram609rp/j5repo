@@ -57,9 +57,9 @@ Todas las mutaciones requieren Origin=APP_ORIGIN. Salvo login, requieren cookie 
 
 GET/DELETE `/api/session` y POST `/api/session/activity` siguen como aliases. `admin-edit` continúa disponible solo para ADMIN en backend. `void` tiene confirmación en editor y lista OPEN: ADMIN puede cancelar cualquier OPEN; MECHANIC solo la asignada a su usuario. CLOSED/VOID no admiten cancelación ni reasignación.
 
-Datos de cierre: nombre requerido, cédula 9 dígitos, teléfono 8, email opcional válido, placa ABC123, marca/modelo, año entero >=1950, sin máximo funcional (almacenado como int SQL), kilometraje entero 0..10,000,000, al menos un trabajo con descripción/precio positivo Observaciones y recomendaciones opcionales. Valores incompletos/incorrectos se conservan localmente; SQL autosave espera payload válido. Kilometraje y precios siguen numéricos; previews `128,400 km` y CRC no alteran el payload.
+Datos de cierre: nombre requerido, cédula 9 dígitos, teléfono 8, email opcional válido, placa ABC123, marca/modelo, año entero >=1950, sin máximo funcional (almacenado como int SQL), kilometraje entero 0..10,000,000, al menos un trabajo con descripción/precio positivo, método de pago y selección explícita Sí/No para factura electrónica. Observaciones/recomendaciones generales y observaciones por trabajo son opcionales (también se aceptan ausentes en el payload). Valores incompletos/incorrectos se conservan localmente; SQL autosave espera payload válido. Kilometraje y precios siguen numéricos; previews `128,400 km` y CRC no alteran el payload.
 
-El servidor asigna mechanic_id y recalcula SUM(OrderItems.price). MECHANIC puede editar OPEN del taller y no modificar CLOSED; reopen/transfer-owner/assign-mechanic/admin-edit requieren ADMIN. Cancelar usa VOID, sin DELETE ni cambios a cliente/vehículo/trabajos, y registra ORDER_VOIDED. El dueño actual solo se cambia mediante `action=transfer-owner`, con identidad exacta de cliente/vehículo, ETag, idempotencia y auditoría.
+El servidor asigna mechanic_id y calcula subtotal, IVA por línea y total. Solo el mecánico asignado o ADMIN puede cerrar OPEN; backend responde 403 al mecánico anterior tras reasignación. MECHANIC puede editar OPEN del taller y no modificar CLOSED; reopen/transfer-owner/assign-mechanic/admin-edit requieren ADMIN. Cancelar usa VOID, sin DELETE ni cambios a cliente/vehículo/trabajos, y registra ORDER_VOIDED. El dueño actual solo se cambia mediante `action=transfer-owner`, con identidad exacta de cliente/vehículo, ETag, idempotencia y auditoría.
 
 ## Persistencia y sesión
 
@@ -82,3 +82,13 @@ Reasignación: ADMIN elige un usuario activo y pulsa Actualizar mecánico, usand
 CarsXE, catálogos de marcas/modelos y llamadas externas permanecen fuera de esta fase.
 
 Editor y lista OPEN consultan SQL al recuperar foco/visibilidad y cada 30 segundos mientras están visibles. El editor avisa de la reasignación y actualiza los permisos de cancelación; los borradores pendientes conservan su versión base hasta resolver el conflicto. Estos GET no generan actividad ni renuevan la sesión de dos horas. La lista se vuelve a consultar al entrar al módulo.
+
+## Pago, IVA y observaciones por trabajo
+
+Cada trabajo guarda precio sin IVA y observación opcional (máximo 2000 caracteres). SQL calcula IVA 13% con ROUND por línea y total = subtotal + suma del IVA; frontend usa los mismos centavos/redondeo y muestra IVA junto al precio y subtotal/IVA/precio final al pie. GET incluye subtotalAmount, taxAmount, taxRate y totalAmount calculados en backend. No se aceptan totales ni tasa enviados por el cliente.
+
+paymentMethod admite SINPE, CREDIT_CARD, DEBIT_CARD, CASH y BANK_TRANSFER (SINPE, tarjeta de crédito, tarjeta de débito, efectivo y transferencia bancaria). electronicInvoice es booleano: true o false son elecciones válidas; ausente no permite cerrar. OPEN puede guardar campos de pago pendientes. La elección de factura solo registra el requerimiento; no emite ni integra facturación electrónica.
+
+009_order_billing.sql agrega OrderItems.notes y Orders.tax_rate y actualiza guardas/cálculo de totales. Conserva los importes históricos con tasa inicial 0; las nuevas órdenes y guardados normales de OPEN aplican 13%. CLOSED históricas conservan sus importes y no se recalculan al leer. Las guardas impiden cerrar órdenes nuevas con IVA sin las elecciones de pago/factura y comprueban el total contra los servicios.
+
+El mensaje «Escribe las observaciones de la orden.» no existe en este código ni su build. Si se ve tras actualizar los archivos, comprobar que el navegador/PWA esté ejecutando el build reciente; recargar sin borrar IndexedDB ni los borradores locales.
