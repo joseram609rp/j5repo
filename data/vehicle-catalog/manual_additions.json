@@ -1,0 +1,6116 @@
+{
+  "schema_version": 1,
+  "policy": "Evidence-backed missing base models only; not a sales ranking.",
+  "additions": [
+    {
+      "make": "Aion",
+      "model": "V",
+      "source_ids": [
+        "aion-v"
+      ],
+      "source_urls": [
+        "https://aioncostarica.com/v/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Aion",
+      "model": "Y Plus",
+      "source_ids": [
+        "aion-y"
+      ],
+      "source_urls": [
+        "https://gac.cr/aion/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Avatr",
+      "model": "07",
+      "source_ids": [
+        "avatr-cr"
+      ],
+      "source_urls": [
+        "https://www.changan.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Avatr",
+      "model": "11",
+      "source_ids": [
+        "avatr-cr"
+      ],
+      "source_urls": [
+        "https://www.changan.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BAIC",
+      "model": "BJ30",
+      "source_ids": [
+        "baic-cr"
+      ],
+      "source_urls": [
+        "https://baicmotor.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BAIC",
+      "model": "BJ40",
+      "source_ids": [
+        "baic-cr"
+      ],
+      "source_urls": [
+        "https://baicmotor.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BAIC",
+      "model": "BJ41",
+      "source_ids": [
+        "baic-cr"
+      ],
+      "source_urls": [
+        "https://baicmotor.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BAIC",
+      "model": "BJ60",
+      "source_ids": [
+        "baic-cr"
+      ],
+      "source_urls": [
+        "https://baicmotor.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BAIC",
+      "model": "X35",
+      "source_ids": [
+        "baic-cr"
+      ],
+      "source_urls": [
+        "https://baicmotor.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BAIC",
+      "model": "X55",
+      "source_ids": [
+        "baic-cr"
+      ],
+      "source_urls": [
+        "https://baicmotor.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "Dolphin",
+      "source_ids": [
+        "byd-cr",
+        "crautos-byd",
+        "e24-byd"
+      ],
+      "source_urls": [
+        "https://bydautocr.com/precios-nuevos/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/byd"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=17716764"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "F0",
+      "source_ids": [
+        "crautos-byd",
+        "e24-byd"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/byd"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6283610",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=70666523",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=36692497",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=71756431",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=33166528",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8590985",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22626167",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=85485182",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67787107",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4956058"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "F3",
+      "source_ids": [
+        "crautos-byd"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=29156923",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=21466290",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=57318689",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=99241810",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=28823763",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=88769679",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=71448641",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5848906",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=80196677"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "Han",
+      "source_ids": [
+        "crautos-byd"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9112147",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=41267911",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89223491"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "S1",
+      "source_ids": [
+        "crautos-byd"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=83751593",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19013323",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47078139",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3451997"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "S1 Pro",
+      "source_ids": [
+        "byd-cr",
+        "crautos-byd",
+        "e24-byd"
+      ],
+      "source_urls": [
+        "https://bydautocr.com/precios-nuevos/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/byd"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19013323",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47078139",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3451997"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "S6",
+      "source_ids": [
+        "crautos-byd",
+        "e24-byd"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/byd"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4515040",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=20256830",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=25190972",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=65328354",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5702013"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "Seagull",
+      "source_ids": [
+        "byd-cr",
+        "crautos-byd"
+      ],
+      "source_urls": [
+        "https://bydautocr.com/precios-nuevos/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=59167119",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=31454882"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "Seal",
+      "source_ids": [
+        "crautos-byd",
+        "e24-byd"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/byd"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1306861"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "Sealion 7",
+      "source_ids": [
+        "byd-cr",
+        "crautos-byd"
+      ],
+      "source_urls": [
+        "https://bydautocr.com/precios-nuevos/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2817435"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "Shark",
+      "source_ids": [
+        "byd-cr"
+      ],
+      "source_urls": [
+        "https://bydautocr.com/precios-nuevos/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "Song",
+      "source_ids": [
+        "crautos-byd"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8297432",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=97902439",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2684245"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "Song Plus",
+      "source_ids": [
+        "byd-cr",
+        "crautos-byd",
+        "e24-byd"
+      ],
+      "source_urls": [
+        "https://bydautocr.com/precios-nuevos/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/byd"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=97902439",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2684245"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "Tang",
+      "source_ids": [
+        "crautos-byd",
+        "e24-byd"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/byd"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66552811",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8357534",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=62622682"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "Yuan Plus",
+      "source_ids": [
+        "byd-cr",
+        "crautos-byd"
+      ],
+      "source_urls": [
+        "https://bydautocr.com/precios-nuevos/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9943458",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=96808064"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "BYD",
+      "model": "Yuan Pro",
+      "source_ids": [
+        "crautos-byd"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9802858",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5218707"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "Alsvin",
+      "source_ids": [
+        "changan-cr"
+      ],
+      "source_urls": [
+        "https://www.changan.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "Benni",
+      "source_ids": [
+        "crautos-changan"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=72008872"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "CS15",
+      "source_ids": [
+        "changan-cr",
+        "crautos-changan",
+        "e24-changan"
+      ],
+      "source_urls": [
+        "https://www.changan.cr/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/changan"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6134504",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=88831587",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9488755",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=80211846",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1457952",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7119275",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9311090",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=48152019",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79100787",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8939249",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2229742"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "CS35",
+      "source_ids": [
+        "changan-cr",
+        "crautos-changan"
+      ],
+      "source_urls": [
+        "https://www.changan.cr/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=88392472",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=80026276",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=30045632",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=29408990",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8715434",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10110841",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55332923",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=87171094",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2487709",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7464352",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=14584245",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1655091",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=16085386",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6470995",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=11032995",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82885474",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=91121284"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "CS55",
+      "source_ids": [
+        "changan-cr",
+        "crautos-changan",
+        "e24-changan"
+      ],
+      "source_urls": [
+        "https://www.changan.cr/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/changan"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3344862",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=38621996",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7210160",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9002175",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1183649",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1754724",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6890738",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2878266",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4721019",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4049908"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "CS75",
+      "source_ids": [
+        "changan-cr",
+        "crautos-changan",
+        "e24-changan"
+      ],
+      "source_urls": [
+        "https://www.changan.cr/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/changan"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9521772"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "Honor S",
+      "source_ids": [
+        "changan-cr"
+      ],
+      "source_urls": [
+        "https://www.changan.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "Hunter",
+      "source_ids": [
+        "changan-cr",
+        "crautos-changan"
+      ],
+      "source_urls": [
+        "https://www.changan.cr/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=29806834",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=53617536",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6002365"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "Lumin",
+      "source_ids": [
+        "changan-cr"
+      ],
+      "source_urls": [
+        "https://www.changan.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "Q20",
+      "source_ids": [
+        "crautos-changan"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10631722"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "Star 3",
+      "source_ids": [
+        "crautos-changan"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89051987",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12482435",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=52308674"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "Star 9",
+      "source_ids": [
+        "crautos-changan",
+        "e24-changan"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/changan"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5735674"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "UNI-K",
+      "source_ids": [
+        "crautos-changan"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7962211"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "UNI-T",
+      "source_ids": [
+        "changan-cr",
+        "crautos-changan",
+        "e24-changan"
+      ],
+      "source_urls": [
+        "https://www.changan.cr/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/changan"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19031818",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22386501",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19104561",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3207028",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8798435",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=37698204",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8432327"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Changan",
+      "model": "X7",
+      "source_ids": [
+        "crautos-changan"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=91355888",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=37768407",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7311319"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Chery",
+      "model": "eQ7",
+      "source_ids": [
+        "crautos-chery",
+        "e24-chery"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/chery"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8072201",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=80222888",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47197254"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Chery",
+      "model": "Himla",
+      "source_ids": [
+        "chery-cr"
+      ],
+      "source_urls": [
+        "https://www.cherycr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Chery",
+      "model": "Q",
+      "source_ids": [
+        "chery-cr"
+      ],
+      "source_urls": [
+        "https://www.cherycr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 2",
+      "source_ids": [
+        "chery-cr",
+        "crautos-chery",
+        "e24-chery"
+      ],
+      "source_urls": [
+        "https://www.cherycr.com/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/chery"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5163108",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5898137",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=85429115",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4962167",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82446568",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=85254301",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79999902",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5596306",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2711876",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4735989",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=45048775",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=87158806",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4749784",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=27261958",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47241003",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9050141",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8238963",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3908024",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=51919264",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=83052449",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=96557741"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 4",
+      "source_ids": [
+        "chery-cr",
+        "crautos-chery",
+        "e24-chery"
+      ],
+      "source_urls": [
+        "https://www.cherycr.com/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/chery"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=36069182",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=29118609",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=63102308",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=58077524",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=34136904",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8929151",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1718236",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10909936",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67540550",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=96878917",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=23205060",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6557357",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24974972",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8351936",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5217592",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1958512",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=76433940",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10480005"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 7",
+      "source_ids": [
+        "chery-cr",
+        "crautos-chery"
+      ],
+      "source_urls": [
+        "https://www.cherycr.com/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=53801004",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1581183",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=96664801",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13675085",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26051207",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19542479"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 8",
+      "source_ids": [
+        "chery-cr",
+        "crautos-chery"
+      ],
+      "source_urls": [
+        "https://www.cherycr.com/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3415537",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=99571217",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=31827952"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 9",
+      "source_ids": [
+        "chery-cr"
+      ],
+      "source_urls": [
+        "https://www.cherycr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "Basalt",
+      "source_ids": [
+        "citroen-cr"
+      ],
+      "source_urls": [
+        "https://www.citroencr.com/index.html"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "Berlingo",
+      "source_ids": [
+        "citroen-cr",
+        "crautos-citron"
+      ],
+      "source_urls": [
+        "https://www.citroencr.com/index.html",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26830732",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=39183083",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=34830856",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=50139393",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9725650",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12204459",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10690544",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=16759762",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=32363564"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "C-Élysée",
+      "source_ids": [
+        "crautos-citron",
+        "e24-citron"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/citroen"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1073181",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93503959",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=28842627",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=50528885",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4926849",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7699265",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=98373160",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=43072231",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=59770159",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=95563737",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2558620",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=30729302",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=15875412",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22223093",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=50126207",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=70881129"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "C1",
+      "source_ids": [
+        "crautos-citron"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19384099"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "C2",
+      "source_ids": [
+        "crautos-citron"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=58648441"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "C3",
+      "source_ids": [
+        "citroen-cr",
+        "crautos-citron",
+        "e24-citron"
+      ],
+      "source_urls": [
+        "https://www.citroencr.com/index.html",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/citroen"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67779699",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=33426159",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=50551195",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=23187770",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=99474716",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=34152794",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=33780099",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=91580337",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=17665498",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2099108",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6309433",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6067352",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55446974",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6463174",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=84403922",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2004910",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=62374043"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "C3 Aircross",
+      "source_ids": [
+        "citroen-cr",
+        "crautos-citron",
+        "e24-citron"
+      ],
+      "source_urls": [
+        "https://www.citroencr.com/index.html",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/citroen"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=62374043"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "C4",
+      "source_ids": [
+        "crautos-citron"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=97824525",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=40818137"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "C4 Cactus",
+      "source_ids": [
+        "citroen-cr",
+        "crautos-citron"
+      ],
+      "source_urls": [
+        "https://www.citroencr.com/index.html",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=40818137"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "C5",
+      "source_ids": [
+        "e24-citron"
+      ],
+      "source_urls": [
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/citroen"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "C5 Aircross",
+      "source_ids": [
+        "citroen-cr",
+        "crautos-citron",
+        "e24-citron"
+      ],
+      "source_urls": [
+        "https://www.citroencr.com/index.html",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/citroen"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8492178"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "DS4",
+      "source_ids": [
+        "crautos-citron",
+        "e24-citron"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/citroen"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=28805955"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "Jumper",
+      "source_ids": [
+        "citroen-cr",
+        "crautos-citron"
+      ],
+      "source_urls": [
+        "https://www.citroencr.com/index.html",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12220035"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "Jumpy",
+      "source_ids": [
+        "citroen-cr",
+        "crautos-citron"
+      ],
+      "source_urls": [
+        "https://www.citroencr.com/index.html",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=21099271"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "Nemo",
+      "source_ids": [
+        "crautos-citron"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13631777"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Citroën",
+      "model": "Xsara",
+      "source_ids": [
+        "crautos-citron"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=54313708"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Daihatsu",
+      "model": "Charade",
+      "source_ids": [
+        "crautos-daihatsu"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=63359879"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Daihatsu",
+      "model": "Cuore",
+      "source_ids": [
+        "crautos-daihatsu"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=90604801",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=94657337"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Daihatsu",
+      "model": "Delta",
+      "source_ids": [
+        "crautos-daihatsu"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=44559201",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=64483469",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=44048942",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=15558698"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Daihatsu",
+      "model": "Rocky",
+      "source_ids": [
+        "crautos-daihatsu"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=60954158",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13388565",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66588219"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Daihatsu",
+      "model": "Sirion",
+      "source_ids": [
+        "crautos-daihatsu"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=96750674",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=17893054",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=16322658",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=14408210",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=54575451",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66439465"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Daihatsu",
+      "model": "Terios",
+      "source_ids": [
+        "crautos-daihatsu"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=21052827",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=53526117",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92499541",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73947990",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89455925",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82757870",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22198046",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73098593",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12899601",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=57332811",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22281282",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89928167",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=37891847",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=61206116",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=62735034",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=65673201",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7918352",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2446471",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=76841780",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=60895230",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82616716",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6587659",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=98060702",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=59045146",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92722163",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=83060385",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=56836908",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8313565",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=60183858",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10798302",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=74812588",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=86585284",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=88392596",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=78341856",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73079403",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24734417",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13458457",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=97077472",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=46250229",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=31889688",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=94106917",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=53077090",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=27784109",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=27034551",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2091561",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3322027",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89277678",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=95884490",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=50637398",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1813985",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=14707382",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=21643271",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47789096",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93070008",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=18572215",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=95815133",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=54155360",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=58432721",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=37164248",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22556253",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8841774",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93965597",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9086492",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=58409341",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=23769749",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=78473515",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55352016"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Deepal",
+      "model": "S05",
+      "source_ids": [
+        "deepal-cr"
+      ],
+      "source_urls": [
+        "https://www.changan.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Deepal",
+      "model": "S07",
+      "source_ids": [
+        "deepal-cr"
+      ],
+      "source_urls": [
+        "https://www.changan.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "DFSK",
+      "model": "C31",
+      "source_ids": [
+        "dfsk-cr",
+        "e24-dfsk"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/categoria/autos/dfsk/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/dfsk"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "DFSK",
+      "model": "C32",
+      "source_ids": [
+        "dfsk-cr"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/categoria/autos/dfsk/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "DFSK",
+      "model": "C35",
+      "source_ids": [
+        "dfsk-cr"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/categoria/autos/dfsk/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "DFSK",
+      "model": "C37",
+      "source_ids": [
+        "dfsk-cr"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/categoria/autos/dfsk/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "DFSK",
+      "model": "E5",
+      "source_ids": [
+        "dfsk-cr"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/categoria/autos/dfsk/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "DFSK",
+      "model": "Glory 500",
+      "source_ids": [
+        "dfsk-cr"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/categoria/autos/dfsk/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "DFSK",
+      "model": "Glory 560",
+      "source_ids": [
+        "dfsk-cr"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/categoria/autos/dfsk/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "DFSK",
+      "model": "Glory 580",
+      "source_ids": [
+        "dfsk-cr",
+        "e24-dfsk"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/categoria/autos/dfsk/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/dfsk"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "EX1",
+      "source_ids": [
+        "crautos-dongfeng"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6212695",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7228936"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Friday",
+      "source_ids": [
+        "dongfeng-cr",
+        "crautos-dongfeng"
+      ],
+      "source_urls": [
+        "https://dongfengcr.com/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=51729942"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Joyear SX6",
+      "source_ids": [
+        "crautos-dongfeng"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7325688"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Mage",
+      "source_ids": [
+        "dongfeng-cr"
+      ],
+      "source_urls": [
+        "https://dongfengcr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Nammi 01",
+      "source_ids": [
+        "dongfeng-cr",
+        "crautos-dongfeng"
+      ],
+      "source_urls": [
+        "https://dongfengcr.com/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=98751297"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Nammi 06",
+      "source_ids": [
+        "dongfeng-cr"
+      ],
+      "source_urls": [
+        "https://dongfengcr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Nano Box",
+      "source_ids": [
+        "crautos-dongfeng"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=16728345"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Rich",
+      "source_ids": [
+        "crautos-dongfeng"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=58524446"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Rich 6",
+      "source_ids": [
+        "dongfeng-cr",
+        "crautos-dongfeng",
+        "e24-dongfeng"
+      ],
+      "source_urls": [
+        "https://dongfengcr.com/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/dongfeng"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=68796920",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7577118",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55962109"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Rich 7",
+      "source_ids": [
+        "dongfeng-cr"
+      ],
+      "source_urls": [
+        "https://dongfengcr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "SX5",
+      "source_ids": [
+        "crautos-dongfeng"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=48021958",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9732741"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "T5 EVO",
+      "source_ids": [
+        "crautos-dongfeng"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66303878"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "T5L",
+      "source_ids": [
+        "crautos-dongfeng"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9585489"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Z9",
+      "source_ids": [
+        "dongfeng-cr"
+      ],
+      "source_urls": [
+        "https://dongfengcr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Foton",
+      "model": "Tunland G7",
+      "source_ids": [
+        "foton-g7"
+      ],
+      "source_urls": [
+        "https://fotoncr.com/foton-presenta-su-nuevo-pickup-tunland-g7-4x4-moderno-y-potente-para-cualquier-camino-desde-33-99/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Foton",
+      "model": "Tunland V7",
+      "source_ids": [
+        "foton-v7"
+      ],
+      "source_urls": [
+        "https://dev.fotoncr.com/tunland-v7/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Foton",
+      "model": "Tunland V9",
+      "source_ids": [
+        "foton-v9",
+        "crautos-foton"
+      ],
+      "source_urls": [
+        "https://www.fotoncr.com/wp-content/uploads/2024/10/FICHA-TUNLAND-V9.pdf",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=88644418"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Foton",
+      "model": "View CS2",
+      "source_ids": [
+        "crautos-foton"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89030727"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "GAC",
+      "model": "Emkoo",
+      "source_ids": [
+        "gac-cr"
+      ],
+      "source_urls": [
+        "https://gac.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "GAC",
+      "model": "Emzoom",
+      "source_ids": [
+        "gac-cr"
+      ],
+      "source_urls": [
+        "https://gac.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "GAC",
+      "model": "GS3",
+      "source_ids": [
+        "gac-cr"
+      ],
+      "source_urls": [
+        "https://gac.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "GAC",
+      "model": "GS4",
+      "source_ids": [
+        "gac-cr"
+      ],
+      "source_urls": [
+        "https://gac.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "GAC",
+      "model": "GS8",
+      "source_ids": [
+        "gac-cr"
+      ],
+      "source_urls": [
+        "https://gac.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "GAC",
+      "model": "M6",
+      "source_ids": [
+        "gac-cr"
+      ],
+      "source_urls": [
+        "https://gac.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Geely",
+      "model": "Azkarra",
+      "source_ids": [
+        "crautos-geely",
+        "e24-geely"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/geely"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5615282",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8363063",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4340759",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12505926",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2672409"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Geely",
+      "model": "Coolray",
+      "source_ids": [
+        "geely-cr",
+        "crautos-geely",
+        "e24-geely"
+      ],
+      "source_urls": [
+        "https://www.geely.cr/?s=2",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/geely"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=42376961",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=11996258",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7902390",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8957528",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92311299",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=27704031",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=69797852",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10471350",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=94304012",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47712872",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=70746326",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=60837992",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=43065715"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Geely",
+      "model": "Coolray Neo",
+      "source_ids": [
+        "geely-cr"
+      ],
+      "source_urls": [
+        "https://www.geely.cr/?s=2"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Geely",
+      "model": "Emgrand EX7",
+      "source_ids": [
+        "e24-geely"
+      ],
+      "source_urls": [
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/geely"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Geely",
+      "model": "EX5",
+      "source_ids": [
+        "geely-cr",
+        "crautos-geely"
+      ],
+      "source_urls": [
+        "https://www.geely.cr/?s=2",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=14082431",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=38414937"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Geely",
+      "model": "GC5",
+      "source_ids": [
+        "crautos-geely"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=80590330"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Geely",
+      "model": "GC6",
+      "source_ids": [
+        "crautos-geely",
+        "e24-geely"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/geely"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=40803231",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=77956833",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=75470096",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=43995235"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Geely",
+      "model": "Geome",
+      "source_ids": [
+        "crautos-geely"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=39298693",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=11048583"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Geely",
+      "model": "Geometry C",
+      "source_ids": [
+        "crautos-geely"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4199329",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=98904945",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=15611773"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Geely",
+      "model": "Geometry E",
+      "source_ids": [
+        "crautos-geely",
+        "e24-geely"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/geely"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10728592",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=81839419",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2387081",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2725583",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66013268",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66698160",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2203293",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1296716"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Geely",
+      "model": "GX2",
+      "source_ids": [
+        "crautos-geely"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=38260293"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Geely",
+      "model": "GX3",
+      "source_ids": [
+        "crautos-geely",
+        "e24-geely"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/geely"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=30974119",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=96709782",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1032002",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82538701",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=16886810",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=16994046",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=75826876",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12570163",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=36315101",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=77389281",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2807332",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1262006",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=68034458",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=56109952",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=72674079",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=95776512",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=30051431",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13478742",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82216960",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=84183437",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=48363402",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=15177972",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7683555",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79573490",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19889524",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2842597",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6994549",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6946635",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7500395",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10157704",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=88653570",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2300241",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79162795",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5593790",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9106575",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=53680906"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Geely",
+      "model": "Okavango",
+      "source_ids": [
+        "geely-cr",
+        "crautos-geely",
+        "e24-geely"
+      ],
+      "source_urls": [
+        "https://www.geely.cr/?s=2",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/geely"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4811481",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8656443",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9058916",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=91632051",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1088697",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1158770",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=37610631"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Geely",
+      "model": "Starray",
+      "source_ids": [
+        "geely-cr",
+        "crautos-geely"
+      ],
+      "source_urls": [
+        "https://www.geely.cr/?s=2",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55789498",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=91551174",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6337163"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Great Wall",
+      "model": "C20R",
+      "source_ids": [
+        "e24-greatwall"
+      ],
+      "source_urls": [
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/great-wall"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Great Wall",
+      "model": "C30",
+      "source_ids": [
+        "crautos-greatwall"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7867370",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=71738064",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19386401"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Great Wall",
+      "model": "Hover",
+      "source_ids": [
+        "crautos-greatwall"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=57963340"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Great Wall",
+      "model": "M2",
+      "source_ids": [
+        "crautos-greatwall"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=97368095"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Great Wall",
+      "model": "M4",
+      "source_ids": [
+        "crautos-greatwall"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=39272478",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=21825345",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12043638",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=32013850",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=36838380"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Great Wall",
+      "model": "Poer",
+      "source_ids": [
+        "greatwall-cr",
+        "crautos-greatwall",
+        "e24-greatwall"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/modelos-disponibles/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/great-wall"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82290925",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2580054",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4615595",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=16793719",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1464895",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93039099"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Great Wall",
+      "model": "Wingle 5",
+      "source_ids": [
+        "crautos-greatwall"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4134050"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Great Wall",
+      "model": "Wingle 7",
+      "source_ids": [
+        "greatwall-cr",
+        "crautos-greatwall"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/modelos-disponibles/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2030601",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5885176"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Haval",
+      "model": "H6",
+      "source_ids": [
+        "haval-cr",
+        "crautos-haval",
+        "e24-haval"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/modelos-disponibles/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/haval"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=98657746",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=65987880",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1529568",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24016212",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2868915",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1638857",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9143801",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=44962298",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=36715753",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=39531482"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Haval",
+      "model": "H7",
+      "source_ids": [
+        "haval-cr"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/modelos-disponibles/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Haval",
+      "model": "H9",
+      "source_ids": [
+        "haval-cr",
+        "crautos-haval",
+        "e24-haval"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/modelos-disponibles/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/haval"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6288135"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Haval",
+      "model": "Jolion",
+      "source_ids": [
+        "haval-cr",
+        "crautos-haval",
+        "e24-haval"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/modelos-disponibles/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/haval"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=63180746",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4009415",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7131586"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Hyundai",
+      "model": "Creta",
+      "source_ids": [
+        "crautos-creta"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Hyundai",
+      "model": "Galloper",
+      "source_ids": [
+        "crautos-hyundai"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24282700",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92513471",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13516638",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67355290",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=71092233",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22821239",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=90318473",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=90800556",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=64191533",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=30052565",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1810647",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=91892704"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Hyundai",
+      "model": "Starex",
+      "source_ids": [
+        "crautos-hyundai"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67630972",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=80196816",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=65537905"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Hyundai",
+      "model": "Stargazer",
+      "source_ids": [
+        "hyundai-stargazer"
+      ],
+      "source_urls": [
+        "https://www.grupoq.com/cr/historias/hyundai-grupoq-stargazer-costarica"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Hyundai",
+      "model": "Verna",
+      "source_ids": [
+        "crautos-hyundai"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=59393490"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Isuzu",
+      "model": "D-Max",
+      "source_ids": [
+        "isuzu-cr",
+        "crautos-isuzu"
+      ],
+      "source_urls": [
+        "https://isuzucr.com/calculadora",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Isuzu",
+      "model": "MU-X",
+      "source_ids": [
+        "isuzu-cr",
+        "crautos-isuzu"
+      ],
+      "source_urls": [
+        "https://isuzucr.com/calculadora",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "J2",
+      "source_ids": [
+        "crautos-jac"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=61389083"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "J3",
+      "source_ids": [
+        "crautos-jac"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=23750918"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "JS1",
+      "source_ids": [
+        "crautos-jac",
+        "e24-jac"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/jac"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6492303",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=11660474",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7879628",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6463717",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4196023",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9942902",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8912325"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "JS2",
+      "source_ids": [
+        "crautos-jac"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=50382058",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7866117",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3299187",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9201900"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "JS3",
+      "source_ids": [
+        "crautos-jac"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2739931",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4264034",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4832079"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "JS4",
+      "source_ids": [
+        "crautos-jac",
+        "e24-jac"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/jac"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3263516",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5536054",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67233961",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=61872729",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2539086",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=41817810",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=38643386"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "JS5",
+      "source_ids": [
+        "crautos-jac"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5572751"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "JS8",
+      "source_ids": [
+        "crautos-jac"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=27126219",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=69315070"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "M3",
+      "source_ids": [
+        "jac-cr",
+        "crautos-jac"
+      ],
+      "source_urls": [
+        "https://www.jac.cr/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4916601"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "Refine",
+      "source_ids": [
+        "crautos-jac",
+        "e24-jac"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/jac"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24723116",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4916601"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "S2",
+      "source_ids": [
+        "crautos-jac"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5841984",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13323434",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=83856066"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "T6",
+      "source_ids": [
+        "crautos-jac"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=87376038",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=57268076",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=98303587"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "T8",
+      "source_ids": [
+        "e24-jac"
+      ],
+      "source_urls": [
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/jac"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "T9",
+      "source_ids": [
+        "crautos-jac"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5574468"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JAC",
+      "model": "X200",
+      "source_ids": [
+        "jac-cr"
+      ],
+      "source_urls": [
+        "https://www.jac.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Jaecoo",
+      "model": "J5",
+      "source_ids": [
+        "jaecoo-cr"
+      ],
+      "source_urls": [
+        "https://www.omodajaecoo.cr/vehiculos"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Jaecoo",
+      "model": "J7",
+      "source_ids": [
+        "jaecoo-cr"
+      ],
+      "source_urls": [
+        "https://www.omodajaecoo.cr/vehiculos"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Jaecoo",
+      "model": "J8",
+      "source_ids": [
+        "jaecoo-cr"
+      ],
+      "source_urls": [
+        "https://www.omodajaecoo.cr/vehiculos"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Jetour",
+      "model": "Dashing",
+      "source_ids": [
+        "jetour-cr",
+        "crautos-jetour",
+        "e24-jetour"
+      ],
+      "source_urls": [
+        "https://jetour-cr.net/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/jetour"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3346641",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9373690"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Jetour",
+      "model": "T1",
+      "source_ids": [
+        "jetour-cr",
+        "crautos-jetour",
+        "e24-jetour"
+      ],
+      "source_urls": [
+        "https://jetour-cr.net/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/jetour"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8225294"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Jetour",
+      "model": "T2",
+      "source_ids": [
+        "jetour-cr"
+      ],
+      "source_urls": [
+        "https://jetour-cr.net/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Jetour",
+      "model": "X50",
+      "source_ids": [
+        "jetour-cr",
+        "crautos-jetour"
+      ],
+      "source_urls": [
+        "https://jetour-cr.net/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1976531"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Jetour",
+      "model": "X70",
+      "source_ids": [
+        "jetour-cr",
+        "crautos-jetour",
+        "e24-jetour"
+      ],
+      "source_urls": [
+        "https://jetour-cr.net/",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/jetour"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=61613275",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24442421",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=20556674",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3918555",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3622893",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4153932",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6324203"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JMC",
+      "model": "Grand Avenue",
+      "source_ids": [
+        "jmc-cr",
+        "e24-jmc"
+      ],
+      "source_urls": [
+        "https://jmc.cr/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/jmc"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JMC",
+      "model": "Touring Van",
+      "source_ids": [
+        "jmc-cr"
+      ],
+      "source_urls": [
+        "https://jmc.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "JMC",
+      "model": "Vigus",
+      "source_ids": [
+        "jmc-cr",
+        "e24-jmc"
+      ],
+      "source_urls": [
+        "https://jmc.cr/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/jmc"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kaiyi",
+      "model": "e-qute 04",
+      "source_ids": [
+        "kaiyi-cr"
+      ],
+      "source_urls": [
+        "https://kaiyicostarica.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kaiyi",
+      "model": "KYX3",
+      "source_ids": [
+        "kaiyi-cr"
+      ],
+      "source_urls": [
+        "https://kaiyicostarica.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kaiyi",
+      "model": "KYX7",
+      "source_ids": [
+        "kaiyi-cr"
+      ],
+      "source_urls": [
+        "https://kaiyicostarica.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kaiyi",
+      "model": "X3",
+      "source_ids": [
+        "crautos-kaiyi"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8314784",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6072506",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7862923",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3501052",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7130975",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1160637"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "KGM",
+      "model": "Actyon",
+      "source_ids": [
+        "kgm-actyon"
+      ],
+      "source_urls": [
+        "https://veinsamotors.com/blog/veinsa-motors-reconocido-lider-en-el-sector-automotriz-de-costa-rica"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "KGM",
+      "model": "Actyon Sports",
+      "source_ids": [
+        "crautos-kgm"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=70438912"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "KGM",
+      "model": "Korando",
+      "source_ids": [
+        "crautos-kgm"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=18784215",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=84479044",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=39771331",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=25626046",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=90985375",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=14738612",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=76875009"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "KGM",
+      "model": "Rexton",
+      "source_ids": [
+        "kgm-cr",
+        "crautos-kgm"
+      ],
+      "source_urls": [
+        "https://veinsamotors.com/wp-content/uploads/2025/09/Reglamento-Reglamento-Promocion-paga-hasta-2026.pdf",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=64532682",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1091323",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=63659691",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=42107277",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9040111",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9852233",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7637550",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93347488",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=62760092",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=28293558",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3603993",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5880641"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "KGM",
+      "model": "Rexton Sports",
+      "source_ids": [
+        "crautos-kgm"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3603993"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "KGM",
+      "model": "Tivoli",
+      "source_ids": [
+        "kgm-cr",
+        "crautos-kgm"
+      ],
+      "source_urls": [
+        "https://veinsamotors.com/wp-content/uploads/2025/09/Reglamento-Reglamento-Promocion-paga-hasta-2026.pdf",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=21264585",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79001967",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3007070",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=83984577",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=96687904",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8592210",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6590946",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=56862043",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=91857326",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10288128",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73284198",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73011419",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47496695",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66743713",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47201306",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=85985275",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=31552486",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89250530",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73667599",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=86395670",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=72412339"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "KGM",
+      "model": "Torres",
+      "source_ids": [
+        "kgm-cr",
+        "crautos-kgm"
+      ],
+      "source_urls": [
+        "https://veinsamotors.com/wp-content/uploads/2025/09/Reglamento-Reglamento-Promocion-paga-hasta-2026.pdf",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19869379",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9138960"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kia",
+      "model": "Bongo",
+      "source_ids": [
+        "crautos-kia"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=63364830",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2797258",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1465383"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kia",
+      "model": "Carens",
+      "source_ids": [
+        "crautos-kia"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=48024131"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kia",
+      "model": "Cerato",
+      "source_ids": [
+        "crautos-kia"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10365940"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kia",
+      "model": "EV3",
+      "source_ids": [
+        "kia-cr"
+      ],
+      "source_urls": [
+        "https://www.kia.com/cr/main.html"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kia",
+      "model": "EV5",
+      "source_ids": [
+        "kia-cr"
+      ],
+      "source_urls": [
+        "https://www.kia.com/cr/main.html"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kia",
+      "model": "Joice",
+      "source_ids": [
+        "crautos-kia"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=69174194"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kia",
+      "model": "K2500",
+      "source_ids": [
+        "kia-cr"
+      ],
+      "source_urls": [
+        "https://www.kia.com/cr/main.html"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kia",
+      "model": "K2700",
+      "source_ids": [
+        "crautos-kia"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82170129",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5057263"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kia",
+      "model": "K3",
+      "source_ids": [
+        "kia-cr"
+      ],
+      "source_urls": [
+        "https://www.kia.com/cr/main.html"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kia",
+      "model": "Opirus",
+      "source_ids": [
+        "crautos-kia"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66319452"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kia",
+      "model": "Picanto",
+      "source_ids": [
+        "kia-cr",
+        "crautos-kia"
+      ],
+      "source_urls": [
+        "https://www.kia.com/cr/main.html",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26147292"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kia",
+      "model": "Soluto",
+      "source_ids": [
+        "kia-cr"
+      ],
+      "source_urls": [
+        "https://www.kia.com/cr/main.html"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kia",
+      "model": "Sonet",
+      "source_ids": [
+        "kia-cr"
+      ],
+      "source_urls": [
+        "https://www.kia.com/cr/main.html"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Kia",
+      "model": "Tasman",
+      "source_ids": [
+        "kia-cr"
+      ],
+      "source_urls": [
+        "https://www.kia.com/cr/main.html"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Maxus",
+      "model": "D60",
+      "source_ids": [
+        "maxus-history",
+        "crautos-maxus",
+        "e24-maxus"
+      ],
+      "source_urls": [
+        "https://maxus.cr/quienes-somos",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/maxus"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5715818",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3933966",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3083342",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9419803",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2741117",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4848811",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4655084"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Maxus",
+      "model": "D90",
+      "source_ids": [
+        "maxus-cr",
+        "crautos-maxus"
+      ],
+      "source_urls": [
+        "https://maxus.cr/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8061197",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1617633"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Maxus",
+      "model": "eDeliver 9",
+      "source_ids": [
+        "maxus-ev"
+      ],
+      "source_urls": [
+        "https://maxus.cr/electromovilidad"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Maxus",
+      "model": "EG50",
+      "source_ids": [
+        "maxus-history"
+      ],
+      "source_urls": [
+        "https://maxus.cr/quienes-somos"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Maxus",
+      "model": "Euniq 6",
+      "source_ids": [
+        "maxus-history",
+        "crautos-maxus",
+        "e24-maxus"
+      ],
+      "source_urls": [
+        "https://maxus.cr/quienes-somos",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/maxus"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=84253624"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Maxus",
+      "model": "EV30",
+      "source_ids": [
+        "maxus-history"
+      ],
+      "source_urls": [
+        "https://maxus.cr/quienes-somos"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Maxus",
+      "model": "T60",
+      "source_ids": [
+        "maxus-history",
+        "crautos-maxus",
+        "e24-maxus"
+      ],
+      "source_urls": [
+        "https://maxus.cr/quienes-somos",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/maxus"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1904526",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=57921874",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=74493471",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=59033761",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79955791",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2260274",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2425495",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55302376",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3250246",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=94924971",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12972515"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Maxus",
+      "model": "T90",
+      "source_ids": [
+        "maxus-history",
+        "crautos-maxus"
+      ],
+      "source_urls": [
+        "https://maxus.cr/quienes-somos",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4765896",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6748451"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Maxus",
+      "model": "V80",
+      "source_ids": [
+        "maxus-history"
+      ],
+      "source_urls": [
+        "https://maxus.cr/quienes-somos"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Maxus",
+      "model": "V90",
+      "source_ids": [
+        "maxus-cr",
+        "crautos-maxus"
+      ],
+      "source_urls": [
+        "https://maxus.cr/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=97463505"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "MG",
+      "model": "GS",
+      "source_ids": [
+        "crautos-mg",
+        "e24-mg"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/mg"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6244176",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26449932"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "MG",
+      "model": "GT",
+      "source_ids": [
+        "crautos-mg"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5217208"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "MG",
+      "model": "HS",
+      "source_ids": [
+        "mg-combustion",
+        "crautos-mg"
+      ],
+      "source_urls": [
+        "https://www.mg.cr/combustion",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8237729",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=34229538",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5114779",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4942982",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93968632",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=42178415"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "MG",
+      "model": "Marvel R",
+      "source_ids": [
+        "mg-electric",
+        "crautos-mg",
+        "e24-mg"
+      ],
+      "source_urls": [
+        "https://www.mg.cr/electricos",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/mg"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6635457",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3441999",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6650438",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4052713",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7969580"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "MG",
+      "model": "MG 3",
+      "source_ids": [
+        "crautos-mg"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24372098",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4745200"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "MG",
+      "model": "MG 4",
+      "source_ids": [
+        "mg-electric",
+        "crautos-mg"
+      ],
+      "source_urls": [
+        "https://www.mg.cr/electricos",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8175549"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "MG",
+      "model": "MG 5",
+      "source_ids": [
+        "crautos-mg"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1229007",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=78391335"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "MG",
+      "model": "ONE",
+      "source_ids": [
+        "mg-combustion",
+        "crautos-mg"
+      ],
+      "source_urls": [
+        "https://www.mg.cr/combustion",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12748465",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4870880"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "MG",
+      "model": "RX5",
+      "source_ids": [
+        "mg-combustion",
+        "crautos-mg",
+        "e24-mg"
+      ],
+      "source_urls": [
+        "https://www.mg.cr/combustion",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/mg"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=33028120",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1274449",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2084424",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8141280",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22584572",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=59409374"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "MG",
+      "model": "RX8",
+      "source_ids": [
+        "mg-combustion",
+        "crautos-mg",
+        "e24-mg"
+      ],
+      "source_urls": [
+        "https://www.mg.cr/combustion",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/mg"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=88422935",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=25031709",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2396978",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=72782934",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=99139766",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2820920",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5355729",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5381411"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "MG",
+      "model": "RX9",
+      "source_ids": [
+        "mg-combustion"
+      ],
+      "source_urls": [
+        "https://www.mg.cr/combustion"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "MG",
+      "model": "ZS",
+      "source_ids": [
+        "mg-combustion",
+        "crautos-mg",
+        "e24-mg"
+      ],
+      "source_urls": [
+        "https://www.mg.cr/combustion",
+        "https://www.crautos.com/autosusados/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/mg"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2584859",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7081222",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5188014",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8799146",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5617015",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=18732374",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7283094",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4392291",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=61587423",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4767247",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3715600",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=69709976",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55257831"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Mitsubishi",
+      "model": "ASX",
+      "source_ids": [
+        "mitsubishi-cr"
+      ],
+      "source_urls": [
+        "https://veinsamotors.com/wp-content/uploads/2025/01/Reglamento-Mitsubishi-Desafia-el-Terreno-2025-1.pdf"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Mitsubishi",
+      "model": "L200",
+      "source_ids": [
+        "mitsubishi-cr"
+      ],
+      "source_urls": [
+        "https://veinsamotors.com/wp-content/uploads/2025/01/Reglamento-Mitsubishi-Desafia-el-Terreno-2025-1.pdf"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Mitsubishi",
+      "model": "Xpander Cross",
+      "source_ids": [
+        "mitsubishi-cr"
+      ],
+      "source_urls": [
+        "https://veinsamotors.com/wp-content/uploads/2025/01/Reglamento-Mitsubishi-Desafia-el-Terreno-2025-1.pdf"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Neta",
+      "model": "U",
+      "source_ids": [
+        "crautos-neta"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7316803"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Neta",
+      "model": "V",
+      "source_ids": [
+        "crautos-neta"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=76374973",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=42492487",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=42493149",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92712566"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Neta",
+      "model": "X",
+      "source_ids": [
+        "neta-cr"
+      ],
+      "source_urls": [
+        "https://www.netaauto.co.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Nissan",
+      "model": "Civilian",
+      "source_ids": [
+        "crautos-nissan"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=39348408"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Nissan",
+      "model": "D21",
+      "source_ids": [
+        "crautos-nissan"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=68947525",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24461212",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=57355936",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1965820",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=94899909",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26277582"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Nissan",
+      "model": "Kait",
+      "source_ids": [
+        "nissan-cr"
+      ],
+      "source_urls": [
+        "https://www.nissancr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Nissan",
+      "model": "Kicks Play",
+      "source_ids": [
+        "nissan-cr"
+      ],
+      "source_urls": [
+        "https://www.nissancr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Nissan",
+      "model": "Magnite",
+      "source_ids": [
+        "nissan-cr"
+      ],
+      "source_urls": [
+        "https://www.nissancr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Nissan",
+      "model": "Qashqai",
+      "source_ids": [
+        "nissan-cr"
+      ],
+      "source_urls": [
+        "https://www.nissancr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Nissan",
+      "model": "Urvan",
+      "source_ids": [
+        "nissan-cr"
+      ],
+      "source_urls": [
+        "https://www.nissancr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Nissan",
+      "model": "Vanette",
+      "source_ids": [
+        "crautos-nissan"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=25975025"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Nissan",
+      "model": "X-Trail",
+      "source_ids": [
+        "nissan-cr"
+      ],
+      "source_urls": [
+        "https://www.nissancr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Omoda",
+      "model": "C5",
+      "source_ids": [
+        "omoda-cr"
+      ],
+      "source_urls": [
+        "https://www.omodajaecoo.cr/vehiculos"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Omoda",
+      "model": "C7",
+      "source_ids": [
+        "omoda-cr"
+      ],
+      "source_urls": [
+        "https://www.omodajaecoo.cr/vehiculos"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Omoda",
+      "model": "E5",
+      "source_ids": [
+        "omoda-cr"
+      ],
+      "source_urls": [
+        "https://www.omodajaecoo.cr/vehiculos"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Peugeot",
+      "model": "2008",
+      "source_ids": [
+        "peugeot-cr",
+        "crautos-peugeot"
+      ],
+      "source_urls": [
+        "https://www.peugeot.co.cr/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3178213",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2489100",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89392203",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6958952",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73102648",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=74101839",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5895734",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=53645106",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=32615594",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9358659",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82904748",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=61502061",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=20027424",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6314162"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Peugeot",
+      "model": "206",
+      "source_ids": [
+        "crautos-peugeot"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47476373",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93939155",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92038961",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=72677710",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=78772416",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=68384658",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=84579680",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=27580219"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Peugeot",
+      "model": "208",
+      "source_ids": [
+        "crautos-peugeot"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92757631",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=41890243"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Peugeot",
+      "model": "3008",
+      "source_ids": [
+        "peugeot-cr",
+        "crautos-peugeot"
+      ],
+      "source_urls": [
+        "https://www.peugeot.co.cr/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=90799763",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7653274",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=15238794",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13705183",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=43965837",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1663079",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=58361605",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=46191050",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6624665",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7799373",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92823221",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=99163831",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2431804"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Peugeot",
+      "model": "301",
+      "source_ids": [
+        "crautos-peugeot"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=95645481"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Peugeot",
+      "model": "307",
+      "source_ids": [
+        "crautos-peugeot"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=78575489"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Peugeot",
+      "model": "308",
+      "source_ids": [
+        "crautos-peugeot"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8012400",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=40957820"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Peugeot",
+      "model": "5008",
+      "source_ids": [
+        "peugeot-cr",
+        "crautos-peugeot"
+      ],
+      "source_urls": [
+        "https://www.peugeot.co.cr/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26343138"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Peugeot",
+      "model": "Landtrek",
+      "source_ids": [
+        "peugeot-cr",
+        "crautos-peugeot"
+      ],
+      "source_urls": [
+        "https://www.peugeot.co.cr/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=76546386"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Peugeot",
+      "model": "Partner",
+      "source_ids": [
+        "crautos-peugeot"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67980359"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Peugeot",
+      "model": "Rifter",
+      "source_ids": [
+        "peugeot-cr",
+        "crautos-peugeot"
+      ],
+      "source_urls": [
+        "https://www.peugeot.co.cr/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9366092"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Alaskan",
+      "source_ids": [
+        "crautos-renault"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9528972",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79301844"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Arkana",
+      "source_ids": [
+        "renault-cr"
+      ],
+      "source_urls": [
+        "https://renaultcr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Captur",
+      "source_ids": [
+        "crautos-renault"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2325902",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=41016408",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=14242454",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=90804116"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Dokker",
+      "source_ids": [
+        "crautos-renault"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=48557813"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Duster",
+      "source_ids": [
+        "renault-cr",
+        "crautos-renault"
+      ],
+      "source_urls": [
+        "https://renaultcr.com/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=25925148",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4863656",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9353539",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=23229785",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=98665535",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=62177820",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7528164",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=11160955",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7548229",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=99180019",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=52290463",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79881428",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=71766182",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=76320602"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Express",
+      "source_ids": [
+        "renault-cr",
+        "crautos-renault"
+      ],
+      "source_urls": [
+        "https://renaultcr.com/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=51363535",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=50631803"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Fluence",
+      "source_ids": [
+        "crautos-renault"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=27679321",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67524027",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=52643602",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8537385"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Kardian",
+      "source_ids": [
+        "renault-cr"
+      ],
+      "source_urls": [
+        "https://renaultcr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Koleos",
+      "source_ids": [
+        "renault-cr",
+        "crautos-renault"
+      ],
+      "source_urls": [
+        "https://renaultcr.com/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6159774",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7007289",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=78211774",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=86074284",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=35318107",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=37190221",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8246837",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73505333",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9641213",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7202528",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5553276",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79054426",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1438164",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3232940",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6142549",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=35697724",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=33766025",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5802611",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3023150",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7949056",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6427940",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1029136",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1496079",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3246100",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=51688864",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2810801",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3670484",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9379938"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Kwid",
+      "source_ids": [
+        "renault-cr",
+        "crautos-renault"
+      ],
+      "source_urls": [
+        "https://renaultcr.com/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24393404"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Master",
+      "source_ids": [
+        "renault-cr"
+      ],
+      "source_urls": [
+        "https://renaultcr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Megane",
+      "source_ids": [
+        "crautos-renault"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22577047",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55992628",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=29764221",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=63995283"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Oroch",
+      "source_ids": [
+        "renault-cr",
+        "crautos-renault"
+      ],
+      "source_urls": [
+        "https://renaultcr.com/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7459745",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79789624",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3618278"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Sandero",
+      "source_ids": [
+        "crautos-renault"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=95788884",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93837530",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=70867026",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4063737",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=39275158"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Scenic",
+      "source_ids": [
+        "crautos-renault"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=49110636"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Renault",
+      "model": "Stepway",
+      "source_ids": [
+        "renault-cr",
+        "crautos-renault"
+      ],
+      "source_urls": [
+        "https://renaultcr.com/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9905446"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Riddara",
+      "model": "RD6",
+      "source_ids": [
+        "riddara-cr"
+      ],
+      "source_urls": [
+        "https://veinsamotors.com/blog/riddara-abre-sus-puertas-en-costa-rica"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Seres",
+      "model": "3",
+      "source_ids": [
+        "e24-seres"
+      ],
+      "source_urls": [
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/dfsk"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Seres",
+      "model": "5",
+      "source_ids": [
+        "seres-cr"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/modelos-disponibles/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Across",
+      "source_ids": [
+        "suzuki-cr"
+      ],
+      "source_urls": [
+        "https://www.suzuki.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Alto",
+      "source_ids": [
+        "suzuki-cr"
+      ],
+      "source_urls": [
+        "https://www.suzuki.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Suzuki",
+      "model": "APV",
+      "source_ids": [
+        "suzuki-cr"
+      ],
+      "source_urls": [
+        "https://www.suzuki.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Baleno",
+      "source_ids": [
+        "suzuki-cr"
+      ],
+      "source_urls": [
+        "https://www.suzuki.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Celerio",
+      "source_ids": [
+        "suzuki-cr"
+      ],
+      "source_urls": [
+        "https://www.suzuki.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Dzire",
+      "source_ids": [
+        "suzuki-cr"
+      ],
+      "source_urls": [
+        "https://www.suzuki.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Suzuki",
+      "model": "e Vitara",
+      "source_ids": [
+        "suzuki-cr"
+      ],
+      "source_urls": [
+        "https://www.suzuki.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Eeco",
+      "source_ids": [
+        "suzuki-cr"
+      ],
+      "source_urls": [
+        "https://www.suzuki.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Fronx",
+      "source_ids": [
+        "suzuki-cr"
+      ],
+      "source_urls": [
+        "https://www.suzuki.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Jimny",
+      "source_ids": [
+        "suzuki-cr",
+        "e24-suzuki",
+        "crautos-jimny"
+      ],
+      "source_urls": [
+        "https://www.suzuki.cr/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/suzuki/jimny",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Suzuki",
+      "model": "S-Cross",
+      "source_ids": [
+        "suzuki-cr"
+      ],
+      "source_urls": [
+        "https://www.suzuki.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Suzuki",
+      "model": "S-Presso",
+      "source_ids": [
+        "suzuki-cr"
+      ],
+      "source_urls": [
+        "https://www.suzuki.cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "SWM",
+      "model": "G01",
+      "source_ids": [
+        "swm-cr"
+      ],
+      "source_urls": [
+        "https://ambacar.cr/modelos-disponibles/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Toyota",
+      "model": "1000",
+      "source_ids": [
+        "crautos-toyota"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=77512825",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=28248978",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=54646975"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Toyota",
+      "model": "Agya",
+      "source_ids": [
+        "toyota-cr"
+      ],
+      "source_urls": [
+        "https://www.toyotacr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Toyota",
+      "model": "Avanza",
+      "source_ids": [
+        "toyota-cr"
+      ],
+      "source_urls": [
+        "https://www.toyotacr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Toyota",
+      "model": "Fortuner",
+      "source_ids": [
+        "toyota-cr",
+        "e24-toyota",
+        "crautos-featured"
+      ],
+      "source_urls": [
+        "https://www.toyotacr.com/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/toyota/fortuner",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Toyota",
+      "model": "Hiace",
+      "source_ids": [
+        "toyota-cr"
+      ],
+      "source_urls": [
+        "https://www.toyotacr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Toyota",
+      "model": "Hilux",
+      "source_ids": [
+        "toyota-cr",
+        "e24-hilux",
+        "crautos-featured"
+      ],
+      "source_urls": [
+        "https://www.toyotacr.com/",
+        "https://www.encuentra24.com/costa-rica-es/autos-usados/toyota/hilux",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Toyota",
+      "model": "Land Cruiser Prado",
+      "source_ids": [
+        "toyota-cr"
+      ],
+      "source_urls": [
+        "https://www.toyotacr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Toyota",
+      "model": "Majesty",
+      "source_ids": [
+        "toyota-cr"
+      ],
+      "source_urls": [
+        "https://www.toyotacr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Toyota",
+      "model": "Model F",
+      "source_ids": [
+        "crautos-toyota"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=77678990"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Toyota",
+      "model": "Raize",
+      "source_ids": [
+        "toyota-cr"
+      ],
+      "source_urls": [
+        "https://www.toyotacr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Toyota",
+      "model": "Rush",
+      "source_ids": [
+        "toyota-cr"
+      ],
+      "source_urls": [
+        "https://www.toyotacr.com/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Toyota",
+      "model": "Starlet",
+      "source_ids": [
+        "crautos-toyota"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=14184871"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "VGV",
+      "model": "Bolden S6",
+      "source_ids": [
+        "crautos-vgv"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8035877",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4690653",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6792574"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "VGV",
+      "model": "Bolden S7",
+      "source_ids": [
+        "crautos-vgv"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8517683"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "VGV",
+      "model": "U70",
+      "source_ids": [
+        "crautos-vgv"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1603323"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "VGV",
+      "model": "U70B",
+      "source_ids": [
+        "crautos-vgv"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3043656"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "VGV",
+      "model": "VX7",
+      "source_ids": [
+        "crautos-vgv"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1075170"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Volkswagen",
+      "model": "Amarok",
+      "source_ids": [
+        "vw-cr"
+      ],
+      "source_urls": [
+        "https://www.volkswagen.cr/es/modelos.html"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Volkswagen",
+      "model": "Nivus",
+      "source_ids": [
+        "vw-cr"
+      ],
+      "source_urls": [
+        "https://www.volkswagen.cr/es/modelos.html"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Volkswagen",
+      "model": "Saveiro",
+      "source_ids": [
+        "vw-cr"
+      ],
+      "source_urls": [
+        "https://www.volkswagen.cr/es/modelos.html"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Volkswagen",
+      "model": "T-Cross",
+      "source_ids": [
+        "vw-cr"
+      ],
+      "source_urls": [
+        "https://www.volkswagen.cr/es/modelos.html"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Volkswagen",
+      "model": "Tera",
+      "source_ids": [
+        "vw-cr"
+      ],
+      "source_urls": [
+        "https://www.volkswagen.cr/es/modelos.html"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "XPeng",
+      "model": "G3i",
+      "source_ids": [
+        "xpeng-history"
+      ],
+      "source_urls": [
+        "https://www.larepublica.net/noticia/grupo-purdy-primer-distribuidor-oficial-de-xpeng-en-america-con-modelos-electricos-desde-39900-y-74900"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_press"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "XPeng",
+      "model": "G6",
+      "source_ids": [
+        "xpeng-g6"
+      ],
+      "source_urls": [
+        "https://xpengcr.nyc3.cdn.digitaloceanspaces.com/documents/xpeng_G6.pdf"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "XPeng",
+      "model": "G9",
+      "source_ids": [
+        "xpeng-history"
+      ],
+      "source_urls": [
+        "https://www.larepublica.net/noticia/grupo-purdy-primer-distribuidor-oficial-de-xpeng-en-america-con-modelos-electricos-desde-39900-y-74900"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_press"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Zeekr",
+      "model": "001",
+      "source_ids": [
+        "zeekr-cr"
+      ],
+      "source_urls": [
+        "https://www.zeekrlife.com/es-cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Zeekr",
+      "model": "007",
+      "source_ids": [
+        "crautos-zeekr"
+      ],
+      "source_urls": [
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26127984"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Zeekr",
+      "model": "009",
+      "source_ids": [
+        "zeekr-cr"
+      ],
+      "source_urls": [
+        "https://www.zeekrlife.com/es-cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Zeekr",
+      "model": "7X",
+      "source_ids": [
+        "zeekr-cr"
+      ],
+      "source_urls": [
+        "https://www.zeekrlife.com/es-cr/"
+      ],
+      "listing_urls": [],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor"
+      ],
+      "consulted_on": "2026-10-09"
+    },
+    {
+      "make": "Zeekr",
+      "model": "X",
+      "source_ids": [
+        "zeekr-cr",
+        "crautos-zeekr"
+      ],
+      "source_urls": [
+        "https://www.zeekrlife.com/es-cr/",
+        "https://www.crautos.com/autosusados/"
+      ],
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26420804"
+      ],
+      "reason": "missing_from_carsxe",
+      "evidence_types": [
+        "local_distributor",
+        "used_market"
+      ],
+      "consulted_on": "2026-10-09"
+    }
+  ]
+}

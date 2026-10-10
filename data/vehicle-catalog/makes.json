@@ -1,0 +1,230 @@
+[
+  {
+    "make": "Toyota",
+    "query_make": "Toyota"
+  },
+  {
+    "make": "Nissan",
+    "query_make": "Nissan"
+  },
+  {
+    "make": "Suzuki",
+    "query_make": "Suzuki"
+  },
+  {
+    "make": "Mitsubishi",
+    "query_make": "Mitsubishi"
+  },
+  {
+    "make": "Hyundai",
+    "query_make": "Hyundai"
+  },
+  {
+    "make": "Kia",
+    "query_make": "Kia"
+  },
+  {
+    "make": "Honda",
+    "query_make": "Honda"
+  },
+  {
+    "make": "Mazda",
+    "query_make": "Mazda"
+  },
+  {
+    "make": "Chevrolet",
+    "query_make": "Chevrolet"
+  },
+  {
+    "make": "Isuzu",
+    "query_make": "Isuzu"
+  },
+  {
+    "make": "Ford",
+    "query_make": "Ford"
+  },
+  {
+    "make": "Volkswagen",
+    "query_make": "Volkswagen"
+  },
+  {
+    "make": "Subaru",
+    "query_make": "Subaru"
+  },
+  {
+    "make": "Daihatsu",
+    "query_make": "Daihatsu"
+  },
+  {
+    "make": "Renault",
+    "query_make": "Renault"
+  },
+  {
+    "make": "Peugeot",
+    "query_make": "Peugeot"
+  },
+  {
+    "make": "Citroën",
+    "query_make": "Citroen"
+  },
+  {
+    "make": "KGM",
+    "query_make": "SsangYong"
+  },
+  {
+    "make": "Jeep",
+    "query_make": "Jeep"
+  },
+  {
+    "make": "Dodge",
+    "query_make": "Dodge"
+  },
+  {
+    "make": "Fiat",
+    "query_make": "Fiat"
+  },
+  {
+    "make": "RAM",
+    "query_make": "RAM"
+  },
+  {
+    "make": "BMW",
+    "query_make": "BMW"
+  },
+  {
+    "make": "Audi",
+    "query_make": "Audi"
+  },
+  {
+    "make": "Mercedes-Benz",
+    "query_make": "Mercedes-Benz"
+  },
+  {
+    "make": "Lexus",
+    "query_make": "Lexus"
+  },
+  {
+    "make": "Volvo",
+    "query_make": "Volvo"
+  },
+  {
+    "make": "Geely",
+    "query_make": "Geely"
+  },
+  {
+    "make": "BYD",
+    "query_make": "BYD"
+  },
+  {
+    "make": "Changan",
+    "query_make": "Changan"
+  },
+  {
+    "make": "JAC",
+    "query_make": "JAC"
+  },
+  {
+    "make": "Chery",
+    "query_make": "Chery"
+  },
+  {
+    "make": "MG",
+    "query_make": "MG"
+  },
+  {
+    "make": "Great Wall",
+    "query_make": "Great Wall"
+  },
+  {
+    "make": "Haval",
+    "query_make": "Haval"
+  },
+  {
+    "make": "BAIC",
+    "query_make": "BAIC"
+  },
+  {
+    "make": "Foton",
+    "query_make": "Foton"
+  },
+  {
+    "make": "Dongfeng",
+    "query_make": "Dongfeng"
+  },
+  {
+    "make": "Jetour",
+    "query_make": "Jetour"
+  },
+  {
+    "make": "GAC",
+    "query_make": "GAC"
+  },
+  {
+    "make": "DFSK",
+    "query_make": "DFSK"
+  },
+  {
+    "make": "Maxus",
+    "query_make": "Maxus"
+  },
+  {
+    "make": "JMC",
+    "query_make": "JMC"
+  },
+  {
+    "make": "XPeng",
+    "query_make": "XPeng"
+  },
+  {
+    "make": "Omoda",
+    "query_make": "Omoda"
+  },
+  {
+    "make": "Jaecoo",
+    "query_make": "Jaecoo"
+  },
+  {
+    "make": "Kaiyi",
+    "query_make": "Kaiyi"
+  },
+  {
+    "make": "Aion",
+    "query_make": "Aion"
+  },
+  {
+    "make": "Zeekr",
+    "query_make": "Zeekr"
+  },
+  {
+    "make": "Neta",
+    "query_make": "Neta"
+  },
+  {
+    "make": "VGV",
+    "query_make": "VGV"
+  },
+  {
+    "make": "Land Rover",
+    "query_make": "Land Rover"
+  },
+  {
+    "make": "Deepal",
+    "query_make": "Deepal"
+  },
+  {
+    "make": "Avatr",
+    "query_make": "Avatr"
+  },
+  {
+    "make": "Seres",
+    "query_make": "Seres"
+  },
+  {
+    "make": "Riddara",
+    "query_make": "Riddara"
+  },
+  {
+    "make": "SWM",
+    "query_make": "SWM"
+  }
+]
