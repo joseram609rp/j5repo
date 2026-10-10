@@ -26,3 +26,5 @@ Reabre CLOSED/VOID solo dentro de la transacción para cumplir triggers; borra e
 En producción NO reiniciar salvo decisión explícita; configure @ResetOrderNumber=0.
 No ejecutar test:sql si crea fixtures. Si se ejecuta, repetir postcheck.
 Complete [limpieza local](04_clear_local_cache.md) antes de reabrir frontend.
+
+VehicleMakes (57) y VehicleModels (986) son tablas esperadas y se preservan completas, sin DELETE/TRUNCATE. Cleanup compara todas sus columnas antes/después dentro de la transacción y verifica 0 huérfanos. SchemaMigrations contiene 10 migraciones incluyendo 010_vehicle_catalog.sql. ADMIN y reset QA de OrderNumber conservan su comportamiento.

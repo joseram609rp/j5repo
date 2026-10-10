@@ -111,6 +111,15 @@ function order(r: OrderRow): Order {
     },
   };
 }
+/** Keep SQL values authoritative while retaining the draft's item order, including duplicates. */
+export function preserveItemOrder<T extends {description:string;price:number;notes:string}>(rows:T[], expected:Draft['items']):T[] {
+  const remaining=[...rows]; const ordered:T[]=[];
+  for(const item of expected ?? []) {
+    const index=remaining.findIndex(row=>row.description===item.description && row.price===item.price && row.notes===(item.notes ?? ''));
+    if(index>=0) ordered.push(remaining.splice(index,1)[0]!);
+  }
+  return [...ordered,...remaining];
+}
 export class SqlUnit implements UnitOfWork {
   constructor(
     private tx: sql.Transaction,
@@ -134,6 +143,17 @@ export class SqlUnit implements UnitOfWork {
     } finally {
       this.signal.removeEventListener('abort', cancel);
     }
+  }
+  async vehicleCatalog() {
+    const exists = await this.query<{ok:number}>("SELECT CASE WHEN OBJECT_ID('dbo.VehicleMakes','U') IS NOT NULL AND OBJECT_ID('dbo.VehicleModels','U') IS NOT NULL THEN 1 ELSE 0 END AS ok");
+    if (!exists.recordset[0]?.ok) throw new HttpError(500, 'VEHICLE_CATALOG_UNAVAILABLE');
+    const rows = (await this.query<{make:string; model:string | null}>(
+      'SELECT m.name AS make,v.name AS model FROM dbo.VehicleMakes m LEFT JOIN dbo.VehicleModels v ON v.make_id=m.id AND v.active=1 WHERE m.active=1 ORDER BY m.normalized_name,v.normalized_name'
+    )).recordset;
+    const makes = new Map<string,string[]>();
+    for (const row of rows) { if (!makes.has(row.make)) makes.set(row.make, []); if(row.model) makes.get(row.make)!.push(row.model); }
+    if (makes.size !== 57 || rows.filter(r=>r.model).length !== 986) throw new HttpError(500, 'VEHICLE_CATALOG_INCONSISTENT');
+    return { makes: [...makes].map(([name,models])=>({name,models})) };
   }
   async time() {
     const r = await this.query<{ now: Date }>(
@@ -300,12 +320,14 @@ export class SqlUnit implements UnitOfWork {
     );
     if (!r.recordset[0]) return undefined;
     const result = order(r.recordset[0]);
-    result.draft.items = (
+    const storedOrder = result.draft.items;
+    const rows = (
       await this.query<{ description: string; price: number; notes: string }>(
         'SELECT description,price,notes FROM dbo.OrderItems WHERE order_id=@id ORDER BY id',
         { id },
       )
     ).recordset;
+    result.draft.items = preserveItemOrder(rows, storedOrder);
     return result;
   }
   async saveOrder(id: string, userId: string, draft: Draft, previous?: Order) {

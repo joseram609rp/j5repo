@@ -26,3 +26,13 @@ it('reports recovery only after successful parsed responses', async () => {
     await api('/orders?status=OPEN'); expect(recovered).toHaveBeenCalledTimes(1);
   } finally { stop(); }
 });
+
+it.each(['network','503'])('catalog retries transient %s and succeeds',async kind=>{
+ vi.useFakeTimers();const fetch=vi.fn();if(kind==='network')fetch.mockRejectedValueOnce(new TypeError('offline'));else fetch.mockResolvedValueOnce(Response.json({}, {status:503,headers:{'Retry-After':'2'}}));fetch.mockResolvedValue(Response.json({makes:[]}));vi.stubGlobal('fetch',fetch);
+ const promise=api('/vehicle-catalog');await vi.advanceTimersByTimeAsync(2500);expect(await promise).toEqual({makes:[]});expect(fetch).toHaveBeenCalledTimes(2);
+});
+it('catalog bounds retries and never retries authentication or missing endpoint',async()=>{
+ vi.useFakeTimers();const fetch=vi.fn().mockResolvedValue(Response.json({}, {status:503}));vi.stubGlobal('fetch',fetch);
+ const result=api('/vehicle-catalog').catch(e=>e);await vi.advanceTimersByTimeAsync(30000);expect(await result).toMatchObject({status:503});expect(fetch).toHaveBeenCalledTimes(4);
+ for(const status of [400,401,403,404]) {fetch.mockClear().mockResolvedValue(Response.json({}, {status}));await expect(api('/vehicle-catalog')).rejects.toMatchObject({status});expect(fetch).toHaveBeenCalledTimes(1);}
+});

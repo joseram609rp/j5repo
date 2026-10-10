@@ -14,3 +14,9 @@ UNION ALL SELECT 'Customers',COUNT_BIG(*) FROM dbo.Customers
 UNION ALL SELECT 'SchemaMigrations',COUNT_BIG(*) FROM dbo.SchemaMigrations;
 SELECT status,COUNT_BIG(*) AS row_count FROM dbo.Orders GROUP BY status;
 SELECT name,CONVERT(varchar(30),current_value) AS current_value FROM sys.sequences WHERE object_id=OBJECT_ID('dbo.OrderNumber');
+
+SELECT 'VehicleMakes' AS table_name,COUNT(*) AS row_count FROM dbo.VehicleMakes UNION ALL SELECT 'VehicleModels',COUNT(*) FROM dbo.VehicleModels;
+IF (SELECT COUNT(*) FROM dbo.VehicleMakes)<>57 OR (SELECT COUNT(*) FROM dbo.VehicleModels)<>986
+ OR EXISTS(SELECT 1 FROM dbo.VehicleModels v LEFT JOIN dbo.VehicleMakes m ON m.id=v.make_id WHERE m.id IS NULL)
+ THROW 51108,'CATALOG_INTEGRITY_FAILED',1;
+IF (SELECT COUNT(*) FROM dbo.SchemaMigrations)<>10 OR NOT EXISTS(SELECT 1 FROM dbo.SchemaMigrations WHERE name='010_vehicle_catalog.sql') THROW 51103,'UNEXPECTED_MIGRATIONS',1;

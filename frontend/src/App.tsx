@@ -1,3 +1,5 @@
+import { CatalogInput } from './CatalogInput';
+import { loadVehicleCatalog, normalizeCatalog, type VehicleCatalog } from './vehicle-catalog';
 import { SyncStatus } from './SyncStatus';
 import { SessionGate } from './SessionGate';
 import { amounts } from '../../backend/src/validation';
@@ -21,6 +23,7 @@ import {
 import { trackActivity, type Session } from './session';
 import './style.css';
 export function App() {
+  const [catalog, setCatalog] = useState<VehicleCatalog>({makes:[]});
   const [page, setPage] = useState<
     'dashboard' | 'editor' | 'open' | 'history' | 'users'
   >('dashboard');
@@ -59,6 +62,11 @@ export function App() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (!session || page !== 'editor') return;
+    let live=true; void loadVehicleCatalog(data=>{if(live)setCatalog(data);});
+    return ()=>{live=false;};
+  }, [session?.userId, page]);
   const saver = useRef<Autosave | null>(null);
   const creating = useRef(false);
   useEffect(() => {
@@ -749,24 +757,26 @@ export function App() {
                     <div className="fields">
                       <label>
                         Marca
-                        <input
+                        <CatalogInput
                           data-field="make"
                           {...accessibility('make')}
                           maxLength={100}
                           value={draft.make ?? ''}
-                          onChange={(e) => edit('make', e.target.value)}
+                          values={catalog.makes.map(m=>m.name)}
+                          onValue={value => edit('make', value)}
                         />
                         {validation('make')}
                       </label>
                       <label>
                         Modelo
-                        <input
+                        <CatalogInput
                           data-field="model"
                           {...accessibility('model')}
                           maxLength={100}
                           placeholder="Fortuner, Corolla, Hilux"
                           value={draft.model ?? ''}
-                          onChange={(e) => edit('model', e.target.value)}
+                          values={catalog.makes.find(m=>normalizeCatalog(m.name)===normalizeCatalog(draft.make ?? ''))?.models ?? []}
+                          onValue={value => edit('model', value)}
                         />
                         {validation('model')}
                       </label>

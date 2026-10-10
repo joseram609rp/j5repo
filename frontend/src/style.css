@@ -455,3 +455,9 @@ header .tag {
 @media (min-width: 640px) {
   .order-actions { flex-direction: row; align-items: center; }
 }
+
+.catalog-input { display:block; position:relative; }
+.catalog-input input { width:100%; }
+.catalog-options { position:absolute; z-index:20; top:100%; left:0; right:0; max-height:240px; overflow-y:auto; background:white; color:#17212b; border:1px solid #8895a7; border-radius:6px; box-shadow:0 4px 12px #0002; }
+.catalog-options [role=option] { display:block; padding:12px; cursor:pointer; }
+.catalog-options [aria-selected=true], .catalog-options [role=option]:hover { background:#e4efff; }

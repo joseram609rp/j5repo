@@ -13,6 +13,7 @@ import {
 
 /** Transactional test double only. Runtime always uses SqlRepository. */
 export class FakeRepository implements Repository, UnitOfWork {
+  async vehicleCatalog() { return { makes: [{name:'Toyota',models:['Hilux','Fortuner']},{name:'Suzuki',models:['Jimny']}] }; }
   clock = 1_000_000;
   accounts = new Map<string, User>();
   sessions = new Map<string, Session>();

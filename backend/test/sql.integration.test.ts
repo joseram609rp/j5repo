@@ -167,3 +167,20 @@ it.skipIf(!enabled).each(['','   ','\t\n','\u00a0'])('SQL permits CLOSED with op
  },undefined,true);
  expect(await sql.run(tx=>tx.order(orderId))).toBeUndefined();
 },60000);
+
+it.skipIf(!enabled)('catalog schema, counts, samples, authentication and idle behavior against SQL, rollback only', async()=>{
+ await sql.runSql(async tx=>{
+  const catalog=await tx.vehicleCatalog();expect(catalog.makes).toHaveLength(57);expect(catalog.makes.reduce((n,m)=>n+m.models.length,0)).toBe(986);
+  for(const [make,models] of [['Toyota',['Hilux','Fortuner']],['Suzuki',['Jimny']]] as const) expect(catalog.makes.find(m=>m.name===make)?.models).toEqual(expect.arrayContaining([...models]));
+  for(const make of ['BYD','Geely','Changan']) expect(catalog.makes.some(m=>m.name===make)).toBe(true);
+  expect((await tx.query('SELECT normalized_name FROM dbo.VehicleMakes GROUP BY normalized_name HAVING COUNT(*)>1')).recordset).toHaveLength(0);
+  expect((await tx.query('SELECT make_id,normalized_name FROM dbo.VehicleModels GROUP BY make_id,normalized_name HAVING COUNT(*)>1')).recordset).toHaveLength(0);
+  expect((await tx.query('SELECT v.id FROM dbo.VehicleModels v LEFT JOIN dbo.VehicleMakes m ON m.id=v.make_id WHERE m.id IS NULL')).recordset).toHaveLength(0);
+  const id=randomUUID(),token='a'.repeat(43);const hash=tokenHash(token);
+  await tx.insertUser({id,username:'cat-'+randomUUID().slice(0,8),fullName:'Catalog fixture',passwordHash:'unused',role:'MECHANIC',active:true});
+  const before=await tx.time();await tx.insertSession({tokenHash:hash,userId:id,csrf:'fixture',lastActivity:before,revoked:false});
+  const api=createApi({repository:{run:work=>work(tx)},origin});
+  expect((await api(new Request(origin+'/api/vehicle-catalog'))).status).toBe(401);
+  const response=await api(new Request(origin+'/api/vehicle-catalog',{headers:{cookie:'j5_session='+token}}));expect(response.status).toBe(200);expect(await response.json()).toEqual(catalog);expect((await tx.session(hash))?.lastActivity).toBe(before);
+ },undefined,true);
+},60000);

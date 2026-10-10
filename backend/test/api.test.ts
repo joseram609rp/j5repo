@@ -246,3 +246,13 @@ it('same mechanic creates multiple OPEN; ADMIN reassigns OPEN with ETag, replay 
  expect(closed.status).toBe('CLOSED');
  for(const action of [undefined,'admin-edit','reopen']) expect((await save(a.id,{...closed.draft,mechanicId,action},admin.headers,closed.version)).status).toBe(409);
 });
+
+it('catalog requires authentication and GET never renews idle session',async()=>{
+ const {repo,call,login}=setup();
+ expect((await call('/vehicle-catalog')).status).toBe(401);
+ const {headers}=await login(); const before=[...repo.sessions.values()][0]!.lastActivity; repo.clock+=1000;
+ const response=await call('/vehicle-catalog','GET',undefined,headers);
+ expect(response.status).toBe(200); expect(response.headers.get('cache-control')).toBe('no-store');
+ expect(await response.json()).toEqual(await repo.vehicleCatalog());
+ expect([...repo.sessions.values()][0]!.lastActivity).toBe(before);
+});

@@ -303,6 +303,7 @@ export function createApi(
             await tx.touchSession(hash, now);
             return result({ lastActivity: now });
           }
+          if (path === '/api/vehicle-catalog' && method === 'GET') return result(await tx.vehicleCatalog());
           if (path.startsWith('/api/admin/') && user.role !== 'ADMIN')
             throw new HttpError(403, 'ADMIN_REQUIRED');
           if (path === '/api/admin/users' && method === 'GET')

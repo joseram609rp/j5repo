@@ -70,7 +70,9 @@ export type Receipt = {
   reply: Reply;
 };
 export const publicUser = ({ passwordHash: _, ...user }: User) => user;
+export type VehicleCatalog = { makes: { name: string; models: string[] }[] };
 export interface UnitOfWork {
+  vehicleCatalog(): Promise<VehicleCatalog>;
   time(): Promise<number>;
   userByName(username: string): Promise<User | undefined>;
   userById(id: string): Promise<User | undefined>;
