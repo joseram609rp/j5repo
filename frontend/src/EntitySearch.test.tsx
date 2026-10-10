@@ -15,20 +15,20 @@ it('late vehicles from the former customer cannot replace the new owner selectio
 });
 it('new customer typed and persisted by autosave can confirm ownership without selecting a search result',async()=>{
  vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);const container=document.createElement('div');document.body.append(container);const root=createRoot(container);const transfer=vi.fn();
- const owner={id:crypto.randomUUID(),fullName:'Old owner',identification:'304520787',phone:'88888888',email:null},vehicleId=crypto.randomUUID(),customerId=crypto.randomUUID();
- vi.mocked(api).mockResolvedValue({vehicles:[{id:vehicleId,ownerId:owner.id,plate:'ABC333',make:'Toyota',model:'Corolla',year:2020,owner}]});
- let draft={...fresh().draft,customerId:owner.id,customerName:owner.fullName,identification:owner.identification,vehicleId,plate:'ABC333'};
+ const owner={id:crypto.randomUUID(),fullName:'Old owner',identification:'111222333',phone:'88888888',email:null},vehicleId=crypto.randomUUID(),customerId=crypto.randomUUID();
+ vi.mocked(api).mockResolvedValue({vehicles:[{id:vehicleId,ownerId:owner.id,plate:'TST543',make:'Toyota',model:'Corolla',year:2020,owner}]});
+ let draft={...fresh().draft,customerId:owner.id,customerName:owner.fullName,identification:owner.identification,vehicleId,plate:'TST543'};
  const render=()=>act(async()=>root.render(<EntitySearch draft={draft} onSelect={next=>{draft=next as typeof draft;}} allowTransfer onTransfer={transfer}/>));
  try{await render();await act(async()=>{Array.from(container.querySelectorAll('button')).find(b=>b.textContent==='Cambiar cliente manteniendo este vehículo')!.click();});await render();
  expect(container.textContent).toContain('El cambio de dueño queda pendiente');
  // The newly entered customer obtains its ID from the successful autosave response, without search selection.
- draft={...draft,customerId,customerName:'MDMDMD',identification:'330303030',phone:'11111111'};await render();
- const update=Array.from(container.querySelectorAll('button')).find(b=>b.textContent==='Actualizar dueño a MDMDMD');expect(update).toBeTruthy();await act(async()=>update!.click());expect(transfer).toHaveBeenCalledOnce();
+ draft={...draft,customerId,customerName:'Fixture customer',identification:'444555666',phone:'11111111'};await render();
+ const update=Array.from(container.querySelectorAll('button')).find(b=>b.textContent==='Actualizar dueño a Fixture customer');expect(update).toBeTruthy();await act(async()=>update!.click());expect(transfer).toHaveBeenCalledOnce();
  }finally{await act(async()=>root.unmount());container.remove();vi.clearAllMocks();vi.unstubAllGlobals();}
 });
 it('customer with no owned vehicles receives an honest empty state and plate recovery instructions',async()=>{
- vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);const container=document.createElement('div');document.body.append(container);const root=createRoot(container);const customer={id:crypto.randomUUID(),fullName:'MDMDMD',identification:'330303030',phone:'11111111',email:null};
+ vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);const container=document.createElement('div');document.body.append(container);const root=createRoot(container);const customer={id:crypto.randomUUID(),fullName:'Fixture customer',identification:'444555666',phone:'11111111',email:null};
  vi.mocked(api).mockImplementation(async path=>path.startsWith('/customers')?{customers:[customer]} as never:{vehicles:[]} as never);
- try{await act(async()=>root.render(<EntitySearch draft={fresh().draft} onSelect={()=>{}}/>));await act(async()=>{const input=container.querySelector('input')!;Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(input,'md');input.dispatchEvent(new Event('input',{bubbles:true}));});await act(async()=>{Array.from(container.querySelectorAll('button')).find(b=>b.textContent==='Buscar')!.click();});await act(async()=>{Array.from(container.querySelectorAll('button')).find(b=>b.textContent?.startsWith('MDMDMD'))!.click();});expect(container.textContent).toContain('no tiene vehículos registrados a su nombre');expect(container.textContent).not.toContain('Elige uno de sus vehículos');
+ try{await act(async()=>root.render(<EntitySearch draft={fresh().draft} onSelect={()=>{}}/>));await act(async()=>{const input=container.querySelector('input')!;Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(input,'fixture');input.dispatchEvent(new Event('input',{bubbles:true}));});await act(async()=>{Array.from(container.querySelectorAll('button')).find(b=>b.textContent==='Buscar')!.click();});await act(async()=>{Array.from(container.querySelectorAll('button')).find(b=>b.textContent?.startsWith('Fixture customer'))!.click();});expect(container.textContent).toContain('no tiene vehículos registrados a su nombre');expect(container.textContent).not.toContain('Elige uno de sus vehículos');
  }finally{await act(async()=>root.unmount());container.remove();vi.clearAllMocks();vi.unstubAllGlobals();}
 });

@@ -2,7 +2,7 @@
 
 Fecha de investigación: 2026-10-09 (America/Guatemala). Las consultas API llevan timestamp UTC.
 
-El catálogo contiene únicamente marca y modelo base. Es una ayuda de escritura, **no una whitelist**: Vehicles.make/model deben seguir aceptando texto libre. Esta ronda no incorpora el catálogo a la aplicación, SQL, migraciones ni autocomplete.
+El catálogo contiene únicamente marca y modelo base. Es una ayuda de escritura, **no una whitelist**: Vehicles.make/model deben seguir aceptando texto libre. El catálogo ya está integrado mediante la migración 010, GET /api/vehicle-catalog y autocomplete. El seed contiene 57 marcas y 986 modelos; el runtime lee las entradas activas desde SQL y permite texto manual. IndexedDB usa TTL de siete días. Ver RUNTIME.md para el contrato.
 
 ## Archivos y flujo
 

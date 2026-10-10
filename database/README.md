@@ -1,59 +1,41 @@
-# Azure SQL: Phase 3
+# Azure SQL
 
-Destino previsto: tallerj5, j5sqlserver.database.windows.net, AZ_SQLRG_J5, Central US. Migraciones 001–008 aplicadas y metadata verificada el 2026-10-05. Suite SQL reversible completada; no se desplegó la app.
+15 migraciones (001–015); API usa SQL real. No hay migraciones automáticas al iniciar el runtime. La configuración de destino se mantiene local, sin credenciales en documentación.
 
-## Migraciones
+## Historia de esquema
 
-- 001_core.sql: Users, Sessions, Customers, Vehicles, Orders, OrderItems, PK/FK, índices, validaciones y rowversion.
-- 002_receipts_audit.sql: IdempotencyRequests y AuditLogs.
-- 003_order_guards.sql: triggers de inmutabilidad histórica y total calculado de servicios.
-- 004_vehicle_model.sql: model nvarchar(100); nullable si existen vehículos, NOT NULL si está vacía. CHECK de trim/no vacío para valores conocidos. No backfill ficticio. Backend exige modelo en nuevos vehículos y cierres; una futura migración podrá exigir NOT NULL después de completar datos verificados.
-- 005_closed_notes.sql: CHECK habilitado/trusted para CLOSED con observaciones no vacías ni solo whitespace (incluidos tabs, saltos de línea y espacios Unicode de JS trim). OPEN admite vacío. Preflight comprobó cero CLOSED incompatibles; la migración valida datos existentes y falla sin modificarlos si hay incompatibilidad.
-- 006_open_order_selection.sql: actualiza TR_Orders_Guard para permitir corregir referencias en OPEN, manteniendo inmutabilidad en CLOSED/VOID y de mechanic_id, autorización ADMIN y total/servicios. Añade IX_Orders_StatusCreated. No cambia datos.
-- 007_optional_notes_year.sql: elimina CK_Orders_ClosedNotes y reemplaza CK_Vehicles_Year por year >=1950. No actualiza filas ni edita 001–006.
-- 008_open_mechanic_reassignment.sql: conserva el trigger de 006 y permite cambiar mechanic_id solo cuando estado anterior y nuevo son OPEN y SESSION_CONTEXT(j5_mechanic_reassignment)=1, puesto por el backend tras autorizar ADMIN y usuario destino activo.
-- 011_daily_order_numbers.sql: fecha CR UTC-6, backfill por created_at/order_number, consecutivo diario bajo applock e índices únicos; mantiene order_number global.
-- SchemaMigrations: creada por el runner para registrar archivo, checksum SHA-256 normalizado por saltos de línea y fecha.
+| Migración | Resultado |
+| --- | --- |
+| 001_core | Users/Sessions/Customers/Vehicles/Orders/OrderItems, FK, índices, rowversion |
+| 002_receipts_audit | IdempotencyRequests y AuditLogs |
+| 003_order_guards | Inmutabilidad histórica y totales calculados |
+| 004_vehicle_model | Modelo; nullable para registros anteriores, validación para valores presentes |
+| 005_closed_notes | Requisito histórico de notas al cierre, retirado por 007 |
+| 006_open_order_selection | Permite corregir selección cliente/vehículo en OPEN |
+| 007_optional_notes_year | Notas opcionales y año >=1950 |
+| 008_open_mechanic_reassignment | Cambiar asignación solo OPEN con autorización ADMIN |
+| 009_order_billing | Pago/factura, IVA por línea y observaciones por trabajo |
+| 010_vehicle_catalog | Seed 57 marcas / 986 modelos y constraints de catálogo |
+| 011_daily_order_numbers | Fecha UTC-6, consecutivo diario, backfill, índice y trigger |
+| 012_user_lockout | Contadores, bloqueo y marca de intento de login |
+| 013_flexible_plates | Placa normalizada alfanumérica de 3..12 caracteres |
+| 014_username_check_pattern | Constraint ASCII correcto y unicidad canónica preservada |
+| 015_flexible_order_plate_guard | Trigger de cierre consistente con placa flexible |
 
-**pnpm db:migrate** obtiene un applock exclusivo, comprueba el historial y aplica todo lo pendiente dentro de una transacción. No contiene DROP TABLE ni TRUNCATE. 011 realiza un backfill determinista de identificadores visibles. 007 retira dos constraints específicas y recrea la de año; 008 modifica únicamente el trigger. Objetos preexistentes incompatibles provocan rollback. No editar migraciones ya aplicadas: agregar otro archivo numerado. El runner rechaza checksums alterados o migraciones históricas ausentes del código.
+`pnpm db:migrate` obtiene applock exclusivo, comprueba archivos/checksums SHA-256 normalizados por saltos de línea y aplica pendientes transaccionalmente. SchemaMigrations registra nombre/checksum/fecha. Rechaza migraciones históricas ausentes o alteradas. No editar archivos aplicados: añadir una nueva migración. El backfill de 011 cambia identificadores visibles/rowversions, conserva UUID y snapshots y puede requerir revisar borradores offline; no crea alias para números antiguos.
 
-Revisar scripts y permisos antes de aplicarlos. El usuario de migraciones necesita crear tablas/índices/constraints/secuencias/triggers en dbo. La identidad del runtime necesita SELECT/INSERT/UPDATE de entidades usadas y DELETE de OrderItems para reemplazar servicios de un borrador, SELECT/INSERT de IdempotencyRequests y INSERT de AuditLogs. No necesita DROP/ALTER/CREATE. Mantener cuentas separadas. No se ejecutan migraciones al iniciar la API.
+## Identidades y permisos
 
-## Configuración
+Separar cuenta DDL y runtime. Migraciones necesitan crear/modificar tablas, constraints, índices, secuencias y triggers en dbo. Runtime necesita SELECT/INSERT/UPDATE de entidades, DELETE de OrderItems y Users para acciones autorizadas, SELECT/INSERT de receipts y INSERT de auditoría; el borrado de Users solo procede para usuarios inactivos sin referencias. No necesita DDL. Configurar/grabar los grants mínimos exactos en el entorno antes de producción; SESSION_CONTEXT es una señal interna de la API para guards, no una frontera de permisos ante acceso SQL directo.
 
-Copiar .env.example a .env, completar SQL_USER/SQL_PASSWORD localmente y conservar SQL_AUTH_MODE=sql para desarrollo. Requiere firewall y resolución de red hacia el servidor. No imprimir la configuración ni añadir credenciales a Git.
+`SQL_AUTH_MODE=sql` usa SQL_USER/SQL_PASSWORD; `default` usa azure-active-directory-default. La ruta de identidad existe en código; su configuración y verificación Azure están pendientes. Managed Functions en SWA Free no admiten identidad administrada para la API; ver infra/README.md para la decisión de alojamiento antes de producción. Cifrado obligatorio y certificado validado (`encrypt=true`, `trustServerCertificate=false`). Firewall debe permitir únicamente conexiones autorizadas.
 
-SQL_AUTH_MODE=default selecciona azure-active-directory-default del driver para el futuro uso de Entra/Managed Identity. La identidad debe tener usuario y permisos en tallerj5; esa configuración no se aprovisiona ni valida aquí. TLS exige certificado válido; no se ofrece opción para desactivar validación.
+## Verificación y operaciones
 
-## Datos y garantías
+`pnpm --filter @j5/backend db:verify` inspecciona metadata, 15 migraciones, constraints trusted, índices, triggers y catálogo 57/986 sin duplicados/huérfanos; no lista PII ni hashes. El runner de migraciones es quien valida checksums, no db:verify.
 
-Users tiene username único case-insensitive, active y rol ADMIN/MECHANIC. Sessions guarda solo hash del token, CSRF y timestamps UTC; nunca el token real.
+`pnpm test:sql` ejecuta fixtures dentro de rollback-only, secuencialmente. SQL sequences pueden consumir números aunque las filas reviertan; no asumir que una prueba deja todos los contadores sin huecos. No demuestra COMMIT ambiguo ni carga de producción.
 
-Vehicles guarda owner_id actual y plate_normalized persistida, única e indexada. Orders.customer_id es la referencia histórica independiente. Los borradores pueden no tener cliente/vehículo aún; guardan snapshots para preservar el frontend existente. API permite corregir referencias en OPEN; CLOSED/VOID mantienen protección histórica. action=transfer-owner solo ADMIN actualiza el dueño actual mediante selección exacta, ETag/idempotencia y auditoría. Dinero decimal(12,2), cédula/teléfono varchar, kilometraje entero nullable. Cerrado exige kilometraje, closed_at, referencias completas, total positivo mediante CHECK; observaciones y recomendaciones son opcionales desde 007; triggers exigen servicios válidos y total exacto. created_at es apertura UTC. display_order_id usa OT-YYYYMMDD-NN (mínimo 2 dígitos, sin truncar 100+). order_date es fecha de negocio Costa Rica UTC-6; daily_order_number se asigna bajo applock de transacción, con índice único por fecha/consecutivo. 011 hace backfill por fecha CR, created_at y order_number. La secuencia global permanece para paginación; rollback revierte la asignación diaria. Buscar OT-YYYYMMDD devuelve las CLOSED del día, sin distinguir mayúsculas.
+El runtime abre transacciones SERIALIZABLE; autoriza, muta, audita y guarda receipt juntos. Savepoint de orden revierte rechazo de negocio antes de guardar el error idempotente. Rowversion protege cambios concurrentes. Retención de sesiones/receipts/auditoría no está automatizada; acordar política compatible con pendientes offline antes de purgar receipts.
 
-Orders.version rowversion es opaco; API no lo convierte a número. Escrituras y comprobantes de idempotencia se confirman juntos; si falla cualquiera, se revierte todo. No hay trabajo de limpieza automática ni cascadas destructivas. Antes de definir retención de sesiones, recibos y auditoría, acordar la ventana máxima de trabajo offline.
-
-## Prueba real reversible
-
-Cuando las credenciales estén disponibles y se hayan aplicado las migraciones:
-
-1. Ejecutar **pnpm test:sql**. Las suites se ejecutan secuencialmente para evitar que las transacciones rollback-only de fixtures se bloqueen entre sí con lecturas globales.
-2. La suite crea usuarios/clientes/vehículos/órdenes con identificadores nuevos dentro de transacciones rollback-only.
-3. Comprueba listas/búsquedas/reutilización, close/reopen, transferencia explícita e historial, además de login, contraseña incorrecta, roles, CSRF, hash de sesión, inactividad, revocación, desactivación, replay/conflicto, 412/428, rowversion y cliente histórico ante cambio de dueño.
-4. Una segunda prueba comprueba el CHECK de cierre sin kilometraje.
-5. Termina con ROLLBACK y comprueba que usuarios/órdenes de prueba no persistan.
-
-No usa DROP/TRUNCATE, no reinicializa la base, no edita usuarios existentes. El esquema debe estar previamente migrado; la suite no aplica migraciones. Puede consumir números de identidad/rowversion y generar logs transaccionales aunque haga rollback. **pnpm test** y **pnpm check** omiten esta suite por defecto. No verifica COMMIT real ni concurrencia entre procesos; esas pruebas controladas siguen pendientes; la ejecución rollback-only contra Azure ya pasó.
-
-El archivo queries/optimistic-concurrency.sql es una referencia ilustrativa del UPDATE; el código ejecutable está en backend/src/sql.ts.
-
-## Resultado y primer administrador
-
-`pnpm --filter @j5/backend db:verify` comprobó 9 tablas, 6 migraciones, 22 CHECK habilitados/trusted, índices únicos y 2 triggers activos. ADMIN activos: 1. Vehicles conserva su registro previo con model NULL. No se alteró el ADMIN ni se inventó un modelo. Las 11 pruebas SQL son rollback-only; cubren además OPEN con notes vacío y cierre válido/observaciones vacías, espacios, tabs, saltos de línea y espacio no separable. el fixture que agrupa decenas de solicitudes usa 55 segundos de presupuesto exclusivamente en la prueba y lo restaura al terminar. El presupuesto de producción continúa en 28 segundos.
-
-Las migraciones 001–008 ya están aplicadas: no volver a editar sus checksums. Cualquier cambio SQL posterior requiere nueva migración.
-
-Estado actual 2026-10-05: 9 tablas, 8 migraciones, 21 CHECK habilitados/trusted, 2 triggers activos, 1 ADMIN activo, 3 vehículos con modelo y 3 órdenes CLOSED. El cambio 007/008 solo modificó metadata; no se reasignaron ni corrigieron registros reales. Los resultados anteriores se conservan como historia.
-
-
-QA 011: Customers conserva nombre/teléfono/email actuales al cerrar válidamente; cédula permanece inmutable y draft_data conserva snapshots de contacto por orden. Seleccionar vehículo carga su dueño actual completo. Cambiar cliente conservando vehículo inicia un modo local; únicamente ADMIN confirma el cambio de dueño. El aviso inferior de campos faltantes es local y derivado del intento de cierre y validaciones actuales.
+[Cleanup DEV/QA](../clean%20up/README.md) conserva ADMIN, historia de migraciones y catálogo completo. No ejecutar en producción ni como migración. [Verificación actual](../docs/verification.md).

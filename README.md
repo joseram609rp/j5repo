@@ -1,105 +1,148 @@
-# Frenos La Bandera
+# Frenos La Bandera / J5
 
-PWA React/TypeScript/Vite y API Node/TypeScript para el taller. Phase 3 implementa Orders MVP: login → dashboard → crear nueva orden/continuar cualquiera → autosave → órdenes abiertas → cierre → detalle de solo lectura → historial. Rama de revisión: `feature/orders-mvp`. Sin despliegue Azure.
+PWA para un taller de mecánica rápida de una sucursal. Phase 3 está funcionalmente completa: usuarios, clientes, vehículos, órdenes, autosave, recuperación offline, cierre e historial. Falta desplegar DEV en Azure y completar QA en teléfonos/tablets reales antes de producción.
 
-## Uso
+## Arquitectura
 
-- **Nueva orden** crea una OPEN en SQL y conserva su UUID en IndexedDB. Cada acción explícita crea una orden distinta aunque haya otras OPEN. Refresh/login/re-render no crean órdenes.
-- **Órdenes abiertas** muestra órdenes de todos los mecánicos, más recientes primero. **Continuar** carga su detalle y ETag. Incluye copias locales pendientes sin sobrescribir otras órdenes. ADMIN puede reasignar OPEN a usuarios activos MECHANIC o ADMIN; ambos roles pueden trabajar como mecánicos. CLOSED no admite reasignación, ni mediante reopen/admin-edit.
-- **Historial** inicia vacío y no consulta SQL hasta recibir al menos dos caracteres. Busca CLOSED por OT, placa, cédula o nombre y abre detalles de solo lectura. Listas en páginas de 50, con cursor estable por orden.
-- Buscar cliente/vehículo por cédula, nombre o placa y seleccionar una coincidencia carga los datos. Seleccionar un vehículo mantiene el cliente ya elegido y muestra la diferencia con el dueño actual; sin cliente elegido, carga su dueño actual; seleccionar cliente permite elegir sus vehículos. Clientes/vehículos nuevos se crean cuando sus datos son válidos, reutilizando cédula/placa únicas. Los cambios del formulario son snapshots de la orden; no sobrescriben indiscriminadamente el catálogo.
-- **Cerrar orden** valida todas las secciones, muestra errores inline y resumen, sincroniza los cambios y solicita confirmación con OT y total. El servidor calcula el total oficial; CLOSED queda bloqueada. Solo ADMIN puede confirmar **Reabrir orden**.
-- **Usuarios**, visible solo para ADMIN, lista y crea ADMIN/MECHANIC; permite activar/desactivar, cambiar rol y resetear contraseñas de otros usuarios con confirmación. Se conserva la protección del último ADMIN activo y la revocación de sesiones.
-- Para un cambio de dueño: seleccionar el vehículo; usar **Cambiar cliente manteniendo este vehículo**; buscar/seleccionar o completar el nuevo cliente; esperar guardado. Si dueño y cliente difieren se muestran sus nombres y **Mantener dueño actual**; ADMIN también ve **Actualizar dueño a [nombre]**, con confirmación. Guardar una orden por sí solo nunca cambia `Vehicles.owner_id`; las órdenes anteriores conservan su cliente.
+React + TypeScript + Vite/PWA en Azure Static Web Apps Free; API Node.js/TypeScript con Managed Azure Functions y Azure SQL Free/serverless. IndexedDB conserva borradores y sugerencias en el dispositivo. SQL es la fuente oficial; el runtime no usa una base demo.
 
-Logo real J5 y azul/rojo, botones de al menos 48 px, campos apilados en móvil. Sin slogans ni footer decorativo.
+```text
+Navegador / PWA React
+  |-- IndexedDB: borradores, pendientes, recuperación, catálogo
+  `-- /api (mismo origen, cookie + CSRF)
+        `-- Azure Functions / API TypeScript
+              `-- Azure SQL (transacciones, guards, rowversion)
+```
+
+| Carpeta | Contenido |
+| --- | --- |
+| frontend/ | Interfaz, PWA, sesión, cola local y pruebas UI |
+| backend/ | API local/Functions, repositorio SQL, auth y pruebas |
+| database/ | Migraciones inmutables y consultas de referencia |
+| clean up/ | Herramientas destructivas exclusivas DEV/QA y safety docs |
+| data/vehicle-catalog/ | Seed, fuentes, evidencia y procedencia del catálogo |
+| docs/ | Arquitectura, verificación, correcciones técnicas y seguridad |
+| scripts/ | Herramientas SQL y generación/validación del catálogo |
+| infra/ | Preparación y pendientes de despliegue |
+| shared/, images/ | Recursos compartidos y logo original |
 
 ## Preparación local
 
-Node 22.12+ (<25) y pnpm 11.19.0.
+Requiere Node `>=22.12.0 <25` y pnpm `11.19.0`. Para Azure, el archivo de SWA selecciona Node 22.
 
-1. `pnpm install --frozen-lockfile`.
-2. Copiar `.env.example` a `.env` en la raíz y completar las credenciales localmente. Nunca usar secretos en `VITE_*`.
-3. `pnpm db:migrate` con una cuenta autorizada para DDL. Las migraciones 001–011 son inmutables tras aplicación; 007 deja año >=1950 y notas opcionales; 008 permite reasignar OPEN; 009 agrega IVA/pago/notas por trabajo; 010 crea y siembra catálogo; 011 agrega consecutivos diarios y migra identificadores visibles. Ver [base de datos](database/README.md).
-4. Solo en instalaciones sin ADMIN: `pnpm admin:create` desde una terminal interactiva; contraseña oculta, sin argumentos.
-5. `pnpm dev` y abrir `http://localhost:5173`. API local en `http://127.0.0.1:7071`; APP_ORIGIN debe coincidir exactamente.
+```powershell
+Copy-Item .env.example .env
+# Completar .env localmente: APP_ORIGIN=http://localhost:5173 y configuración SQL.
+pnpm install --frozen-lockfile
+pnpm db:migrate
+# Solo si todavía no existe un ADMIN activo, en terminal interactiva:
+pnpm admin:create
+pnpm dev
+```
 
-SQL requiere firewall para la IP local. El runtime usa SQL real, no una base en memoria ni un acceso demo. Health devuelve 503 si SQL no está disponible. `.env` y `local.settings.json` están ignorados por Git.
+Abrir `http://localhost:5173`. La API local escucha en `http://127.0.0.1:7071`; Vite deriva `/api` a esa API. `APP_ORIGIN` debe coincidir exactamente con el origen del navegador. SQL necesita permitir la IP local en su firewall. Las migraciones requieren permisos DDL; el runtime debe tener una identidad distinta con permisos mínimos. No se ejecutan migraciones al iniciar la API. `admin:create` solicita contraseña oculta, sin argumentos ni credenciales en el historial de la terminal.
+
+## Variables de entorno
+
+`.env.example` contiene exclusivamente nombres y campos vacíos. Completar valores en `.env`, que está ignorado por Git; los defaults de timeouts están en backend/src/config.ts. Omitir las variables opcionales en lugar de dejarlas vacías en el entorno efectivo.
+
+| Nombre | Propósito |
+| --- | --- |
+| APP_ORIGIN | Origen exacto autorizado; localhost en desarrollo, HTTPS en Azure |
+| SQL_SERVER / SQL_DATABASE | Servidor y base SQL de destino |
+| SQL_AUTH_MODE | `sql` para credenciales locales o `default` para identidad Azure/Entra |
+| SQL_USER / SQL_PASSWORD | Solo para modo `sql`; secretos exclusivos del backend |
+| SQL_CONNECT_TIMEOUT_MS | Timeout de conexión; default y máximo 5000 ms |
+| SQL_REQUEST_TIMEOUT_MS | Timeout por comando; default y máximo 5000 ms |
+| SQL_RETRY_BUDGET_MS | Presupuesto SQL por petición; default y máximo 28000 ms |
+| CARSXE_API_KEY | Solo tooling de investigación del catálogo; no necesaria en runtime |
+| NODE_ENV | `production` para cookie Secure fuera de detección del host Azure |
+| WEBSITE_INSTANCE_ID | Señal automática del host Azure utilizada para cookie Secure |
+| J5_SQL_INTEGRATION | Flag del runner de pruebas SQL; no requerido en runtime |
+
+Nunca colocar secretos en `VITE_*`: cualquier valor incorporado al frontend queda público. No committear `.env`, `local.settings.json`, claves, tokens ni connection strings. Si se filtra un secreto, revocarlo/rotarlo inmediatamente; borrar un archivo no invalida una credencial ni limpia el historial Git.
+
+## Base de datos
+
+Existen **15 migraciones, 001–015**. El runner usa transacción, applock y checksums SHA-256; rechaza historia ausente o alterada. Agregar migraciones nuevas para cambios futuros, sin editar las aplicadas.
+
+Los hitos son core/rowversion (001), recibos y auditoría (002), guards históricos/totales (003), modelo del vehículo (004), notas de cierre (005, requisito retirado por 007), selección corregible en OPEN (006), notas opcionales y año >=1950 (007), reasignación (008), pago/IVA/notas por trabajo (009), catálogo (010), numeración diaria (011), lockout (012), placas flexibles (013), constraint de username (014) y guard flexible de placa al cerrar (015). [Detalle y permisos](database/README.md).
+
+## Autenticación y seguridad
+
+Contraseñas nuevas: mínimo 12 caracteres, máximo 72 bytes UTF-8; bcrypt coste 12. Login usa comparación ficticia cuando corresponde y una respuesta genérica de credenciales inválidas. Username normalizado a minúsculas con unicidad SQL; 3–64 caracteres ASCII alfanuméricos, punto, guion y guion bajo.
+
+Sesión opaca criptográfica: SQL conserva solo el hash del token. Cookie `HttpOnly`, `SameSite=Strict`, `Path=/api` y `Secure` en producción. Expira tras **dos horas de inactividad**. Solo actividad explícita renueva una sesión vigente; GET, polling, foco y autosave no lo hacen. Logout, cambio de rol, desactivación y reset de contraseña revocan sesiones.
+
+Toda mutación exige Origin exacto; salvo login, también CSRF de sesión. Cinco fallos de login bloquean la cuenta 15 minutos, persistidos en SQL. ADMIN puede desbloquear; reset/reactivación limpian el bloqueo. Hay límites adicionales por proceso: 15 intentos por username en cinco minutos y 100 globales/minuto. SQL sigue siendo autoridad del lockout entre instancias; el límite global distribuido queda pendiente.
+
+API con respuestas `no-store`, SQL parametrizado, roles comprobados en cada petición, receipts idempotentes y control de versión. SWA agrega CSP restrictiva, bloqueo de frames, nosniff y referrer-policy. Service worker no cachea API ni credenciales. [Revisión y limitaciones](docs/security-review.md).
+
+## Roles y usuarios
+
+Todos los usuarios autenticados ven y editan las OPEN del taller. MECHANIC puede cerrar/cancelar solo la OPEN asignada; ADMIN puede hacerlo en cualquiera. ADMIN gestiona usuarios, reasigna OPEN a usuarios activos ADMIN/MECHANIC y reabre CLOSED. `admin-edit` existe en backend para correcciones administrativas; no hay una pantalla avanzada para esa acción.
+
+Transferir dueño está permitido a **MECHANIC y ADMIN autenticados**, mediante acción explícita o decisión de cierre validada. No ocurre en autosave. Inactivos se ocultan por defecto en Usuarios. Borrado físico exige usuario inactivo sin referencias/historia y no permite autoborrado; quienes tienen historia se conservan. El último ADMIN activo no puede desactivarse/degradarse. Reset de contraseña revoca todas las sesiones del destinatario.
+
+## Ciclo de órdenes
+
+`OPEN -> CLOSED` al cierre; `OPEN -> VOID` al cancelar; ADMIN puede `CLOSED -> OPEN`. VOID conserva datos y auditoría, desaparece de abiertas y no integra el historial normal de CLOSED. CLOSED/VOID no admiten reasignación. Cada acción Nueva orden crea una OPEN distinta; pueden existir varias a la vez. Login, refresh y navegación no crean órdenes.
+
+Autosave conserva el formulario local y sincroniza cuando es válido. Cerrar valida campos/trabajos/pago/factura, confirma OT y total y usa cálculo oficial del backend. Cuando cliente y dueño difieren, el flujo de cierre propone asignar el vehículo al cliente seleccionado; permite elegir explícitamente mantener dueño actual. SQL comprueba las identidades y el dueño esperado dentro de la transacción; una decisión obsoleta se rechaza. Las órdenes anteriores conservan sus snapshots/referencias.
+
+Identificador visible `OT-YYYYMMDD-NN`: fecha local UTC-6, consecutivo diario de al menos dos dígitos, sin truncar números mayores de 99. UUID sigue siendo identidad técnica y order_number global sirve para desempate. Historial inicia vacío y busca CLOSED con mínimo dos caracteres: OT por prefijo (incluido prefijo del día), nombre parcial, cédula exacta o placa normalizada exacta. Páginas de 50 con cursor estable. [Contratos](docs/architecture.md).
+
+## Clientes y vehículos
+
+La cédula única identifica al cliente. Un cierre válido actualiza nombre/teléfono/email del maestro, sin alterar la cédula; los snapshots de órdenes previas conservan el contacto histórico. Autosave no sobrescribe el contacto actual de clientes existentes. La selección de vehículo permite conservar un cliente elegido y decidir el dueño explícitamente. Las coincidencias reutilizan clientes/vehículos por cédula/placa.
+
+Último kilometraje: lectura más reciente no nula entre órdenes del vehículo, incluidas VOID; una orden posterior vacía no elimina la lectura anterior. Se usa como referencia del formulario, sin acreditar kilometraje real.
+
+Placas: mayúsculas, sin espacios/guiones, **3–12 caracteres alfanuméricos ASCII normalizados**. Ejemplos sintéticos: `AB-123` se normaliza a `AB123`; `XYZ 9` a `XYZ9`. Es una regla flexible de captura para Costa Rica, no una afirmación exhaustiva sobre registros legales. Año entero >=1950; kilometraje entero 0..10,000,000. Cierre exige nombre, cédula de 9 dígitos, teléfono de 8, email opcional válido, marca/modelo/año/placa, kilometraje y al menos un trabajo con precio positivo.
+
+## Catálogo
+
+Seed de **57 marcas y 986 modelos**, basado en CarsXE y evidencia de mercado CR. Las fuentes/provenance se conservan en [data/vehicle-catalog](data/vehicle-catalog/README.md). No hay dependencia CarsXE en runtime. Autocomplete es ayuda de escritura: marca/modelo manual siguen permitidos.
+
+API devuelve catálogo activo dinámico; 57/986 son invariantes del seed/cleanup, no restricciones de cada lectura. IndexedDB cachea sugerencias por siete días, con fallback legacy y refresh al reconectar. Reintentos HTTP limitados a cuatro, timeout 35 s por petición y presupuesto 120 s para tolerar cold start. La entrada manual funciona aun sin catálogo.
+
+## Campos e importes
+
+Moneda CRC. Cada trabajo lleva descripción, precio sin IVA y observación opcional; notas/recomendaciones generales también son opcionales. IVA 13%, redondeado por línea a centavos; SQL calcula subtotal, impuesto y total oficiales. Totales/tasa del cliente no se aceptan como autoridad. Importes históricos previos a 009 mantienen su tasa original.
+
+Pago: SINPE, tarjeta de crédito, tarjeta de débito, efectivo o transferencia bancaria (`SINPE`, `CREDIT_CARD`, `DEBIT_CARD`, `CASH`, `BANK_TRANSFER`). Factura electrónica exige elegir Sí/No al cerrar; el booleano registra el requerimiento y **no emite facturas ni integra un proveedor**.
+
+## Autosave, offline y concurrencia
+
+IndexedDB separa borradores por usuario/orden y conserva payload, ETag, clave idempotente, pendientes y copias de recuperación. Datos incompletos se conservan localmente; SQL autosave espera payload válido. Crear/cerrar necesitan conexión para confirmación oficial. Tras una respuesta perdida, se reenvía la misma mutación/clave; no se duplican efectos. Web Lock por usuario evita dos editores simultáneos en pestañas compatibles del mismo navegador.
+
+ETag se deriva de rowversion. Un conflicto conserva el borrador, consulta la versión actual y ofrece revisión por grupos/mezcla/servidor. La copia previa permanece en recoveryCopies y puede descargarse; una nueva modificación remota obliga a revisar de nuevo. Las acciones de cierre, cancelación y transferencia no se repiten automáticamente al resolver contenido. Reasignación sin cambio de contenido puede recuperarse con versión/clave nuevas.
+
+SQL serverless tiene retry de errores transitorios con presupuesto total 28 s; agotarlo devuelve 503. La PWA solicita actualización explícita y trata de sincronizar antes de activarla; pendientes/conflictos bloquean la actualización. Logout no garantiza eliminación de borradores: IndexedDB es persistencia del dispositivo, no aislamiento frente a quien controle su perfil de navegador. Usar dispositivos/perfiles de confianza y [limpieza local](clean%20up/04_clear_local_cache.md) después de proteger trabajo pendiente.
 
 ## Verificación
 
-- `pnpm check`: tipos, tests locales y compilación backend/frontend/PWA.
-- `pnpm db:migrate`: migraciones transaccionales con checksums/applock.
-- `pnpm --filter @j5/backend db:verify`: metadata y conteo de ADMIN, sin listar cuentas o hashes.
-- `pnpm test:sql`: ambas suites SQL, secuencialmente, con fixtures nuevos y rollback. Para aislar Phase 3: `pnpm test:sql backend/test/orders-sql.integration.test.ts`.
+```powershell
+pnpm check
+pnpm test:sql
+pnpm --filter @j5/backend db:verify
+node scripts/generate-vehicle-catalog-sql.mjs --check
+pnpm audit
+git diff --check
+```
 
-Resultados y límites en [verificación](docs/verification.md). Las pruebas SQL no confirman un COMMIT real ni sustituyen pruebas de concurrencia entre procesos.
+`check` incluye tipos, unitarias/UI y builds; las suites SQL se omiten por diseño. `test:sql` habilita ambas suites secuencialmente, con fixtures y rollback-only: no demuestra COMMIT ambiguo ni carga real entre procesos. `db:verify` inspecciona metadata, constraints, catálogo y migraciones. [Resultados de esta revisión](docs/verification.md).
 
-## API
+## Limpieza DEV/QA
 
-Todas las mutaciones requieren Origin=APP_ORIGIN. Salvo login, requieren cookie y X-CSRF-Token. Usuarios y órdenes requieren Idempotency-Key UUID. Actualizar una orden requiere If-Match con ETag; respuestas sin caché.
+[clean up/README.md](clean%20up/README.md) describe precheck, confirmación destructiva, cleanup y postcheck. Borra órdenes/trabajos, clientes/vehículos, sesiones, receipts, auditoría y usuarios no ADMIN. Preserva **todos los ADMIN**, `SchemaMigrations` con 15 migraciones y catálogo completo (`VehicleMakes=57`, `VehicleModels=986`), además del schema y guards. Aborta ante schema desconocido y verifica snapshots antes/después. Es destructivo, exclusivo DEV/QA; requiere detener APIs/pestañas y respaldo disponible. Esta revisión no ejecuta cleanup. Borrar SQL no borra IndexedDB: completar limpieza local por separado.
 
-| Método | Ruta | Uso |
-| --- | --- | --- |
-| GET | /api/health | Conectividad SQL |
-| POST | /api/auth/login | username/password; cookie opaca, CSRF y datos de sesión |
-| GET | /api/auth/me | Usuario/rol/sesión |
-| POST | /api/auth/activity | Actividad explícita en sesión vigente |
-| POST | /api/auth/logout | Revoca sesión |
-| GET | /api/orders?status=OPEN\|CLOSED&q=...&before=uuid | Lista/búsqueda; CLOSED exige q de mínimo 2 caracteres; máximo 50, cursor before |
-| GET | /api/orders/:uuid | Detalle, ETag, apertura/cierre, mecánico y total |
-| PUT | /api/orders/:uuid | Crear/guardar, acciones close/reopen/transfer-owner/void/assign-mechanic; ETag e idempotencia |
-| GET | /api/customers?q=... | Cédula exacta o nombre parcial case/accent-insensitive; máximo 20, mínimo 2 caracteres |
-| GET | /api/vehicles?q=... | Placa exacta normalizada, mínimo 3 caracteres; devuelve dueño actual |
-| GET | /api/vehicles?customerId=uuid | Vehículos del cliente, máximo 20 |
-| GET/POST | /api/admin/users | ADMIN: listar/crear, sin hashes en respuesta |
-| PATCH | /api/admin/users/:uuid | ADMIN: active/role/password/fullName |
+## Git y despliegue
 
-GET/DELETE `/api/session` y POST `/api/session/activity` siguen como aliases. `admin-edit` continúa disponible solo para ADMIN en backend. `void` tiene confirmación en editor y lista OPEN: ADMIN puede cancelar cualquier OPEN; MECHANIC solo la asignada a su usuario. CLOSED/VOID no admiten cancelación ni reasignación.
+`main`: intención estable/producción; `dev`: integración. Branch de trabajo -> PR a dev -> QA Azure/dispositivos -> PR dev a main cuando esté listo. Esta revisión queda en una branch nueva, sin merge. [Infraestructura](infra/README.md) describe preparación de Azure sin credenciales.
 
-Datos de cierre: nombre requerido, cédula 9 dígitos, teléfono 8, email opcional válido, placa ABC123, marca/modelo, año entero >=1950, sin máximo funcional (almacenado como int SQL), kilometraje entero 0..10,000,000, al menos un trabajo con descripción/precio positivo, método de pago y selección explícita Sí/No para factura electrónica. Observaciones/recomendaciones generales y observaciones por trabajo son opcionales (también se aceptan ausentes en el payload). Valores incompletos/incorrectos se conservan localmente; SQL autosave espera payload válido. Kilometraje y precios siguen numéricos; previews `128,400 km` y CRC no alteran el payload.
+Antes de producción quedan: deployment DEV, QA móvil/tablet/PWA, validación del host Functions/cookies/CSP/cold start real, decisión de alojamiento/identidad y permisos SQL mínimos configurados (Managed Functions de SWA Free no admite Managed Identity para la API; ver infra), límite compartido si hay varias instancias, política automatizada de retención de Sessions/IdempotencyRequests/AuditLogs y pruebas de commits ambiguos/concurrencia. No hay integración de factura electrónica V1. La retención de receipts debe respetar la vida de la cola offline para evitar duplicados.
 
-El servidor asigna mechanic_id y calcula subtotal, IVA por línea y total. Solo el mecánico asignado o ADMIN puede cerrar OPEN; backend responde 403 al mecánico anterior tras reasignación. MECHANIC puede editar OPEN del taller y no modificar CLOSED; reopen/transfer-owner/assign-mechanic/admin-edit requieren ADMIN. Cancelar usa VOID, sin DELETE ni cambios a cliente/vehículo/trabajos, y registra ORDER_VOIDED. El dueño actual solo se cambia mediante `action=transfer-owner`, con identidad exacta de cliente/vehículo, ETag, idempotencia y auditoría.
+## Privacidad del repositorio público
 
-## Persistencia y sesión
-
-IndexedDB mantiene registros por clave compuesta [userId, orderId], migrando atómicamente el borrador legacy por usuario sin descartarlo; payload/clave/ETag pendientes y metadata de la orden. El cierre se persiste antes del envío; una respuesta perdida se recupera con la misma clave. Se protege el borrador antes de cambiar de orden. Un 412 consulta la orden nuevamente y conserva el borrador. Si únicamente cambió la metadata por reasignación, permite reintentar con ETag y clave nuevos; si cambió el contenido remoto, detiene sync para revisión. La revisión de conflictos compara cliente, vehículo, trabajos y demás campos; permite combinar elecciones o usar el servidor. Guarda la copia anterior y su pending en recoveryCopies de IndexedDB, permite descargar el respaldo y exige nueva revisión si el servidor cambió otra vez. La resolución nunca repite automáticamente cierre/cancelación/cambio de dueño.
-
-Estados: Guardado, Sincronizando, copia local/offline y error. Retry manual aparece solo ante fallo recuperable; al volver la conexión se reintenta automáticamente. Un Web Lock por usuario evita dos editores locales simultáneos.
-
-Sesión: cookie HttpOnly/SameSite=Strict y Secure en producción; SQL guarda hash del token. Inactividad de dos horas, sin renovación por GET/autosave. Logout, cambio de rol, desactivación y reset revocan sesiones.
-
-## Phase 4
-
-Anulación/correcciones administrativas avanzadas, reportes, catálogos más amplios, retención de recibos/sesiones y pruebas de COMMIT ambiguo/concurrencia entre procesos. Antes de producción: configuración HTTPS/Functions/Managed Identity, permisos SQL mínimos, limitador compartido y pruebas PWA en dispositivos reales.
-
-Ver [arquitectura](docs/architecture.md) e [infraestructura](infra/README.md).
-
-Búsqueda de órdenes: nombres parciales con collation Latin1_General_100_CI_AI; cédula exacta (trim) y placa exacta normalizada (uppercase sin espacios/guiones). display_order_id admite prefijo literal. CHARINDEX/LEFT usan parámetros, sin LIKE: %, _ y [ son caracteres literales. Las páginas SQL se limitan a 50, ordenadas por created_at y order_number para desempatar; Cargar más envía before con el último UUID. Una página exacta de 50 puede mostrar Cargar más y terminar en una página vacía.
-
-Reasignación: ADMIN elige un usuario activo y pulsa Actualizar mecánico, usando action=assign-mechanic y mechanicId. AuditLogs guarda actor_id, entity_id de la orden y action=ORDER_MECHANIC_CHANGED. No requiere ampliar schema. El mecánico actual viaja en Order.mechanicId; el campo Draft.mechanicId es una intención de cambio y se retira del borrador al guardar.
-
-Catálogo de marcas/modelos integrado mediante 010; no se realizan llamadas externas CarsXE en runtime.
-
-Editor y lista OPEN consultan SQL al recuperar foco/visibilidad y cada 30 segundos mientras están visibles. El editor avisa de la reasignación y actualiza los permisos de cancelación; los borradores pendientes conservan su versión base hasta resolver el conflicto. Estos GET no generan actividad ni renuevan la sesión de dos horas. La lista se vuelve a consultar al entrar al módulo.
-
-## Pago, IVA y observaciones por trabajo
-
-Cada trabajo guarda precio sin IVA y observación opcional (máximo 2000 caracteres). SQL calcula IVA 13% con ROUND por línea y total = subtotal + suma del IVA; frontend usa los mismos centavos/redondeo y muestra IVA junto al precio y subtotal/IVA/precio final al pie. GET incluye subtotalAmount, taxAmount, taxRate y totalAmount calculados en backend. No se aceptan totales ni tasa enviados por el cliente.
-
-paymentMethod admite SINPE, CREDIT_CARD, DEBIT_CARD, CASH y BANK_TRANSFER (SINPE, tarjeta de crédito, tarjeta de débito, efectivo y transferencia bancaria). electronicInvoice es booleano: true o false son elecciones válidas; ausente no permite cerrar. OPEN puede guardar campos de pago pendientes. La elección de factura solo registra el requerimiento; no emite ni integra facturación electrónica.
-
-009_order_billing.sql agrega OrderItems.notes y Orders.tax_rate y actualiza guardas/cálculo de totales. Conserva los importes históricos con tasa inicial 0; las nuevas órdenes y guardados normales de OPEN aplican 13%. CLOSED históricas conservan sus importes y no se recalculan al leer. Las guardas impiden cerrar órdenes nuevas con IVA sin las elecciones de pago/factura y comprueban el total contra los servicios.
-
-El mensaje «Escribe las observaciones de la orden.» no existe en este código ni su build. Si se ve tras actualizar los archivos, comprobar que el navegador/PWA esté ejecutando el build reciente; recargar sin borrar IndexedDB ni los borradores locales.
-
-## Correcciones de revisión Phase 3
-
-saveOrder usa savepoint para revertir todos los efectos de un rechazo de negocio antes de guardar su recibo idempotente. Errores SQL/driver siguen revirtiendo toda la transacción. No requiere una migración nueva.
-
-GET vehicle-catalog devuelve version=1 y cantidades activas dinámicas. El seed y cleanup mantienen su validación 57/986; el runtime permite futuras altas/desactivaciones. Cache schema=2 conserva sugerencias schema=1 y las refresca, TTL 7 días. Reconectar vuelve a cargar el catálogo sin tocar drafts; retries limitados a cuatro intentos, timeout 35s por petición y 120s total, para permitir el presupuesto SQL de 28s. Los campos manuales siguen disponibles durante la carga.
-
-La PWA anuncia actualizaciones con botón explícito. Antes de actualizar intenta sincronizar el editor; pendientes/conflictos o error bloquean la actualización y conservan datos. IndexedDB cierra sus conexiones después de cada operación; limpieza local sigue requiriendo cerrar pestañas/PWA y detener APIs antes del cleanup SQL.
-
-
-QA 011: Customers conserva nombre/teléfono/email actuales al cerrar válidamente; cédula permanece inmutable y draft_data conserva snapshots de contacto por orden. Seleccionar vehículo carga su dueño actual completo. Cambiar cliente conservando vehículo inicia un modo local; únicamente ADMIN confirma el cambio de dueño. El aviso inferior de campos faltantes es local y derivado del intento de cierre y validaciones actuales.
+Se retiraron reparaciones puntuales y reportes QA identificables del HEAD y se sustituyeron relatos de ejecución por documentación técnica. **Commits anteriores aún pueden contener esos artefactos.** No se reescribió historial ni se hizo force-push; cualquier tratamiento del historial requiere autorización adicional explícita. No publicar nombres/cédulas/contactos/placas/UUIDs de casos operativos; usar fixtures sintéticas para documentación y pruebas.

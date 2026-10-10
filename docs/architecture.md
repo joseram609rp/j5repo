@@ -1,65 +1,71 @@
-# Phase 3: contratos y límites
+# Arquitectura y contratos vigentes
 
-## Persistencia y transacciones
+## Componentes
 
-El runtime local y Azure Functions usan exclusivamente SqlRepository (mssql/Tedious). El doble en memoria existe únicamente en tests. Cada operación abre una conexión acotada y una transacción SERIALIZABLE; los reintentos abren una conexión nueva. Esta decisión prioriza aislamiento y claridad para el volumen inicial del taller; el pooling compartido y la reducción de contención requieren medición posterior.
+Frontend React/TypeScript/Vite/PWA; API TypeScript compartida por servidor local y Azure Functions v4; Azure SQL es fuente oficial. IndexedDB persiste borradores por usuario/orden y catálogo separado. SWA sirve frontend y /api del mismo origen; no se ha validado un deployment Azure en esta revisión.
 
-Autorización, lectura del comprobante, mutación, auditoría y escritura del comprobante ocurren en la misma transacción. Las lecturas de sesión/usuario y los rangos de idempotencia usan UPDLOCK/HOLDLOCK. Desactivar o revocar no puede intercalarse entre autorización y escritura. Los deadlocks se reintentan como transacciones completas. Una respuesta perdida tras COMMIT se recupera con el comprobante de la misma clave.
+## API
 
-IdempotencyRequests tiene PK (user_id,idempotency_key). Fingerprint canónico de método, ruta, body y If-Match. El orden de las propiedades JSON no cambia el fingerprint. Para operaciones con contraseña, su igualdad se comprueba con bcrypt; nunca se persiste un SHA-256 rápido del password. El comprobante guarda status, body y headers relevantes (ETag y Cache-Control). La misma clave con otro payload devuelve 409; se consulta el replay antes de la versión. También se conservan errores de negocio 400/404/409/412/428. saveOrder usa SAVE TRANSACTION y revierte su trabajo al savepoint ante HttpError, antes de devolver el error al handler que guarda el recibo. Un error SQL/driver revierte la transacción completa. Fallos de validación de estructura, autorización e infraestructura no crean comprobante. No se eliminan comprobantes mientras la cola offline carezca de retención máxima.
+Toda respuesta API usa Cache-Control no-store. Mutaciones exigen Origin exacto; las autenticadas exigen X-CSRF-Token. Escrituras de órdenes/usuarios requieren Idempotency-Key UUID y If-Match para órdenes existentes.
 
-Orders usa rowversion de SQL como hexadecimal opaco de 16 caracteres. El ETag lo envuelve en comillas. Si existe la orden, falta If-Match => 428; versión distinta => 412. El UPDATE también compara rowversion atómicamente. Una orden inexistente solo puede crearse sin If-Match. La UI y su cola guardan la versión como string.
+| Método/ruta | Contrato |
+| --- | --- |
+| GET /api/health | Público: disponibilidad SQL, 503 si no disponible |
+| POST /api/auth/login | Username/password, cookie opaca, metadatos/CSRF de sesión |
+| GET /api/auth/me | Identidad/rol y vigencia, sin renovar actividad |
+| POST /api/auth/activity | Renueva únicamente sesión vigente |
+| POST /api/auth/logout | Revoca sesión |
+| GET /api/orders | OPEN o CLOSED; CLOSED exige q mínimo 2, máximo 50, cursor before |
+| GET /api/orders/:uuid | Detalle/ETag y totales oficiales |
+| PUT /api/orders/:uuid | Autosave, close/reopen/void/transfer-owner/assign-mechanic/admin-edit |
+| GET /api/customers?q=... | Cédula exacta o nombre parcial, mínimo 2, máximo 20 |
+| GET /api/vehicles?q=... | Placa exacta normalizada, mínimo 3 |
+| GET /api/vehicles?customerId=uuid | Vehículos del cliente, máximo 20 |
+| GET /api/vehicle-catalog | Catálogo activo version=1; autenticado |
+| GET/POST /api/admin/users | ADMIN listar/crear; API incluye inactivos, filtro por defecto en UI |
+| PATCH /api/admin/users/:uuid | ADMIN nombre, active, rol, reset password, unlock |
+| DELETE /api/admin/users/:uuid | ADMIN, objetivo inactivo sin referencias; no autoborrado |
 
-## Autenticación
+Aliases GET/DELETE /api/session y POST /api/session/activity se conservan. Admin-edit existe en backend, sin interfaz avanzada.
 
-Username normalizado a minúsculas, 3–64 caracteres ASCII alfanuméricos, punto, guion o guion bajo. Índice único SQL sin distinción de mayúsculas. Contraseñas nuevas de al menos 12 caracteres y máximo 72 bytes UTF-8; bcrypt coste 12. El límite de bytes evita truncamiento silencioso. La respuesta de credenciales inválidas no distingue usuario inexistente, inactivo o password incorrecto. Se verifica un hash ficticio para usuarios inexistentes.
+## Transacciones, receipts y concurrencia
 
-Token criptográfico de 32 bytes, codificado base64url. Solo sale por Set-Cookie; ni respuesta JSON ni SQL contienen el token en claro. Sessions guarda SHA-256, token CSRF, user_id, last_activity_at y revoked_at. Cookie HttpOnly, Path=/api, SameSite=Strict; Secure cuando NODE_ENV=production o el host Azure anuncia WEBSITE_INSTANCE_ID. Origin exacto en toda mutación, incluido login; CSRF de sesión requerido en las demás. Comparación CSRF de tiempo constante.
+SqlRepository usa mssql/Tedious, conexión acotada por operación y transacción SERIALIZABLE. Autorización, replay, mutación, auditoría y receipt comparten transacción; usuarios/sesiones/receipts usan UPDLOCK/HOLDLOCK. Reintentos abren conexión nueva. Pooling compartido queda sujeto a medición.
 
-La sesión vence cuando ahora - last_activity_at >= 7 200 000 ms, usando UTC del servidor SQL. No existe variable de entorno para reducir/ampliar ese límite. GET, /auth/me y autosave no modifican actividad. El frontend envía /auth/activity tras eventos confiables de teclado/puntero en pestaña visible, como máximo cada 15 s; no hay heartbeat por simple polling. El servidor no puede acreditar físicamente una interacción: valida la vigencia y acepta solo el endpoint explícito. Actividad vencida o revocada no resucita una sesión.
+IdempotencyRequests tiene PK (user_id,idempotency_key). Fingerprint canónico de método/ruta/body/If-Match; igualdad de contraseñas usa bcrypt, nunca hash rápido reutilizable. Receipt conserva status/body/headers relevantes; misma clave con payload distinto devuelve 409. Replay precede chequeo de versión. Rechazos de negocio 400/404/409/412/428 pueden persistir; saveOrder revierte al savepoint todos sus efectos antes de registrar el rechazo. Errores driver/infraestructura revierten transacción completa.
 
-Cambiar rol, desactivar o resetear contraseña revoca todas las sesiones del usuario en la misma transacción. Rol/active se releen desde Users en cada petición; no se confía en roles de la cookie. No se permite desactivar/degradar al último ADMIN activo. AuditLogs conserva actor, acción, entidad y fecha, sin cuerpos ni secretos.
+Rowversion es string hexadecimal opaco de 16 caracteres; ETag lo envuelve en comillas. Orden existente sin If-Match: 428; versión distinta: 412. UPDATE compara versión atómicamente. Crear orden inexistente requiere ausencia de If-Match. Respuesta perdida tras COMMIT se recupera con la misma clave. No purgar receipts sin política compatible con pendientes offline.
 
-Login tiene un límite local por proceso de 15 intentos por nombre cada 5 minutos y 100 totales por minuto. Antes de escalar/desplegar, añadir un limitador compartido en el gateway; el límite actual no pretende coordinar varias instancias.
+## Auth y autorización
 
-## Datos de órdenes
+Bcrypt coste 12, contraseñas nuevas >=12 caracteres y <=72 bytes UTF-8. Username trim/lowercase ASCII 3..64 y único SQL. Dummy compare y credenciales inválidas genéricas. Cinco fallos bloquean 15 minutos en SQL; receipts de intentos evitan doble conteo al reintentar COMMIT ambiguo. Límite local adicional 15/username/5 min y 100 global/minuto; no distribuido.
 
-El borrador conserva snapshots de nombre y placa y admite enlaces opcionales a Customers/Vehicles. Se crean clientes únicamente con datos completos válidos; se reutilizan por cédula única y vehículos por placa única. No se transfieren dueños implícitamente. Al enlazar un vehículo se toma su cliente actual si no había cliente explícito. La migración 006 permite corregir selecciones de cliente/vehículo en OPEN. En CLOSED/VOID las referencias siguen protegidas; 008 permite cambiar mechanic_id solo en OPEN por ADMIN y con destino activo MECHANIC/ADMIN; CLOSED/VOID siguen inmutables. La API registra actor, orden y nuevo UUID en AuditLogs.action. Una transferencia explícita de dueño modifica Vehicles.owner_id y conserva Orders.customer_id de órdenes anteriores.
+Token aleatorio 32 bytes base64url, solo enviado en cookie; SQL guarda SHA-256. Cookie HttpOnly/SameSite Strict/Path /api/Secure en producción. CSRF aleatorio de sesión con comparación de tiempo constante; Origin exacto en todas las mutaciones. Dos horas de inactividad UTC SQL; GET/me/autosave no renuevan. Frontend envía actividad explícita tras eventos confiables de teclado/puntero visibles, limitada a una cada 15 segundos; el servidor no puede probar una interacción física. Actividad vencida no resucita sesión.
 
-Dinero DECIMAL(12,2). Cédula/teléfono como strings. Placa normalizada e indexada en Vehicles; kilometraje nullable durante borrador. El CHECK SQL impide CLOSED sin kilometraje, cliente y vehículo. La API permite close y operaciones admin explícitas reopen/void/admin-edit. Servicios son descripción, precio sin IVA y observación opcional. SQL calcula subtotal, IVA 13% redondeado por línea y total; pago y decisión de factura son obligatorios al cerrar, sin confiar en totales del frontend. Triggers mantienen el total al cambiar servicios y rechazan mutaciones de CLOSED/VOID y referencias históricas. El SQL principal es confiable; SESSION_CONTEXT identifica una operación admin autorizada por la API, no sustituye permisos de conexión. Admin-edit reabre temporalmente dentro de la misma transacción y restablece CLOSED al terminar; nada intermedio puede publicarse. La UI confirma cierre/reapertura, cancelación VOID y cambio de dueño ADMIN; admin-edit sigue disponible solo en backend.
+Roles/active se releen por petición. Reset/cambio de rol/desactivación revocan sesiones. Último ADMIN activo protegido. Borrado de usuario verifica referencias FK bajo locks; conserva historial y rechaza usuarios activos/autoborrado. ADMIN gestiona/reasigna/reabre; MECHANIC close/void solo de su asignación; ambos editan OPEN y transfieren dueño explícitamente.
 
-## Fiabilidad
+## Órdenes, maestros y guards
 
-SQL: encrypt=true, trustServerCertificate=false; conexión y comando hasta 5 s, presupuesto compartido por toda la petición HTTP hasta 28 s, esperas de 5/10 s más jitter y hasta tres intentos si caben. Errores transitorios conocidos (incluido Azure dormido 40613 y deadlock 1205) se inspeccionan también dentro de errores anidados. Login SQL 18456 y cancelación no se reintentan. Al agotarse el presupuesto: 503 + Retry-After: 3.
+Múltiples OPEN. Nueva orden solo por acción explícita; UUID técnico y OT-YYYYMMDD-NN visible con fecha UTC-6 y applock por día. order_number global desempata paginación. CLOSED exige campos válidos, servicios, pago/factura y total calculado; VOID mantiene datos. Guards protegen CLOSED/VOID, referencias e importes. SESSION_CONTEXT autoriza operaciones internas tras validación API; los permisos SQL deben impedir uso directo indebido.
 
-AbortSignal cancela el Request del driver. El servidor local propaga desconexión HTTP; Functions v4 no ofrece una señal equivalente en el adaptador usado, pero sigue aplicando el presupuesto SQL. Apertura de conexión y COMMIT/ROLLBACK quedan acotados por timeouts del driver; cancelar no prueba que un COMMIT no haya llegado. Los comprobantes resuelven resultados ambiguos de escrituras de negocio.
+Customers se reutiliza por cédula, Vehicles por placa única. Snapshots de contacto/placa se guardan por orden. Contacto maestro se actualiza únicamente en cierre válido; cédula no cambia. Último kilometraje no nulo incluye VOID. Cambio de dueño requiere acción explícita o resolución de cierre con vehículo/cliente/dueño esperado; stale decision devuelve 409. Transfer conserva snapshots previos; autosave no transfiere.
 
-El navegador mantiene sus reintentos para GET o escrituras con Idempotency-Key. La cola conserva payload, clave y versión antes del envío; conflictos conservan cambios y paran la sincronización. Persistencia offline por usuario en IndexedDB. Las respuestas API y credenciales no entran al caché PWA. Usuarios reales usan UUID distintos del antiguo usuario local-demo.
+Validación compartida: placa uppercase sin espacios/guiones, ASCII alfanumérico 3..12; cédula 9 dígitos, teléfono 8, email opcional, año entero >=1950, kilometraje 0..10000000 requerido al cierre. Notas/recomendaciones opcionales; observación de trabajo máximo 2000. DECIMAL(12,2), CRC, IVA 13% con ROUND por línea; servidor no acepta total/tasa del cliente. Nuevos cierres exigen método de pago y booleano de factura, sin emisión electrónica. Histórico previo a 009 conserva importes.
 
-## Navegación y recuperación
+Historial search-only: nombre parcial CI_AI, cédula/placa exactas, OT por prefijo literal. CHARINDEX/LEFT parametrizados; %, _ y [ no funcionan como comodines. Páginas 50 por created_at/order_number con cursor UUID. Página exacta de 50 puede terminar en carga adicional vacía.
 
-App usa estado interno simple para dashboard/editor/open/history/users. Listas y búsquedas se obtienen de SQL con parámetros; páginas de 50 y cursor UUID ordenado por created_at/order_number. Consultar CLOSED no reemplaza el borrador activo. Cambiar a otra OPEN requiere resolver el guardado de la anterior. Al retomar, una copia pendiente se conserva y se reenvía con su payload/clave/version original; si está limpia, se consulta el estado remoto antes de editar. No se crea una orden al autenticarse.
+## Offline, PWA y fiabilidad
 
-Autosave guarda metadata, revisiones y mutaciones pendientes en el mismo store IndexedDB v1. Un close/reopen/transfer-owner se persiste antes de enviar y bloquea ediciones hasta resolverlo. Guardar nuevas selecciones nunca transfiere dueños. El servidor valida identidad exacta antes de cerrar o transferir. Las correcciones del formulario son snapshots; los catálogos existentes no se sobrescriben silenciosamente.
+IndexedDB por [userId,orderId], migración atómica de borrador legacy, payload/clave/ETag/revisión pendientes. Valores incompletos permanecen localmente; se envían solo válidos. Una acción close/reopen/transfer-owner se persiste antes del envío. Refresh/login no crean órdenes. Cambiar editor protege borrador previo. Web Lock por usuario limita editores simultáneos del mismo navegador; no sustituye rowversion entre dispositivos.
 
-Usuarios ADMIN usa los endpoints existentes; el backend conserva autorización, último ADMIN, bcrypt y revocación. Los reportes quedan para Phase 4. Los conflictos de contenido tienen revisión por grupos, combinación explícita, copia de recuperación persistida y descarga; una versión remota nueva obliga a revisar nuevamente. Los tests SQL usan rollback; COMMIT ambiguo real y concurrencia entre procesos siguen pendientes. No hay despliegue.
+412 conserva cambios y consulta servidor. Reasignación solo de metadata permite nuevo intento explícito con ETag/clave nuevos; conflicto de contenido exige revisión por grupos/mezcla/servidor. recoveryCopies conserva la versión previa/pending y permite backup descargable. Remoto cambiado nuevamente exige revisar. Resolver no repite automáticamente acciones destructivas.
 
-Referencias técnicas consultadas: [mssql](https://tediousjs.github.io/node-mssql/), [Tedious](https://tediousjs.github.io/tedious/api-connection.html), [bcryptjs](https://www.npmjs.com/package/bcryptjs).
+Lista/editor actualizan al recuperar foco/visibilidad y cada 30 s visibles, sin renovar sesión. PWA solicita actualización, sincroniza antes de activarla y bloquea con pendientes/conflictos. Workbox no cachea API/credenciales. CSP de SWA permite recursos del mismo origen y prohíbe frames; validar comportamiento real en Azure.
 
-## Schema y validación Phase 2.1
+Catálogo SQL activo version=1; seed 57/986, texto manual permitido. IndexedDB schema=2 con fallback schema=1 y TTL siete días. GET retry cuatro intentos, 35 s por petición, presupuesto 120 s; reconectar refresca sin tocar drafts. No CarsXE runtime.
 
-created_at sigue siendo la fecha UTC de apertura; no se duplica con opened_at. closed_at marca el cierre; total_amount sustituye total. display_order_id es calculado y único (OT-YYYY-000001); una secuencia global sin reinicio anual evita carreras y admite más de seis dígitos. Los rollbacks pueden dejar huecos. Users.full_name y Customers.full_name son requeridos. Vehicles tiene marca, año, dueño actual y placa normalizada única. OrderItems guarda descripción, precio DECIMAL(12,2)>0 y notes opcionales desde 009.
+SQL exige TLS y certificado válido. Conexión/comando <=5 s, presupuesto HTTP SQL <=28 s; errores transitorios/deadlock pueden reintentar hasta tres veces con espera 5/10 s+jitter si caben. No retry login SQL 18456/cancelación. Agotamiento: 503 y Retry-After 3. AbortSignal cancela Request; host Functions conserva presupuesto pero no propaga desconexión como servidor local. Timeouts no prueban ausencia de COMMIT: receipts resuelven ambigüedad de escrituras.
 
-backend/src/validation.ts se comparte con frontend: trim de nombres/marca/descripción; cédula 9 dígitos; teléfono 8; email opcional lowercase; placa uppercase sin espacios/guiones y patrón ABC123; año entero >=1950, sin máximo funcional; 007 retira el límite 2200 del CHECK SQL. Kilometraje entero 0..10000000 nullable en OPEN, obligatorio al cerrar. Precio hasta 9999999999.99 con dos decimales; la suma también debe caber. Borradores permiten campos vacíos pero no valores no vacíos inválidos. IndexedDB conserva inclusive ediciones incompletas; autosave espera valores válidos y no renueva sesión.
+## Límites
 
-Historial search-only: CLOSED sin q de al menos dos caracteres devuelve 400 HISTORY_SEARCH_REQUIRED antes de consultar el repositorio. Nombre parcial CI_AI mediante CHARINDEX parametrizado, cédula/placa exactas y número OT por prefijo con LEFT. Páginas de 50 con desempate por order_number. El frontend no carga CLOSED inicialmente.
-
-Notas y recomendaciones pueden estar vacías incluso en CLOSED. La migración 007 elimina únicamente CK_Orders_ClosedNotes y reemplaza CK_Vehicles_Year; conserva todos los guards de cierre, servicios, totales e historia.
-
-Nueva orden genera un UUID por acción explícita y nunca busca una OPEN para reutilizarla. IndexedDB usa [userId, orderId], conserva la cola/ETag/clave/revisión de cada orden y migra la clave legacy en una transacción. La lista OPEN incorpora copias locales pendientes para recuperación offline.
-
-## Catálogo y actualizaciones PWA
-
-Contrato GET version=1 con cantidades activas dinámicas; integridad 57/986 se exige al seed/verificación de instalación/cleanup, no a cada lectura runtime. IndexedDB separado, schema=2, conserva cache schema=1 como fallback y la refresca. TTL 7 días; online vuelve a invocar carga. Timeout HTTP 35s, cuatro intentos máximo y presupuesto 120s dejan completar retrySql de 28s; solo errores transitorios.
-
-Registro explícito de service worker con updatefound/statechange y botón de actualización. La app sincroniza el editor antes de activarlo y bloquea actualización con conflicto/acción pendiente. API y credenciales no entran al cache PWA. Drafts y recoveryCopies se conservan; conexiones IDB se cierran al completar cada operación.
+QA móvil/tablet/host Azure, commits ambiguos y carga real entre procesos siguen pendientes. Configurar identidad/permisos mínimos, límite distribuido y retención antes de producción. IndexedDB requiere dispositivos/perfiles confiables y limpieza operativa explícita. Ver [seguridad](security-review.md), [infra](../infra/README.md) y [verificación](verification.md).

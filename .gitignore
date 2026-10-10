@@ -8,3 +8,11 @@ local.settings.json
 *.log
 .DS_Store
 *.tsbuildinfo
+
+# Private key material and database exports
+*.pem
+*.key
+*.pfx
+*.p12
+*.bak
+*.bacpac
