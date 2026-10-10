@@ -473,11 +473,25 @@ it.skipIf(!enabled)('SQL current customer contact changes only at valid close an
  await tx.insertUser({id:userId,username:'contact-'+randomUUID().slice(0,8),fullName:'Contact fixture',passwordHash:'unused',role:'MECHANIC',active:true});
  const draft:Draft={customerName:'Contact old',identification:String(randomInt(100000000,999999999)),phone:'88888888',email:'old@example.com',plate:'CON'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',model:'Corolla',year:2020,mileage:0,notes:'',recommendations:'',paymentMethod:'CASH',electronicInvoice:false,items:[{description:'Servicio',price:1}]};
  const first=await tx.saveOrder(randomUUID(),userId,draft);const historical=await tx.saveOrder(first.id,userId,{...first.draft,action:'close'},first);
- const next=await tx.saveOrder(randomUUID(),userId,{...historical.draft,customerName:'Contact current',phone:'77777777',email:'new@example.com'});
+ const next=await tx.saveOrder(randomUUID(),userId,{...historical.draft,customerName:'Contact current',phone:'77777777',email:'new@example.com',mileage:12345});
  expect((await tx.findCustomers(draft.identification!))[0]?.email).toBe('old@example.com');
  await tx.saveOrder(next.id,userId,{...next.draft,action:'close'},next);
  expect((await tx.findCustomers(draft.identification!))[0]).toMatchObject({fullName:'Contact current',phone:'77777777',email:'new@example.com',identification:draft.identification});
  expect((await tx.findVehicles(draft.plate))[0]?.owner).toMatchObject({fullName:'Contact current',phone:'77777777',email:'new@example.com'});
+ expect((await tx.order(historical.id))?.draft).toEqual(historical.draft);
+ // Latest closed snapshot wins even if legacy master contact is stale.
+ await tx.query("UPDATE dbo.Customers SET email='stale@example.com' WHERE id=@id",{id:historical.draft.customerId!});
+ expect((await tx.findCustomers(draft.identification!))[0]?.email).toBe('new@example.com');
+ // Legacy records may also have an empty master email.
+ await tx.query('UPDATE dbo.Customers SET email=NULL WHERE id=@id',{id:historical.draft.customerId!});
+ await tx.saveOrder(randomUUID(),userId,{...next.draft,email:'open-should-not-win@example.com',mileage:99999});
+ expect((await tx.findCustomers(draft.identification!))[0]?.email).toBe('new@example.com');
+ expect((await tx.findVehicles(draft.plate))[0]).toMatchObject({lastMileage:99999,owner:{email:'new@example.com'}});
+ expect((await tx.findVehicles('',historical.draft.customerId!))[0]).toMatchObject({lastMileage:99999,owner:{email:'new@example.com'}});
+ const anotherId=randomUUID();
+ await tx.query("INSERT dbo.Customers(id,full_name,identification,phone,email) VALUES(@id,N'New owner',@identification,'88888888',NULL)",{id:anotherId,identification:String(randomInt(100000000,999999999))});
+ await tx.query('UPDATE dbo.Vehicles SET owner_id=@owner WHERE id=@id',{owner:anotherId,id:historical.draft.vehicleId!});
+ expect((await tx.findVehicles(draft.plate))[0]).toMatchObject({lastMileage:99999,owner:{email:null}});
  expect((await tx.order(historical.id))?.draft).toEqual(historical.draft);
  },undefined,true);
 },60000);
@@ -508,4 +522,20 @@ it.skipIf(!enabled)('SQL concurrent allocators serialize through a transaction l
  try { await new SqlRepository().runSql(async tx=>{const r=await tx.query<{result:number}>("DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'j5:daily-orders',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=100; SELECT @r AS result;");expect(r.recordset[0]!.result).toBeLessThan(0);},undefined,true); }
  finally {release();await first;}
  await repo.runSql(async tx=>{const r=await tx.query<{result:number}>("DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'j5:daily-orders',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=1000; SELECT @r AS result;");expect(r.recordset[0]!.result).toBeGreaterThanOrEqual(0);},undefined,true);
+},60000);
+
+it.skipIf(!enabled)('SQL restores latest recorded mileage from VOID orders and skips newer empty orders (rollback)',async()=>{
+ const repo=new SqlRepository(),userId=randomUUID();
+ await repo.runSql(async tx=>{
+ await tx.insertUser({id:userId,username:'km-'+randomUUID().slice(0,8),fullName:'Mileage fixture',passwordHash:'unused',role:'MECHANIC',active:true});
+ const draft:Draft={customerName:'Mileage fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'KMS'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',model:'Corolla',year:2020,mileage:40000,notes:'',recommendations:'',paymentMethod:'CASH',electronicInvoice:false,items:[]};
+ const older=await tx.saveOrder(randomUUID(),userId,draft);
+ await tx.saveOrder(older.id,userId,{...older.draft,action:'void'},older);
+ const recent=await tx.saveOrder(randomUUID(),userId,{...older.draft,mileage:30000});
+ await tx.saveOrder(recent.id,userId,{...recent.draft,action:'void'},recent);
+ await tx.saveOrder(randomUUID(),userId,{...recent.draft,mileage:null});
+ expect((await tx.findVehicles(draft.plate))[0]?.lastMileage).toBe(30000);
+ const zero=await tx.saveOrder(randomUUID(),userId,{...recent.draft,mileage:0});
+ expect((await tx.findVehicles('',zero.draft.customerId))[0]?.lastMileage).toBe(0);
+ },undefined,true);
 },60000);

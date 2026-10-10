@@ -57,6 +57,7 @@ export type Vehicle = {
   make: string;
   model: string | null;
   year: number;
+  lastMileage?: number | null;
   owner?: Customer;
 };
 export type Reply = {

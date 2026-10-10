@@ -854,3 +854,52 @@ it('lower close banner resets on leaving the editor and opening a different orde
  await mount();await click('Órdenes abiertas');await click('Continuar');await click('Cerrar orden');expect(container.querySelector('.close-errors')).toBeTruthy();
  await click('Inicio');expect(container.querySelector('.close-errors')).toBeNull();await click('Nueva orden');expect(container.querySelector('.close-errors')).toBeNull();expect(disk?.id).not.toBe(initial.id);
 });
+
+it.each(['plate','customer'] as const)('new order loads email and latest mileage through %s search',async(mode)=>{
+ const original=vi.mocked(api).getMockImplementation()!;
+ vi.mocked(api).mockImplementation(async(path,options)=>{
+   const result=await original(path,options);
+   if(path.startsWith('/customers')) return {customers:[{id:'c',fullName:'Existente',identification:'987654321',phone:'87654321',email:'latest@example.com'}]} as never;
+   if(path.startsWith('/vehicles')) return {vehicles:[{id:'v',ownerId:'c',plate:'XYZ987',make:'Honda',model:'Civic',year:2022,lastMileage:54321,owner:{id:'c',fullName:'Existente',identification:'987654321',phone:'87654321',email:'latest@example.com'}}]} as never;
+   return result;
+ });
+ await mount();await click('Nueva orden');await input('.lookup input',mode==='plate'?'XYZ987':'Existente');await click('Buscar');
+ if(mode==='customer') {await click('Existente · 987654321');expect(disk?.draft.email).toBe('latest@example.com');}
+ await click('XYZ987');expect(disk?.draft.email).toBe('latest@example.com');expect(disk?.draft.mileage).toBe(54321);
+ expect(container.querySelector<HTMLInputElement>('[data-field=email]')!.value).toBe('latest@example.com');
+ expect(container.querySelector<HTMLInputElement>('[data-field=mileage]')!.value).toBe('54321');
+ await click('Usar otro vehículo');expect(disk?.draft.mileage).toBeNull();
+});
+
+it.each([null, 45678] as const)('plate lookup restores previous km without replacing entered mileage %s',async(entered)=>{
+ const original=vi.mocked(api).getMockImplementation()!;
+ let resolveLookup!: (value: unknown)=>void;
+ vi.mocked(api).mockImplementation(async(path,options)=>{
+   if(path.startsWith('/vehicles?q=XYZ987')) return await new Promise<unknown>(resolve=>{resolveLookup=resolve;}) as never;
+   return original(path,options);
+ });
+ await mount();await click('Nueva orden');await input('[data-field=plate]','XYZ987');
+ if(entered!==null) await input('[data-field=mileage]',String(entered));
+ await act(async()=>{resolveLookup({vehicles:[{id:'v',ownerId:'c',plate:'XYZ987',make:'Honda',model:'Civic',year:2022,lastMileage:20000}]});for(let i=0;i<30;i++)await Promise.resolve();});
+ expect(disk?.draft.mileage).toBe(entered??20000);
+ expect(container.querySelector<HTMLInputElement>('[data-field=mileage]')!.value).toBe(String(entered??20000));
+ await input('[data-field=mileage]','25000');expect(disk?.draft.mileage).toBe(25000);
+ await input('[data-field=mileage]','');expect(disk?.draft.mileage).toBeNull();
+});
+
+it('new order search is visible and usable before the initial server save completes',async()=>{
+ const original=vi.mocked(api).getMockImplementation()!;
+ let release!:()=>void;const pending=new Promise<void>(resolve=>{release=resolve;});let started=false;
+ vi.mocked(api).mockImplementation(async(path,options)=>{
+   if(path.startsWith('/orders/') && options?.method==='PUT' && !started){started=true;await pending;}
+   return original(path,options);
+ });
+ await mount();await click('Nueva orden');expect(started).toBe(true);
+ const lookup=container.querySelector('.lookup')!;
+ expect(lookup).toBeTruthy();expect(lookup.closest('[hidden]')).toBeNull();
+ expect(container.querySelector<HTMLInputElement>('.lookup input')!.disabled).toBe(false);
+ await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
+ expect(disk?.draft.plate).toBe('XYZ987');
+ await act(async()=>{release();for(let i=0;i<60;i++)await Promise.resolve();});
+ expect(disk?.draft.plate).toBe('XYZ987');expect(container.querySelector<HTMLInputElement>('[data-field=plate]')!.value).toBe('XYZ987');
+});

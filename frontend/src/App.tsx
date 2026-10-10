@@ -235,7 +235,7 @@ export function App() {
       );
     }
   }
-  async function attach(record: RecordState) {
+  async function attach(record: RecordState, syncInBackground = false) {
     if (!session) return;
     await saver.current?.pause();
     await storage.write(session.userId, record);
@@ -281,8 +281,15 @@ export function App() {
     );
     setPage('editor');
     if (!record.order || record.order.status === 'OPEN') {
-      await service.sync();
-      setOrder(service.state.order ?? null);
+      const syncing = service.sync();
+      if (syncInBackground) {
+        void syncing.catch(() => {
+          if (saver.current === service) setMessage('La orden está guardada en este dispositivo. Reintenta la sincronización.');
+        });
+      } else {
+        await syncing;
+        if (saver.current === service) setOrder(service.state.order ?? null);
+      }
     }
   }
   async function navigate(next: typeof page) {
@@ -303,7 +310,7 @@ export function App() {
       await storage.read(session.userId); // Migrate the legacy draft without reusing it.
       const record = fresh();
       record.revision = 1;
-      await attach(record);
+      await attach(record, true);
     } catch {
       setMessage(
         'No se pudo abrir la orden. Tu borrador local está conservado.',
@@ -594,12 +601,12 @@ export function App() {
                 ? (order?.displayOrderId ?? 'Orden local')
                 : 'Iniciar sesión'}
             </h2>
-            {sessionStatus === 'authenticated' && (
-              <span className="badge">
-                {order?.status === 'VOID' ? 'CANCELADA' : order?.status === 'CLOSED' ? 'CERRADA' : 'ABIERTA'}
-              </span>
-            )}
           </div>
+          {sessionStatus === 'authenticated' && (
+            <div className={`badge order-state order-state--${(order?.status ?? 'OPEN').toLowerCase()}`} role="status" aria-label="Estado de la orden">
+              {order?.status === 'VOID' ? 'CANCELADA' : order?.status === 'CLOSED' ? 'CERRADA' : 'ABIERTA'}
+            </div>
+          )}
           {sessionStatus === 'authenticated' && order && (
             <p>
               Apertura:{' '}

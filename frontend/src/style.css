@@ -279,7 +279,7 @@ textarea {
   }
 }
 [hidden] {
-  display: none !important;
+  display: none;
 }
 fieldset {
   border: 0;
@@ -466,3 +466,29 @@ header .tag {
 .conflict-values { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; }
 .conflict-values p { white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (max-width: 720px) { .conflict-values { grid-template-columns: 1fr; gap: 0; } }
+
+/* Keep the order state prominent and centered on desktop and mobile. */
+.badge.order-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 14px 0 18px;
+  padding: 14px 18px;
+  border: 1px solid #cddfcf;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 750;
+  line-height: 1.4;
+  letter-spacing: 1.2px;
+  text-align: center;
+}
+.badge.order-state--closed {
+  color: #8b3038;
+  background: #fff0f1;
+  border-color: #edcbd0;
+}
+.badge.order-state--void {
+  color: #5f5361;
+  background: #f2eef3;
+  border-color: #ddd4df;
+}

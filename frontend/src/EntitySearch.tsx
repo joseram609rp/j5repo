@@ -16,6 +16,7 @@ type Vehicle = {
   make: string;
   model: string | null;
   year: number;
+  lastMileage?: number | null;
   owner?: Customer;
 };
 const customerFields = (c: Customer) => ({
@@ -50,6 +51,17 @@ export function EntitySearch({
       .catch(() => { if(current) setMessage('No se pudo comprobar el dueño actual. Reintenta la búsqueda.'); });
     return () => { current = false; };
   }, [draft.plate, draft.vehicleId, ownerRevision]);
+  const mileageLookupApplied = useRef('');
+  useEffect(() => { mileageLookupApplied.current = ''; }, [draft.plate, draft.vehicleId]);
+  useEffect(() => {
+    const key = draft.plate + ':' + (draft.vehicleId ?? '');
+    if (!ownerVehicle || ownerVehicle.plate !== draft.plate ||
+        (draft.vehicleId && ownerVehicle.id !== draft.vehicleId) ||
+        ownerVehicle.lastMileage == null || mileageLookupApplied.current === key) return;
+    mileageLookupApplied.current = key;
+    // A plate lookup can resolve after the mechanic has already entered today's km.
+    if (draft.mileage == null) onSelect({ ...draft, mileage: ownerVehicle.lastMileage });
+  }, [ownerVehicle, draft.plate, draft.vehicleId]);
   const mismatch = ownerVehicle?.owner && !!draft.identification && ownerVehicle.owner.identification !== draft.identification;
   const [changingCustomerForVehicle, setChangingCustomerForVehicle] = useState(false);
   const previousCustomer = useRef<Pick<Draft, 'customerId' | 'customerName' | 'identification' | 'phone' | 'email'> | null>(null);
@@ -101,7 +113,7 @@ export function EntitySearch({
       ...customerFields(c),
       ...(changingCustomerForVehicle
         ? {}
-        : { vehicleId: undefined, plate: '', make: '', model: '', year: null }),
+        : { vehicleId: undefined, plate: '', make: '', model: '', year: null, mileage: null }),
     });
     setCustomers([]);
     setVehicles([]);
@@ -133,6 +145,7 @@ export function EntitySearch({
       make: v.make,
       model: v.model ?? '',
       year: v.year,
+      mileage: v.lastMileage ?? null,
     });
     setVehicles([]);
     setCustomers([]);
@@ -219,6 +232,7 @@ export function EntitySearch({
               make: '',
               model: '',
               year: null,
+              mileage: null,
             });
             setMessage('Completa los datos del nuevo vehículo.');
           }}

@@ -280,8 +280,13 @@ export class SqlUnit implements UnitOfWork {
   async findCustomers(search: string): Promise<Customer[]> {
     return (
       await this.query<Customer>(
-        `SELECT TOP (20) LOWER(CONVERT(varchar(36),id)) AS id, full_name AS fullName,identification,phone,email
-      FROM dbo.Customers WHERE identification=@search OR CHARINDEX(@search COLLATE Latin1_General_100_CI_AI,full_name COLLATE Latin1_General_100_CI_AI)>0 ORDER BY full_name,id`,
+        `SELECT TOP (20) LOWER(CONVERT(varchar(36),c.id)) AS id, c.full_name AS fullName,c.identification,c.phone,
+      COALESCE(recent.email,NULLIF(LTRIM(RTRIM(c.email)),'')) AS email
+      FROM dbo.Customers c
+      OUTER APPLY (SELECT TOP (1) NULLIF(LTRIM(RTRIM(JSON_VALUE(o.draft_data,'$.email'))),'') AS email
+        FROM dbo.Orders o WHERE o.customer_id=c.id AND o.status='CLOSED'
+        ORDER BY o.closed_at DESC,o.created_at DESC,o.id DESC) recent
+      WHERE c.identification=@search OR CHARINDEX(@search COLLATE Latin1_General_100_CI_AI,c.full_name COLLATE Latin1_General_100_CI_AI)>0 ORDER BY c.full_name,c.id`,
         { search },
       )
     ).recordset;
@@ -298,7 +303,14 @@ export class SqlUnit implements UnitOfWork {
       >(
         `SELECT TOP (20)
       LOWER(CONVERT(varchar(36),v.id)) AS id,LOWER(CONVERT(varchar(36),v.owner_id)) AS ownerId,v.plate,v.make,v.model,v.year,
-      c.full_name AS fullName,c.identification,c.phone,c.email FROM dbo.Vehicles v JOIN dbo.Customers c ON c.id=v.owner_id
+      c.full_name AS fullName,c.identification,c.phone,
+      COALESCE(recentCustomer.email,NULLIF(LTRIM(RTRIM(c.email)),'')) AS email,recentVehicle.mileage AS lastMileage
+      FROM dbo.Vehicles v JOIN dbo.Customers c ON c.id=v.owner_id
+      OUTER APPLY (SELECT TOP (1) NULLIF(LTRIM(RTRIM(JSON_VALUE(o.draft_data,'$.email'))),'') AS email
+        FROM dbo.Orders o WHERE o.customer_id=c.id AND o.status='CLOSED'
+        ORDER BY o.closed_at DESC,o.created_at DESC,o.id DESC) recentCustomer
+      OUTER APPLY (SELECT TOP (1) o.mileage FROM dbo.Orders o WHERE o.vehicle_id=v.id AND o.mileage IS NOT NULL
+        ORDER BY o.created_at DESC,o.id DESC) recentVehicle
       WHERE (@customerId IS NULL OR v.owner_id=@customerId) AND (@search='' OR v.plate_normalized=@search)
       ORDER BY v.plate_normalized`,
         {
