@@ -3,6 +3,10 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Autosave, fresh } from './autosave';
 import { ApiError } from './api';
 import { SyncStatus } from './SyncStatus';
+vi.mock('./api',async original=>{
+ const actual=await original<typeof import('./api')>();
+ return {...actual,api:vi.fn(async()=>{throw new actual.ApiError(404,'ORDER_NOT_FOUND');})};
+});
 
 afterEach(() => vi.unstubAllGlobals());
 function status() {

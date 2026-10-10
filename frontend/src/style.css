@@ -461,3 +461,8 @@ header .tag {
 .catalog-options { position:absolute; z-index:20; top:100%; left:0; right:0; max-height:240px; overflow-y:auto; background:white; color:#17212b; border:1px solid #8895a7; border-radius:6px; box-shadow:0 4px 12px #0002; }
 .catalog-options [role=option] { display:block; padding:12px; cursor:pointer; }
 .catalog-options [aria-selected=true], .catalog-options [role=option]:hover { background:#e4efff; }
+
+.conflict-review fieldset { margin: 16px 0; border-top: 1px solid #d6dcd2; padding-top: 12px; }
+.conflict-values { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; }
+.conflict-values p { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 720px) { .conflict-values { grid-template-columns: 1fr; gap: 0; } }

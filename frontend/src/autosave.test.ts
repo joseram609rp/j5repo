@@ -334,3 +334,38 @@ it('polling a VOID after a lost cancellation response still allows exact idempot
  await service.refresh();expect(state.order.status).toBe('VOID');expect(state.pending).toEqual(pending);
  expect((await service.action('void'))?.status).toBe('VOID');expect(send.mock.calls[1]?.[1]).toEqual(pending);expect(state.pending).toBeUndefined();
 });
+
+it('resolves a reviewed content conflict with a new key and preserves the original recovery copy',async()=>{
+ const state=fresh();const base=structuredClone(state.draft);state.version='v1';state.order={id:state.id,status:'OPEN',version:'v1',draft:base,mechanicId:'u'};
+ state.draft.notes='local notes';state.revision=1;
+ const remote={...state.order,version:'v2',draft:{...base,recommendations:'remote recommendation'}};
+ vi.mocked(api).mockResolvedValue(remote);
+ const send=vi.fn().mockRejectedValueOnce(new ApiError(412,'VERSION_CONFLICT')).mockResolvedValueOnce({...remote,version:'v3',draft:{...remote.draft,notes:'local notes'}});
+ const service=new Autosave(state,'u','csrf',()=>{},()=>{},async()=>{},send);
+ await service.sync();const original=structuredClone(state.pending);
+ expect(state.conflict).toBeDefined();await expect(service.edit({...state.draft,notes:'blocked'})).rejects.toThrow('ORDER_CONFLICT');
+ await service.resolveConflict('v2',{...remote.draft,notes:'local notes',action:'close'});
+ expect(send).toHaveBeenCalledTimes(2);expect(send.mock.calls[1]![1].key).not.toBe(original?.key);expect(send.mock.calls[1]![1].version).toBe('v2');expect(send.mock.calls[1]![1].draft.action).toBeUndefined();
+ expect(state.draft.notes).toBe('local notes');expect(state.draft.recommendations).toBe('remote recommendation');expect(state.conflict).toBeUndefined();expect(state.pending).toBeUndefined();
+ expect(state.recoveryCopies?.[0]?.draft.notes).toBe('local notes');expect(state.recoveryCopies?.[0]?.pending).toEqual(original);
+});
+it('accepts the server version after a persisted conflict without deleting local recovery data',async()=>{
+ const state=fresh();state.version='v1';state.revision=1;state.draft.notes='local';
+ const remote={id:state.id,version:'v2',status:'CLOSED' as const,draft:{...state.draft,notes:'remote'},mechanicId:'u'};state.order=remote;state.conflict={remote};
+ vi.mocked(api).mockResolvedValue(remote);const send=vi.fn();const service=new Autosave(state,'u','csrf',()=>{},()=>{},async()=>{},send);
+ await service.sync();expect(send).not.toHaveBeenCalled();await service.resolveConflict('v2');
+ expect(state.draft.notes).toBe('remote');expect(state.recoveryCopies?.[0]?.draft.notes).toBe('local');expect(state.savedRevision).toBe(state.revision);expect(send).not.toHaveBeenCalled();
+});
+it('requires another review if the server changes again and does not replace the pending request',async()=>{
+ const state=fresh();state.version='v1';state.revision=1;state.draft.notes='local';
+ const remote={id:state.id,version:'v2',status:'OPEN' as const,draft:{...state.draft,notes:'remote'},mechanicId:'u'};state.order=remote;state.conflict={remote};
+ const latest={...remote,version:'v3',draft:{...remote.draft,notes:'latest'}};vi.mocked(api).mockResolvedValue(latest);
+ const send=vi.fn(),service=new Autosave(state,'u','csrf',()=>{},()=>{},async()=>{},send);
+ await expect(service.resolveConflict('v2',state.draft)).rejects.toThrow('REVIEW_CHANGED');expect(state.draft.notes).toBe('local');expect(state.conflict?.remote.version).toBe('v3');expect(send).not.toHaveBeenCalled();
+});
+it('does not apply or send a resolution when saving the recovery copy fails',async()=>{
+ const state=fresh();state.version='v1';state.draft.notes='local';state.revision=1;
+ const remote={id:state.id,version:'v2',status:'OPEN' as const,draft:{...state.draft,notes:'remote'},mechanicId:'u'};state.order=remote;state.conflict={remote};
+ vi.mocked(api).mockResolvedValue(remote);const send=vi.fn(),service=new Autosave(state,'u','csrf',()=>{},()=>{},async()=>{throw new Error('quota');},send);
+ await expect(service.resolveConflict('v2',state.draft)).rejects.toThrow('LOCAL_SAVE_FAILED');expect(state.conflict).toBeDefined();expect(state.draft.notes).toBe('local');expect(state.version).toBe('v1');expect(send).not.toHaveBeenCalled();
+});

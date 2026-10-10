@@ -1,4 +1,6 @@
 import { CatalogInput } from './CatalogInput';
+import { ConflictReview, downloadRecovery } from './ConflictReview';
+import { applyUpdate, onUpdateAvailable, updateAvailable } from './pwa-update';
 import { loadVehicleCatalog, normalizeCatalog, type VehicleCatalog } from './vehicle-catalog';
 import { SyncStatus } from './SyncStatus';
 import { SessionGate } from './SessionGate';
@@ -23,6 +25,9 @@ import {
 import { trackActivity, type Session } from './session';
 import './style.css';
 export function App() {
+  const [hasUpdate, setHasUpdate] = useState(updateAvailable);
+  useEffect(()=>onUpdateAvailable(()=>setHasUpdate(true)),[]);
+  const [conflict, setConflict] = useState<RecordState['conflict']>();
   const [catalog, setCatalog] = useState<VehicleCatalog>({makes:[]});
   const [page, setPage] = useState<
     'dashboard' | 'editor' | 'open' | 'history' | 'users'
@@ -64,8 +69,10 @@ export function App() {
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     if (!session || page !== 'editor') return;
-    let live=true; void loadVehicleCatalog(data=>{if(live)setCatalog(data);});
-    return ()=>{live=false;};
+    let live=true;
+    const load=()=>{void loadVehicleCatalog(data=>{if(live)setCatalog(data);});};
+    load(); window.addEventListener('online',load);
+    return ()=>{live=false;window.removeEventListener('online',load);};
   }, [session?.userId, page]);
   const saver = useRef<Autosave | null>(null);
   const creating = useRef(false);
@@ -242,7 +249,8 @@ export function App() {
         if (serviceGeneration !== noticeGeneration.current || saver.current !== service) return;
         setNotice({ page: 'editor', orderId: record.id, message: text, retryable: retry });
         setOrder(service.state.order ?? null);
-        if (!service.state.pending && !service.state.draft.action)
+        setConflict(service.state.conflict ? {...service.state.conflict} : undefined);
+        if (service.state.conflict || !service.state.pending && !service.state.draft.action)
           setConfirmAction(null);
         setDraft({ ...service.state.draft });
       },
@@ -256,11 +264,12 @@ export function App() {
     );
     saver.current = service;
     setDraft(record.draft);
+    setConflict(record.conflict);
     setOrder(record.order ?? null);
     setTouched(new Set());
     setClosing(false);
     setConfirmAction(
-      record.pending?.draft.action === 'void' ? 'void' : record.pending?.draft.action === 'close'
+      record.conflict ? null : record.pending?.draft.action === 'void' ? 'void' : record.pending?.draft.action === 'close'
         ? 'close'
         : record.pending?.draft.action === 'reopen'
           ? 'reopen'
@@ -321,6 +330,7 @@ export function App() {
         clearNotice();
         setEditorId(remote.id);
         setDraft(remote.draft);
+        setConflict(undefined);
         setOrder(remote);
         setTouched(new Set());
         setClosing(false);
@@ -383,8 +393,35 @@ export function App() {
       setBusy(false);
     }
   }
+  async function resolveConflict(version: string, selected?: Draft) {
+    const service=saver.current;
+    if(!service || busy) return;
+    setBusy(true);
+    try {
+      await service.resolveConflict(version,selected);
+      setConfirmAction(null);
+      setClosing(false);
+    } catch(error) {
+      setMessage(error instanceof Error && error.message==='REVIEW_CHANGED'
+        ? 'La orden cambió nuevamente. Revisa los datos actualizados antes de guardar.'
+        : 'No se pudo resolver el conflicto. Tu borrador sigue protegido; revisa la conexión y vuelve a intentar.');
+    } finally {
+      if(saver.current===service) {
+        setConflict(service.state.conflict ? {...service.state.conflict} : undefined);
+        setDraft({...service.state.draft});setOrder(service.state.order ?? null);
+      }
+      setBusy(false);
+    }
+  }
+  async function updateApp() {
+    if(busy || confirmAction || conflict) return;
+    setBusy(true);
+    try { await saver.current?.flush(); await applyUpdate(); }
+    catch { setHealthMessage('Sincroniza tus cambios antes de actualizar. Tu copia local está protegida.'); }
+    finally { setBusy(false); }
+  }
   function saveDraft(next: Draft) {
-    if (busy || confirmAction || (order && order.status !== 'OPEN')) return;
+    if (busy || confirmAction || conflict || (order && order.status !== 'OPEN')) return;
     setDraft(next);
     void saver.current
       ?.edit(next)
@@ -431,6 +468,7 @@ export function App() {
   const readOnly =
     (!!order && order.status !== 'OPEN') ||
     !!confirmAction ||
+    !!conflict ||
     busy ||
     !!saver.current?.state.pending?.draft.action;
   const editor = page === 'editor';
@@ -481,6 +519,7 @@ export function App() {
         )}
       </header>
       <main>
+        {hasUpdate && <p role="status">Hay una actualización disponible. <button type="button" disabled={busy || !!confirmAction || !!conflict} onClick={()=>void updateApp()}>Actualizar aplicación</button></p>}
         {healthMessage && <p role="status">{healthMessage}</p>}
         {sessionStatus === 'authenticated' && session && (
           <>
@@ -655,7 +694,9 @@ export function App() {
                       </ul>
                     </div>
                   )}
-                  {(!order || order.status === 'OPEN') && !confirmAction && !busy && (
+                  {conflict && saver.current && <ConflictReview key={editorId+':'+conflict.remote.version} record={saver.current.state} busy={busy} onResolve={(version,selected)=>void resolveConflict(version,selected)} />}
+                  {!!saver.current?.state.recoveryCopies?.length && <button type="button" className="quiet" onClick={()=>{if(saver.current)downloadRecovery(saver.current.state);}}>Descargar copias de recuperación</button>}
+                  {(!order || order.status === 'OPEN') && !conflict && !confirmAction && !busy && (
                     <EntitySearch key={`${page}:${editorId}`} ownerRevision={ownerRevision} draft={draft} onSelect={saveDraft} allowTransfer={session.role === 'ADMIN'} onTransfer={() => {
                       setBusy(true);
                       void saver.current?.flush().then(() => { setOrder(saver.current?.state.order ?? null); setConfirmAction('transfer-owner'); })
@@ -929,7 +970,7 @@ export function App() {
                     </label>
                   </fieldset>
                   <div className="order-actions">
-                  {(!order || order.status === 'OPEN') && canFinish && (
+                  {(!order || order.status === 'OPEN') && !conflict && canFinish && (
                     <button
                       type="button"
                       className="danger"
@@ -956,11 +997,11 @@ export function App() {
                       Cerrar orden
                     </button>
                   )}
-                  {order?.status === 'OPEN' && (session.role === 'ADMIN' || order.mechanicId === session.userId) && (
+                  {order?.status === 'OPEN' && !conflict && (session.role === 'ADMIN' || order.mechanicId === session.userId) && (
                     <button type="button" className="danger" disabled={busy || !!confirmAction} onClick={() => setConfirmAction('void')}>Cancelar orden</button>
                   )}
                   </div>
-                  {order?.status === 'CLOSED' && session.role === 'ADMIN' && (
+                  {order?.status === 'CLOSED' && !conflict && session.role === 'ADMIN' && (
                     <button
                       type="button"
                       disabled={busy}

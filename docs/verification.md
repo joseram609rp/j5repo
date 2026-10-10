@@ -1,3 +1,11 @@
+# Correcciones de auditoría Phase 3 — 2026-10-09
+
+Esta sección reemplaza referencias anteriores a conflictos pendientes para Phase 4 y presupuestos antiguos del catálogo. Cierre rechazado: savepoint elimina efectos laterales y conserva receipt. Conflictos: comparación/elección por grupos, archivo local y backup descargable, nuevo GET/ETag/clave antes de guardar; no replay automático de acciones. Catálogo: version=1, cantidades activas dinámicas, cache schema=2 con fallback legacy, recarga online, timeout HTTP 35s y presupuesto 120s. PWA: prompt de actualización explícito y guardado antes de activación. Conexiones de drafts cerradas por operación.
+
+No se modificaron migraciones ni cleanup. No se hizo commit/push/merge. Las pruebas SQL nuevas de atomicidad y active usan rollback y número explícito para no consumir OrderNumber. Validación final: pnpm check aprobado (216 pruebas locales, 19 SQL omitidas en check), tipos y builds backend/frontend/PWA correctos. SQL focalizado: 3 pruebas aprobadas con rollback, incluyendo rechazo sin residuos, replay, cierre válido posterior y catálogo active dinámico. db:verify aprobado; 10 checksums coinciden, catálogo 57/986 sin duplicados/huérfanos; conteos de negocio y OrderNumber=143 sin cambios. Validación JSON y git diff --check aprobados. Suite SQL completa, móvil físico y despertar real de serverless siguen pendientes de QA; no se ejecutó cleanup. Los registros siguientes son históricos.
+
+---
+
 # Phase 3 — cierre por asignación, pago e IVA (2026-10-05, America/Guatemala)
 
 Repositorio C:\j5repo limpio al inicio, branch feature/orders-mvp. Esta ronda reemplaza las reglas previas de cierre: MECHANIC solo cierra su OPEN asignada; ADMIN puede cerrar cualquier OPEN. La edición general de OPEN conserva su regla previa. Sin merge, push, staging ni commit.

@@ -493,7 +493,7 @@ export function createApi(
               response = result(publicUser(updated));
             } else throw new HttpError(404, 'NOT_FOUND');
           } catch (error) {
-            // These business errors occur before mutation. Persist their exact replay too.
+            // saveOrder rolls business failures back to its savepoint before we persist their replay.
             if (
               !(error instanceof HttpError) ||
               ![400, 404, 409, 412, 428].includes(error.status)

@@ -184,3 +184,39 @@ it.skipIf(!enabled)('catalog schema, counts, samples, authentication and idle be
   const response=await api(new Request(origin+'/api/vehicle-catalog',{headers:{cookie:'j5_session='+token}}));expect(response.status).toBe(200);expect(await response.json()).toEqual(catalog);expect((await tx.session(hash))?.lastActivity).toBe(before);
  },undefined,true);
 },60000);
+
+it.skipIf(!enabled)('rejected close rolls back entity creation before persisting its idempotent receipt without consuming order numbers',async()=>{
+ const userId=randomUUID(),customerId=randomUUID(),vehicleId=randomUUID(),orderId=randomUUID();
+ await sql.runSql(async tx=>{
+  const sequenceBefore=(await tx.query("SELECT CONVERT(varchar(30),current_value) AS n FROM sys.sequences WHERE name='OrderNumber'")).recordset[0].n;
+  const identification=String(randomInt(100000000,999999999)),nextIdentification=String(randomInt(100000000,999999999));
+  const token=randomUUID().replaceAll('-','')+'a'.repeat(11),hash=tokenHash(token),key=randomUUID();
+  await tx.insertUser({id:userId,username:'atomic-'+randomUUID().slice(0,8),fullName:'Atomic fixture',passwordHash:'unused',role:'MECHANIC',active:true});
+  await tx.insertSession({tokenHash:hash,userId,csrf:'fixture',lastActivity:await tx.time(),revoked:false});
+  await tx.query("INSERT dbo.Customers(id,full_name,identification,phone) VALUES(@id,N'Fixture',@identification,'88888888')",{id:customerId,identification});
+  await tx.query("INSERT dbo.Vehicles(id,owner_id,plate,make,model,year) VALUES(@id,@owner,'ATM999','Toyota','Hilux',2020)",{id:vehicleId,owner:customerId});
+  const draft={customerName:'Fixture',identification,phone:'88888888',plate:'ATM999',make:'Toyota',model:'Hilux',year:2020,mileage:1,notes:'',recommendations:'',customerId,vehicleId,items:[],paymentMethod:'CASH',electronicInvoice:false};
+  await tx.query("INSERT dbo.Orders(id,order_number,customer_id,vehicle_id,mechanic_id,draft_data,customer_name_snapshot,plate_snapshot,mileage,notes,recommendations,tax_rate) VALUES(@id,@number,@customer,@vehicle,@mechanic,@data,N'Fixture','ATM999',1,'','',13)",{id:orderId,number:900000000+randomInt(10000000),customer:customerId,vehicle:vehicleId,mechanic:userId,data:JSON.stringify(draft)});
+  const before=(await tx.order(orderId))!;
+  const api=createApi({repository:{run:work=>work(tx)},origin});
+  const next={...draft,customerId:undefined,identification:nextIdentification,plate:'ATM998',items:[{description:'Fixture',price:1}],action:'close'};
+  const call=()=>api(new Request(origin+'/api/orders/'+orderId,{method:'PUT',headers:{origin,'content-type':'application/json',cookie:'j5_session='+token,'x-csrf-token':'fixture','idempotency-key':key,'if-match':'"'+before.version+'"'},body:JSON.stringify(next)}));
+  const response=await call();expect(response.status).toBe(409);expect(await response.json()).toEqual({code:'ORDER_IDENTITY_MISMATCH'});
+  expect((await tx.query('SELECT id FROM dbo.Customers WHERE identification=@identification',{identification:nextIdentification})).recordset).toHaveLength(0);
+  expect(await tx.order(orderId)).toEqual(before);expect(await tx.receipt(userId,key)).toBeDefined();expect((await call()).status).toBe(409);
+  const accepted=await api(new Request(origin+'/api/orders/'+orderId,{method:'PUT',headers:{origin,'content-type':'application/json',cookie:'j5_session='+token,'x-csrf-token':'fixture','idempotency-key':randomUUID(),'if-match':'"'+before.version+'"'},body:JSON.stringify({...draft,items:[{description:'Fixture',price:1}],action:'close'})}));
+  expect(accepted.status).toBe(200);expect(await accepted.json()).toMatchObject({status:'CLOSED',totalAmount:1.13});
+  expect((await tx.query("SELECT CONVERT(varchar(30),current_value) AS n FROM sys.sequences WHERE name='OrderNumber'")).recordset[0].n).toBe(sequenceBefore);
+ },undefined,true);
+ expect(await sql.run(tx=>tx.order(orderId))).toBeUndefined();expect(await sql.run(tx=>tx.userById(userId))).toBeUndefined();
+},60000);
+it.skipIf(!enabled)('active catalog counts may change without breaking reads and preserve the seed after rollback',async()=>{
+ await sql.runSql(async tx=>{
+  const initial=await tx.vehicleCatalog();
+  await tx.query('UPDATE dbo.VehicleModels SET active=0 WHERE id=(SELECT MIN(id) FROM dbo.VehicleModels)');
+  const catalog=await tx.vehicleCatalog();expect(catalog.version).toBe(1);expect(catalog.makes.reduce((n,m)=>n+m.models.length,0)).toBe(985);
+  await tx.query('UPDATE dbo.VehicleMakes SET active=0 WHERE id=(SELECT MIN(id) FROM dbo.VehicleMakes)');
+  expect((await tx.vehicleCatalog()).makes).toHaveLength(initial.makes.length-1);
+ },undefined,true);
+ expect(await sql.run(tx=>tx.vehicleCatalog())).toMatchObject({version:1});
+},60000);

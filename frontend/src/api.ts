@@ -12,11 +12,11 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
   const headers = new Headers(options.headers);
   const safe = method === 'GET' || headers.has('Idempotency-Key');
   const catalog = path === '/vehicle-catalog' && method === 'GET';
-  const deadline = Date.now() + (catalog ? 30000 : 120000);
+  const deadline = Date.now() + 120000;
   for (let attempt = 0; ; attempt++) {
     let response: Response | undefined;
     try {
-      response = await fetch(`/api${path}`, { ...options, headers, credentials: 'same-origin', signal: AbortSignal.timeout(Math.min(catalog ? 6000 : 35000, Math.max(1, deadline - Date.now()))) });
+      response = await fetch(`/api${path}`, { ...options, headers, credentials: 'same-origin', signal: AbortSignal.timeout(Math.min(35000, Math.max(1, deadline - Date.now()))) });
       if (response.ok) {
         const result = await response.json() as T;
         for (const listener of backendSuccessListeners) listener();

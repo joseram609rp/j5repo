@@ -16,10 +16,24 @@ it('first load fetches once, persists cache and provides filtered suggestions',a
  const toyota=payload.makes.find((m:{name:string})=>m.name==='Toyota');expect(suggestions(toyota.models,'hil')).toContain('Hilux');
 });
 it('stale cache is delivered immediately and survives API failure',async()=>{
- await seed({schema:1,fetchedAt:0,payload});vi.mocked(api).mockRejectedValue(new TypeError('offline'));
+ await seed({schema:2,fetchedAt:0,payload});vi.mocked(api).mockRejectedValue(new TypeError('offline'));
  const {loadVehicleCatalog}=await import('./vehicle-catalog');const update=vi.fn();await loadVehicleCatalog(update);expect(update).toHaveBeenCalledExactlyOnceWith(payload);
 });
 it('fresh cache avoids fetch; incompatible cache is discarded and failure remains non-blocking',async()=>{
- await seed({schema:1,fetchedAt:Date.now(),payload});let module=await import('./vehicle-catalog');const update=vi.fn();await module.loadVehicleCatalog(update);expect(api).not.toHaveBeenCalled();
- vi.resetModules();await seed({schema:2,fetchedAt:Date.now(),payload});vi.mocked(api).mockRejectedValue(new Error('failed'));module=await import('./vehicle-catalog');const empty=vi.fn();await expect(module.loadVehicleCatalog(empty)).resolves.toBeUndefined();expect(empty).not.toHaveBeenCalled();
+ await seed({schema:2,fetchedAt:Date.now(),payload});let module=await import('./vehicle-catalog');const update=vi.fn();await module.loadVehicleCatalog(update);expect(api).not.toHaveBeenCalled();
+ vi.resetModules();await seed({schema:3,fetchedAt:Date.now(),payload});vi.mocked(api).mockRejectedValue(new Error('failed'));module=await import('./vehicle-catalog');const empty=vi.fn();await expect(module.loadVehicleCatalog(empty)).resolves.toBeUndefined();expect(empty).not.toHaveBeenCalled();
+});
+
+it('accepts changing active counts and rejects malformed or unknown-version payloads',async()=>{
+ const {validCatalog}=await import('./vehicle-catalog');
+ expect(validCatalog({version:1,makes:[{name:'Marca nueva',models:['Modelo nuevo']}]})).toBe(true);
+ expect(validCatalog({version:1,makes:[]})).toBe(true);
+ for(const value of [null,{version:2,makes:[]},{makes:[null]},{makes:[{name:'Toyota',models:[null]}]}, {makes:[{name:'Toyota',models:['Hilux','HÍLUX']}]},{makes:[{name:'Toyota',models:[]},{name:'TOYOTA',models:[]}]}]) expect(validCatalog(value)).toBe(false);
+});
+it('retains legacy cache offline and migrates it through a background refresh',async()=>{
+ await seed({schema:1,fetchedAt:Date.now(),payload});vi.mocked(api).mockRejectedValueOnce(new TypeError('offline'));
+ const {loadVehicleCatalog}=await import('./vehicle-catalog');const update=vi.fn();await loadVehicleCatalog(update);expect(update).toHaveBeenCalledWith(payload);
+ const next={version:1,makes:[{name:'Marca nueva',models:['Modelo nuevo']}]};vi.mocked(api).mockResolvedValueOnce(next);
+ await loadVehicleCatalog(update);expect(update).toHaveBeenLastCalledWith(next);
+ const database=await openDB('j5-vehicle-catalog',1);expect((await database.get('catalog','current')).schema).toBe(2);database.close();
 });

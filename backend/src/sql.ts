@@ -152,8 +152,7 @@ export class SqlUnit implements UnitOfWork {
     )).recordset;
     const makes = new Map<string,string[]>();
     for (const row of rows) { if (!makes.has(row.make)) makes.set(row.make, []); if(row.model) makes.get(row.make)!.push(row.model); }
-    if (makes.size !== 57 || rows.filter(r=>r.model).length !== 986) throw new HttpError(500, 'VEHICLE_CATALOG_INCONSISTENT');
-    return { makes: [...makes].map(([name,models])=>({name,models})) };
+    return { version: 1 as const, makes: [...makes].map(([name,models])=>({name,models})) };
   }
   async time() {
     const r = await this.query<{ now: Date }>(
@@ -331,6 +330,21 @@ export class SqlUnit implements UnitOfWork {
     return result;
   }
   async saveOrder(id: string, userId: string, draft: Draft, previous?: Order) {
+    // A business rejection is persisted as a receipt by the API. Undo all work
+    // from this operation first so that its outer transaction can commit safely.
+    await this.query('SAVE TRANSACTION j5_save_order');
+    try {
+      return await this.saveOrderData(id, userId, draft, previous);
+    } catch (error) {
+      if (error instanceof HttpError) {
+        await this.query('ROLLBACK TRANSACTION j5_save_order');
+        await this.query("EXEC sys.sp_set_session_context @key=N'j5_admin_mutation',@value=NULL; EXEC sys.sp_set_session_context @key=N'j5_mechanic_reassignment',@value=NULL;");
+      }
+      // SQL/driver failures abort the entire outer transaction; no receipt is committed.
+      throw error;
+    }
+  }
+  private async saveOrderData(id: string, userId: string, draft: Draft, previous?: Order): Promise<Order> {
     if (draft.action === 'close') {
       const actor = await this.userById(userId);
       if (previous && actor?.role !== 'ADMIN' && previous.mechanicId !== userId) throw new HttpError(403, 'ASSIGNED_MECHANIC_REQUIRED');

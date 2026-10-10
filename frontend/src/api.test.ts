@@ -36,3 +36,10 @@ it('catalog bounds retries and never retries authentication or missing endpoint'
  const result=api('/vehicle-catalog').catch(e=>e);await vi.advanceTimersByTimeAsync(30000);expect(await result).toMatchObject({status:503});expect(fetch).toHaveBeenCalledTimes(4);
  for(const status of [400,401,403,404]) {fetch.mockClear().mockResolvedValue(Response.json({}, {status}));await expect(api('/vehicle-catalog')).rejects.toMatchObject({status});expect(fetch).toHaveBeenCalledTimes(1);}
 });
+
+it('allows a catalog request to complete SQL retries beyond six seconds',async()=>{
+ vi.useFakeTimers();const fetch=vi.fn((_url:string,_options:RequestInit)=>new Promise(resolve=>setTimeout(()=>resolve(Response.json({version:1,makes:[]})),16000)));vi.stubGlobal('fetch',fetch);
+ const request=api('/vehicle-catalog');await vi.advanceTimersByTimeAsync(16000);
+ expect(await request).toEqual({version:1,makes:[]});expect(fetch).toHaveBeenCalledTimes(1);
+ const signal=fetch.mock.calls[0]?.[1]?.signal;expect(signal?.aborted).not.toBe(true);
+});

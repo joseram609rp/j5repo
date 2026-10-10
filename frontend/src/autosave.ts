@@ -41,6 +41,7 @@ type Mutation = {
   draft: Draft;
   version: string | null;
   revision: number;
+  baseDraft?: Draft;
 };
 export type RecordState = {
   id: string;
@@ -50,6 +51,8 @@ export type RecordState = {
   savedRevision: number;
   order?: Order;
   pending?: Mutation;
+  conflict?: { remote: Order };
+  recoveryCopies?: { draft: Draft; pending?: Mutation; version: string | null; savedAt: number }[];
 };
 const db = () =>
   openDB('j5-drafts-v1', 1, {
@@ -60,23 +63,27 @@ const db = () =>
 export const storage = {
   async read(user: string, orderId?: string): Promise<RecordState | undefined> {
     const database = await db();
-    const tx = database.transaction('drafts', 'readwrite');
-    const legacy: RecordState | undefined = await tx.store.get(user);
-    if (legacy) {
-      if (!await tx.store.get([user, legacy.id])) await tx.store.put(legacy, [user, legacy.id]);
-      await tx.store.delete(user);
-    }
-    await tx.done;
-    if (orderId) return database.get('drafts', [user, orderId]);
-    return legacy;
+    try {
+      const tx = database.transaction('drafts', 'readwrite');
+      const legacy: RecordState | undefined = await tx.store.get(user);
+      if (legacy) {
+        if (!await tx.store.get([user, legacy.id])) await tx.store.put(legacy, [user, legacy.id]);
+        await tx.store.delete(user);
+      }
+      await tx.done;
+      return orderId ? await database.get('drafts', [user, orderId]) : legacy;
+    } finally { database.close(); }
   },
   async list(user: string): Promise<RecordState[]> {
     await this.read(user);
-    return (await db()).getAll('drafts', IDBKeyRange.bound([user, ''], [user, '\uffff']));
+    const database = await db();
+    try { return await database.getAll('drafts', IDBKeyRange.bound([user, ''], [user, '\uffff'])); }
+    finally { database.close(); }
   },
   async write(user: string, record: RecordState) {
     const database = await db();
-    await database.put('drafts', record, [user, record.id]);
+    try { await database.put('drafts', record, [user, record.id]); }
+    finally { database.close(); }
   },
 };
 export const fresh = (): RecordState => ({
@@ -128,7 +135,10 @@ export class Autosave {
         },
         body: JSON.stringify(mutation.draft),
       }),
-  ) { this.baselineDraft = state.order?.draft; }
+  ) {
+    this.baselineDraft = structuredClone(state.pending?.baseDraft ?? state.order?.draft);
+    this.stopped = !!state.conflict;
+  }
   private write() {
     const snapshot = structuredClone(this.state);
     this.queue = this.queue
@@ -137,6 +147,7 @@ export class Autosave {
     return this.queue;
   }
   async edit(draft: Draft) {
+    if (this.state.conflict) throw new Error('ORDER_CONFLICT');
     if (
       this.state.pending?.draft.action ||
       this.state.draft.action ||
@@ -203,18 +214,19 @@ export class Autosave {
       throw new Error('ACTION_REJECTED');
     return this.state.order;
   }
-  async refresh(conflict = false) {
+  async refresh(conflict = false, allowMetadataRebase = true) {
     const version = this.state.version;
     const metadataVersion = this.state.order?.version;
     if (this.detached) return;
-    if (!version || (this.active && !conflict)) return;
+    if ((!version && !conflict) || (this.active && !conflict)) return;
     const remote = await api<Order>('/orders/' + this.state.id);
     if (this.detached || (this.active && !conflict) || this.state.version !== version || this.state.order?.version !== metadataVersion) return;
     if (!conflict && remote.version === this.state.order?.version) return;
     const reassigned = this.state.order?.mechanicId !== remote.mechanicId;
     const metadataOnly = JSON.stringify(this.baselineDraft) === JSON.stringify(remote.draft) && remote.status === 'OPEN';
     this.state.order = remote;
-    if (conflict && metadataOnly) {
+    if (this.state.conflict) this.state.conflict.remote = remote;
+    if (conflict && allowMetadataRebase && metadataOnly && !this.state.conflict) {
       // A metadata-only reassignment can safely rebase the preserved local edits.
       delete this.state.pending;
       const { action: _, mechanicId: __, ...local } = this.state.draft;
@@ -232,6 +244,47 @@ export class Autosave {
     if (remote.status !== 'OPEN' && !awaitingReceipt) this.stopped = true;
     await this.write();
     this.report(reassigned ? `Esta orden fue reasignada a ${remote.mechanicName ?? remote.mechanicId}.` : remote.status === 'VOID' ? 'Esta orden fue cancelada.' : 'Orden actualizada.');
+  }
+  /** Re-fetch before applying a reviewed choice. Old pending requests never get reused. */
+  async resolveConflict(expectedVersion: string, selected?: Draft) {
+    clearTimeout(this.timer);
+    await this.active;
+    if (this.detached || !this.state.conflict) throw new Error('NO_CONFLICT');
+    let remote: Order;
+    try { remote = await api<Order>('/orders/' + this.state.id); }
+    catch (error) { if (error instanceof ApiError && error.status === 401) this.expired(); throw error; }
+    if (this.detached) throw new Error('EDITOR_DETACHED');
+    if (remote.version !== expectedVersion) {
+      this.state.conflict.remote = remote;
+      this.state.order = remote;
+      await this.write();
+      this.report('La orden cambió nuevamente. Revisa la versión más reciente antes de guardar.');
+      throw new Error('REVIEW_CHANGED');
+    }
+    if (selected && remote.status !== 'OPEN') throw new Error('ORDER_NOT_OPEN');
+    const previous = structuredClone(this.state);
+    this.state.recoveryCopies = [...(this.state.recoveryCopies ?? []), {
+      draft: structuredClone(this.state.draft), pending: structuredClone(this.state.pending),
+      version: this.state.version, savedAt: Date.now(),
+    }];
+    const { action: _, mechanicId: __, ...draft } = structuredClone(selected ?? remote.draft);
+    this.state.draft = draft;
+    this.state.order = remote;
+    this.state.version = remote.version;
+    this.state.revision++;
+    if (!selected) this.state.savedRevision = this.state.revision;
+    delete this.state.pending;
+    delete this.state.conflict;
+    try { await this.write(); }
+    catch {
+      Object.assign(this.state, previous);
+      this.state.recoveryCopies = previous.recoveryCopies;
+      throw new Error('LOCAL_SAVE_FAILED');
+    }
+    this.baselineDraft = structuredClone(remote.draft);
+    this.stopped = remote.status !== 'OPEN';
+    this.report('Conflicto resuelto. Tu borrador anterior se conserva en este dispositivo.');
+    if (selected) await this.sync();
   }
   async pause() {
     this.detached = true;
@@ -270,6 +323,7 @@ export class Autosave {
           draft: structuredClone(this.state.draft),
           version: this.state.version,
           revision: this.state.revision,
+          baseDraft: structuredClone(this.baselineDraft),
         };
         await this.write();
         const mutation = this.state.pending;
@@ -325,11 +379,15 @@ export class Autosave {
         this.expired();
       } else if (
         error instanceof ApiError &&
-        [409, 412, 428].includes(error.status)
+        [400, 403, 409, 412, 428].includes(error.status)
       ) {
         this.stopped = true;
         const priorMechanic = this.state.order?.mechanicId;
-        if (error.status === 412) await this.refresh(true).catch(() => undefined);
+        await this.refresh(true, error.status === 412).catch(() => undefined);
+        if (this.stopped && this.state.order) {
+          this.state.conflict = { remote: structuredClone(this.state.order) };
+          await this.write();
+        }
         const notice = priorMechanic !== this.state.order?.mechanicId ? `Esta orden fue reasignada a ${this.state.order?.mechanicName ?? this.state.order?.mechanicId}. ` : '';
         this.report(
           notice + 'Conflicto de versión. La orden se ha consultado de nuevo; tu copia local está protegida. Revisa los datos antes de reintentar.',

@@ -755,3 +755,34 @@ it('shows failed health on the login screen without replacing login messages', a
  expect(notices()).not.toContain('La base de datos no está disponible');
  expect(notices()).toContain('Inicia sesión para continuar.');
 });
+it('recovers a content conflict from disk through explicit review without losing the old draft',async()=>{
+ const local=fresh();local.version='v1';local.revision=1;local.draft={...complete,notes:'Mis notas'};
+ const remote:Order={id:local.id,version:'v2',status:'OPEN',mechanicId:session.userId,draft:{...complete,notes:'Notas del servidor',recommendations:'Recomendación remota'}};
+ local.order=remote;local.conflict={remote};disk=clone(local);orders.set(remote.id,remote);
+ await mount();await click('Órdenes abiertas');await click('Continuar');
+ expect(text()).toContain('Esta orden cambió mientras la editabas');expect(puts).toBe(0);
+ await act(async()=>{const select=container.querySelector<HTMLSelectElement>('select[aria-label="Conservar Observaciones"]')!;select.value='local';select.dispatchEvent(new Event('change',{bubbles:true}));});
+ await click('Guardar combinación revisada');expect(puts).toBe(1);expect(disk?.draft.notes).toBe('Mis notas');expect(disk?.draft.recommendations).toBe('Recomendación remota');expect(disk?.recoveryCopies?.[0]?.draft.notes).toBe('Mis notas');expect(text()).not.toContain('Esta orden cambió mientras la editabas');
+});
+
+it('reloads catalog suggestions on reconnect without replacing the current draft',async()=>{
+ const original=vi.mocked(api).getMockImplementation()!;let loads=0;
+ vi.mocked(api).mockImplementation(async(path,options)=>{
+  if(path==='/vehicle-catalog'){loads++;if(loads===1)throw new TypeError('offline');return {version:1,makes:[{name:'Toyota',models:['Hilux']}]} as never;}
+  return original(path,options);
+ });
+ await mount();await click('Nueva orden');expect(loads).toBe(1);
+ await act(async()=>{window.dispatchEvent(new Event('online'));for(let i=0;i<30;i++)await Promise.resolve();});
+ expect(loads).toBe(2);await input('[data-field="make"]','to');
+ await act(async()=>{container.querySelector<HTMLInputElement>('[data-field="make"]')!.focus();});
+ expect(container.querySelector('[role="listbox"]')?.textContent).toContain('Toyota');expect(disk?.id).toBeDefined();
+});
+
+it('only applies a PWA update after the pending draft is safely synchronized',async()=>{
+ const {announceUpdate}=await import('./pwa-update');const update=vi.fn(async()=>{});announceUpdate(update);
+ await mount();await click('Nueva orden');await input('[data-field="customerName"]','Borrador pendiente');
+ const original=vi.mocked(api).getMockImplementation()!;let offline=true;
+ vi.mocked(api).mockImplementation(async(path,options)=>{if(offline && options?.method==='PUT')throw new TypeError('offline');return original(path,options);});
+ await click('Actualizar aplicación');expect(update).not.toHaveBeenCalled();expect(disk?.draft.customerName).toBe('Borrador pendiente');
+ offline=false;await click('Actualizar aplicación');expect(update).toHaveBeenCalledTimes(1);expect(disk?.pending).toBeUndefined();
+});

@@ -20,7 +20,7 @@ Node 22.12+ (<25) y pnpm 11.19.0.
 
 1. `pnpm install --frozen-lockfile`.
 2. Copiar `.env.example` a `.env` en la raíz y completar las credenciales localmente. Nunca usar secretos en `VITE_*`.
-3. `pnpm db:migrate` con una cuenta autorizada para DDL. Las migraciones 001–006 permanecen intactas; 007 retira la obligación de observaciones y deja año >=1950; 008 permite reasignar OPEN mediante operación ADMIN autorizada. Ver [base de datos](database/README.md).
+3. `pnpm db:migrate` con una cuenta autorizada para DDL. Las migraciones 001–010 son inmutables tras aplicación; 007 deja año >=1950 y notas opcionales; 008 permite reasignar OPEN; 009 agrega IVA/pago/notas por trabajo; 010 crea y siembra catálogo. Ver [base de datos](database/README.md).
 4. Solo en instalaciones sin ADMIN: `pnpm admin:create` desde una terminal interactiva; contraseña oculta, sin argumentos.
 5. `pnpm dev` y abrir `http://localhost:5173`. API local en `http://127.0.0.1:7071`; APP_ORIGIN debe coincidir exactamente.
 
@@ -63,7 +63,7 @@ El servidor asigna mechanic_id y calcula subtotal, IVA por línea y total. Solo 
 
 ## Persistencia y sesión
 
-IndexedDB mantiene registros por clave compuesta [userId, orderId], migrando atómicamente el borrador legacy por usuario sin descartarlo; payload/clave/ETag pendientes y metadata de la orden. El cierre se persiste antes del envío; una respuesta perdida se recupera con la misma clave. Se protege el borrador antes de cambiar de orden. Un 412 consulta la orden nuevamente y conserva el borrador. Si únicamente cambió la metadata por reasignación, permite reintentar con ETag y clave nuevos; si cambió el contenido remoto, detiene sync para revisión. La recuperación guiada de conflictos de contenido queda para Phase 4.
+IndexedDB mantiene registros por clave compuesta [userId, orderId], migrando atómicamente el borrador legacy por usuario sin descartarlo; payload/clave/ETag pendientes y metadata de la orden. El cierre se persiste antes del envío; una respuesta perdida se recupera con la misma clave. Se protege el borrador antes de cambiar de orden. Un 412 consulta la orden nuevamente y conserva el borrador. Si únicamente cambió la metadata por reasignación, permite reintentar con ETag y clave nuevos; si cambió el contenido remoto, detiene sync para revisión. La revisión de conflictos compara cliente, vehículo, trabajos y demás campos; permite combinar elecciones o usar el servidor. Guarda la copia anterior y su pending en recoveryCopies de IndexedDB, permite descargar el respaldo y exige nueva revisión si el servidor cambió otra vez. La resolución nunca repite automáticamente cierre/cancelación/cambio de dueño.
 
 Estados: Guardado, Sincronizando, copia local/offline y error. Retry manual aparece solo ante fallo recuperable; al volver la conexión se reintenta automáticamente. Un Web Lock por usuario evita dos editores locales simultáneos.
 
@@ -71,7 +71,7 @@ Sesión: cookie HttpOnly/SameSite=Strict y Secure en producción; SQL guarda has
 
 ## Phase 4
 
-Recuperación guiada de conflictos, anulación/correcciones administrativas avanzadas, reportes, catálogos más amplios, retención de recibos/sesiones y pruebas de COMMIT ambiguo/concurrencia entre procesos. Antes de producción: configuración HTTPS/Functions/Managed Identity, permisos SQL mínimos, limitador compartido y pruebas PWA en dispositivos reales.
+Anulación/correcciones administrativas avanzadas, reportes, catálogos más amplios, retención de recibos/sesiones y pruebas de COMMIT ambiguo/concurrencia entre procesos. Antes de producción: configuración HTTPS/Functions/Managed Identity, permisos SQL mínimos, limitador compartido y pruebas PWA en dispositivos reales.
 
 Ver [arquitectura](docs/architecture.md) e [infraestructura](infra/README.md).
 
@@ -79,7 +79,7 @@ Búsqueda de órdenes: nombres parciales con collation Latin1_General_100_CI_AI;
 
 Reasignación: ADMIN elige un usuario activo y pulsa Actualizar mecánico, usando action=assign-mechanic y mechanicId. AuditLogs guarda actor_id, entity_id de la orden y action=ORDER_MECHANIC_CHANGED. No requiere ampliar schema. El mecánico actual viaja en Order.mechanicId; el campo Draft.mechanicId es una intención de cambio y se retira del borrador al guardar.
 
-CarsXE, catálogos de marcas/modelos y llamadas externas permanecen fuera de esta fase.
+Catálogo de marcas/modelos integrado mediante 010; no se realizan llamadas externas CarsXE en runtime.
 
 Editor y lista OPEN consultan SQL al recuperar foco/visibilidad y cada 30 segundos mientras están visibles. El editor avisa de la reasignación y actualiza los permisos de cancelación; los borradores pendientes conservan su versión base hasta resolver el conflicto. Estos GET no generan actividad ni renuevan la sesión de dos horas. La lista se vuelve a consultar al entrar al módulo.
 
@@ -92,3 +92,11 @@ paymentMethod admite SINPE, CREDIT_CARD, DEBIT_CARD, CASH y BANK_TRANSFER (SINPE
 009_order_billing.sql agrega OrderItems.notes y Orders.tax_rate y actualiza guardas/cálculo de totales. Conserva los importes históricos con tasa inicial 0; las nuevas órdenes y guardados normales de OPEN aplican 13%. CLOSED históricas conservan sus importes y no se recalculan al leer. Las guardas impiden cerrar órdenes nuevas con IVA sin las elecciones de pago/factura y comprueban el total contra los servicios.
 
 El mensaje «Escribe las observaciones de la orden.» no existe en este código ni su build. Si se ve tras actualizar los archivos, comprobar que el navegador/PWA esté ejecutando el build reciente; recargar sin borrar IndexedDB ni los borradores locales.
+
+## Correcciones de revisión Phase 3
+
+saveOrder usa savepoint para revertir todos los efectos de un rechazo de negocio antes de guardar su recibo idempotente. Errores SQL/driver siguen revirtiendo toda la transacción. No requiere una migración nueva.
+
+GET vehicle-catalog devuelve version=1 y cantidades activas dinámicas. El seed y cleanup mantienen su validación 57/986; el runtime permite futuras altas/desactivaciones. Cache schema=2 conserva sugerencias schema=1 y las refresca, TTL 7 días. Reconectar vuelve a cargar el catálogo sin tocar drafts; retries limitados a cuatro intentos, timeout 35s por petición y 120s total, para permitir el presupuesto SQL de 28s. Los campos manuales siguen disponibles durante la carga.
+
+La PWA anuncia actualizaciones con botón explícito. Antes de actualizar intenta sincronizar el editor; pendientes/conflictos o error bloquean la actualización y conservan datos. IndexedDB cierra sus conexiones después de cada operación; limpieza local sigue requiriendo cerrar pestañas/PWA y detener APIs antes del cleanup SQL.
