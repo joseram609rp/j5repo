@@ -14,3 +14,15 @@ it('keyboard selection, make scoped models, custom text and autosave share the n
  await type(make!,'Marca propia');await type(model!,'Modelo propio');expect(container.querySelector('[role=listbox]')).toBeNull();expect(saver.state.draft).toMatchObject({make:'Marca propia',model:'Modelo propio'});expect(persist).toHaveBeenCalled();
  await act(async()=>root.unmount());container.remove();await saver.pause();
 });
+it.each(['Tab','Enter'])('accepts the sole suggestion using %s without silently completing input',async key=>{
+ vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);const container=document.createElement('div');document.body.append(container);const root=createRoot(container);
+ function Form(){const [value,setValue]=useState('toyot');return <CatalogInput value={value} values={['Toyota','Suzuki']} onValue={setValue}/>;}
+ await act(async()=>root.render(<Form/>));const input=container.querySelector('input')!;await act(async()=>input.focus());expect(input.value).toBe('toyot');
+ await act(async()=>{input.dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true,cancelable:true}));});expect(input.value).toBe('Toyota');
+ await act(async()=>root.unmount());container.remove();
+});
+it('Tab leaves ambiguous suggestions and free text untouched',async()=>{
+ vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);const container=document.createElement('div');document.body.append(container);const root=createRoot(container);const choose=vi.fn();
+ await act(async()=>root.render(<CatalogInput value="To" values={['Toyota','Tornado']} onValue={choose}/>));const input=container.querySelector('input')!;await act(async()=>input.focus());await act(async()=>{input.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',bubbles:true}));});expect(choose).not.toHaveBeenCalled();
+ await act(async()=>root.render(<CatalogInput value="Custom" values={['Toyota']} onValue={choose}/>));await act(async()=>{input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));});expect(choose).not.toHaveBeenCalled();await act(async()=>root.unmount());container.remove();
+});

@@ -20,6 +20,9 @@ export type User = {
   passwordHash: string;
   role: 'ADMIN' | 'MECHANIC';
   active: boolean;
+  failedLoginAttempts?: number;
+  lockedUntil?: number | null;
+  lastLoginAttemptId?: string | null;
 };
 export type Session = {
   tokenHash: string;
@@ -70,7 +73,7 @@ export type Receipt = {
   passwordHash?: string;
   reply: Reply;
 };
-export const publicUser = ({ passwordHash: _, ...user }: User) => user;
+export const publicUser = ({ passwordHash: _, lastLoginAttemptId: __, ...user }: User) => user;
 export type VehicleCatalog = { version?: 1; makes: { name: string; models: string[] }[] };
 export interface UnitOfWork {
   vehicleCatalog(): Promise<VehicleCatalog>;
@@ -80,6 +83,8 @@ export interface UnitOfWork {
   users(): Promise<User[]>;
   insertUser(user: User): Promise<void>;
   updateUser(user: User): Promise<void>;
+  deleteUser(id: string): Promise<void>;
+  userHasHistory(id: string): Promise<boolean>;
   session(hash: string): Promise<Session | undefined>;
   insertSession(session: Session): Promise<void>;
   touchSession(hash: string, now: number): Promise<void>;

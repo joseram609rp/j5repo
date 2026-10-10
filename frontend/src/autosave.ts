@@ -7,6 +7,7 @@ export type Draft = {
   mechanicId?: string;
   customerId?: string;
   vehicleId?: string;
+  ownerResolution?: {decision: 'transfer' | 'keep'; vehicleId:string; customerId:string; expectedOwnerId:string};
   action?: 'close' | 'reopen' | 'void' | 'admin-edit' | 'transfer-owner' | 'assign-mechanic';
   customerName: string;
   plate: string;
@@ -175,7 +176,7 @@ export class Autosave {
     if (this.state.pending || this.state.savedRevision < this.state.revision)
       throw new Error('SYNC_REQUIRED');
   }
-  async action(action: NonNullable<Draft['action']>) {
+  async action(action: NonNullable<Draft['action']>, ownerResolution?: Draft['ownerResolution']) {
     const replaying =
       this.state.pending?.draft.action === action ||
       this.state.draft.action === action;
@@ -203,7 +204,7 @@ export class Autosave {
         throw new Error('ACTION_REJECTED');
       return this.state.order;
     }
-    await this.edit({ ...this.state.draft, action });
+    await this.edit({ ...this.state.draft, action, ...(action==='close' && ownerResolution ? {ownerResolution} : {}) });
     await this.flush();
     if (
       this.state.version === beforeVersion ||
@@ -229,7 +230,7 @@ export class Autosave {
     if (conflict && allowMetadataRebase && metadataOnly && !this.state.conflict) {
       // A metadata-only reassignment can safely rebase the preserved local edits.
       delete this.state.pending;
-      const { action: _, mechanicId: __, ...local } = this.state.draft;
+      const { action: _, ownerResolution: _ownerResolution, mechanicId: __, ...local } = this.state.draft;
       this.state.draft = local;
       this.state.version = remote.version;
       this.stopped = false;
@@ -267,7 +268,7 @@ export class Autosave {
       draft: structuredClone(this.state.draft), pending: structuredClone(this.state.pending),
       version: this.state.version, savedAt: Date.now(),
     }];
-    const { action: _, mechanicId: __, ...draft } = structuredClone(selected ?? remote.draft);
+    const { action: _, ownerResolution: _ownerResolution, mechanicId: __, ...draft } = structuredClone(selected ?? remote.draft);
     this.state.draft = draft;
     this.state.order = remote;
     this.state.version = remote.version;
@@ -347,7 +348,7 @@ export class Autosave {
           mutation.draft.action &&
           this.state.revision === mutation.revision
         ) {
-          const { action: _, ...draft } = this.state.draft;
+          const { action: _, ownerResolution: _ownerResolution, ...draft } = this.state.draft;
           this.state.draft = draft;
         }
         this.state.version = result.version;
@@ -361,18 +362,20 @@ export class Autosave {
         error instanceof ApiError &&
         ([400, 403].includes(error.status) ||
           (error.status === 409 &&
-            ['OWNER_SELECTION_MISMATCH', 'ORDER_IDENTITY_MISMATCH'].includes(
+            ['OWNER_SELECTION_MISMATCH', 'ORDER_IDENTITY_MISMATCH', 'OWNER_DECISION_REQUIRED', 'OWNER_DECISION_STALE'].includes(
               error.code,
             ))) &&
         this.state.pending?.draft.action
       ) {
         delete this.state.pending;
-        const { action: _, ...draft } = this.state.draft;
+        const { action: _, ownerResolution: _ownerResolution, ...draft } = this.state.draft;
         this.state.draft = draft;
         this.state.revision = this.state.savedRevision;
         await this.write();
         this.report(
-          'La acción fue rechazada. Revisa los datos y los permisos.',
+          ['OWNER_DECISION_REQUIRED','OWNER_DECISION_STALE'].includes(error.code)
+            ? 'Confirma quién será el dueño del vehículo al cerrar. El dueño registrado puede haber cambiado; vuelve a pulsar Cerrar orden.'
+            : 'La acción fue rechazada. Revisa los datos y los permisos.',
         );
       } else if (error instanceof ApiError && error.status === 401) {
         this.stopped = true;

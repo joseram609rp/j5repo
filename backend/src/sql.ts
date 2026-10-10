@@ -55,6 +55,9 @@ type UserRow = {
   password_hash: string;
   role: User['role'];
   active: boolean;
+  failed_login_attempts: number;
+  locked_until: Date | null;
+  last_login_attempt_id: string | null;
 };
 const user = (r: UserRow): User => ({
   id: r.id.toLowerCase(),
@@ -63,6 +66,9 @@ const user = (r: UserRow): User => ({
   passwordHash: r.password_hash,
   role: r.role,
   active: r.active,
+  failedLoginAttempts: r.failed_login_attempts,
+  lockedUntil: r.locked_until?.getTime() ?? null,
+  lastLoginAttemptId: r.last_login_attempt_id?.toLowerCase() ?? null,
 });
 type OrderRow = {
   id: string;
@@ -163,7 +169,7 @@ export class SqlUnit implements UnitOfWork {
   async userByName(username: string) {
     const r = await this.query<UserRow>(
       'SELECT * FROM dbo.Users WITH (UPDLOCK,HOLDLOCK) WHERE username=@username',
-      { username },
+      { username: username.trim().toLowerCase() },
     );
     return r.recordset[0] ? user(r.recordset[0]) : undefined;
   }
@@ -186,7 +192,7 @@ export class SqlUnit implements UnitOfWork {
       'INSERT dbo.Users(id,username,full_name,password_hash,role,active) VALUES(@id,@username,@fullName,@hash,@role,@active)',
       {
         id: u.id,
-        username: u.username,
+        username: u.username.trim().toLowerCase(),
         fullName: u.fullName,
         hash: u.passwordHash,
         role: u.role,
@@ -196,15 +202,35 @@ export class SqlUnit implements UnitOfWork {
   }
   async updateUser(u: User) {
     await this.query(
-      'UPDATE dbo.Users SET full_name=@fullName,password_hash=@hash,role=@role,active=@active WHERE id=@id',
+      'UPDATE dbo.Users SET full_name=@fullName,password_hash=@hash,role=@role,active=@active,failed_login_attempts=@failed,locked_until=@locked,last_login_attempt_id=@attempt WHERE id=@id',
       {
         id: u.id,
         fullName: u.fullName,
         hash: u.passwordHash,
         role: u.role,
         active: u.active,
+        failed: u.failedLoginAttempts ?? 0,
+        locked: u.lockedUntil ? new Date(u.lockedUntil) : null,
+        attempt: u.lastLoginAttemptId ?? null,
       },
     );
+  }
+  async userHasHistory(id: string) {
+    // SERIALIZABLE + locked target protects the FK ranges through DELETE.
+    const references = (await this.query<{tableName:string;columnName:string}>(
+      "SELECT OBJECT_SCHEMA_NAME(f.parent_object_id)+'.'+OBJECT_NAME(f.parent_object_id) AS tableName,COL_NAME(f.parent_object_id,f.parent_column_id) AS columnName FROM sys.foreign_key_columns f WHERE f.referenced_object_id=OBJECT_ID('dbo.Users')"
+    )).recordset;
+    for (const reference of references) {
+      const quote=(v:string)=>'['+v.replace(/]/g,']]')+']';
+      const table=reference.tableName.split('.').map(quote).join('.');
+      if ((await this.query('SELECT TOP (1) 1 AS found FROM '+table+' WITH (UPDLOCK,HOLDLOCK) WHERE '+quote(reference.columnName)+'=@id',{id})).recordset.length)
+        return true;
+    }
+    return false;
+  }
+  async deleteUser(id: string) {
+    if(await this.userHasHistory(id)) throw new HttpError(409,'USER_HAS_HISTORY');
+    await this.query('DELETE dbo.Users WHERE id=@id',{id});
   }
   async session(hash: string) {
     const r = await this.query<{
@@ -506,8 +532,8 @@ export class SqlUnit implements UnitOfWork {
         )
       ).recordset[0];
       const v = (
-        await this.query<{ plate_normalized: string }>(
-          'SELECT plate_normalized FROM dbo.Vehicles WHERE id=@id',
+        await this.query<{ plate_normalized: string; owner_id:string }>(
+          'SELECT plate_normalized,owner_id FROM dbo.Vehicles WITH (UPDLOCK,HOLDLOCK) WHERE id=@id',
           { id: vehicleId },
         )
       ).recordset[0];
@@ -516,6 +542,17 @@ export class SqlUnit implements UnitOfWork {
         v?.plate_normalized !== draft.plate
       )
         throw new HttpError(409, 'ORDER_IDENTITY_MISMATCH');
+      const resolution=draft.ownerResolution;
+      const currentOwner=v!.owner_id.toLowerCase();
+      if(resolution && (resolution.vehicleId.toLowerCase()!==vehicleId.toLowerCase() || resolution.customerId.toLowerCase()!==customerId.toLowerCase() || resolution.expectedOwnerId.toLowerCase()!==currentOwner))
+        throw new HttpError(409,'OWNER_DECISION_STALE');
+      if(currentOwner!==customerId.toLowerCase()) {
+        if(!resolution) throw new HttpError(409,'OWNER_DECISION_REQUIRED');
+        if(resolution.decision==='transfer') {
+          await this.query('UPDATE dbo.Vehicles SET owner_id=@owner WHERE id=@id',{owner:customerId,id:vehicleId});
+          await this.audit(userId,'VEHICLE_OWNER_CHANGED',vehicleId);
+        } else await this.audit(userId,'VEHICLE_OWNER_RETAINED',vehicleId);
+      }
     }
     if (draft.action === 'transfer-owner') {
       const actor = await this.userById(userId);
@@ -584,7 +621,7 @@ export class SqlUnit implements UnitOfWork {
               ? 'CLOSED'
               : (previous?.status ?? 'OPEN');
     await this.query("EXEC sys.sp_set_session_context @key=N'j5_mechanic_reassignment',@value=@allow", { allow: actor?.role === 'ADMIN' && previous?.status === 'OPEN' });
-    const { action: _, mechanicId: _mechanic, ...data } = draft;
+    const { action: _, ownerResolution: _ownerResolution, mechanicId: _mechanic, ...data } = draft;
     const params: Params = {
       id,
       userId,

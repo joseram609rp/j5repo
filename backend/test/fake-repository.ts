@@ -71,6 +71,13 @@ export class FakeRepository implements Repository, UnitOfWork {
   async updateUser(user: User) {
     this.accounts.set(user.id, structuredClone(user));
   }
+  async userHasHistory(id: string) {
+    return ([...this.orders.values()].some(o=>o.mechanicId===id) || this.audits.some(a=>a.actorId===id) || [...this.sessions.values()].some(s=>s.userId===id) || [...this.receipts.keys()].some(k=>k.startsWith(id)));
+  }
+  async deleteUser(id: string) {
+    if(await this.userHasHistory(id)) throw new HttpError(409,'USER_HAS_HISTORY');
+    this.accounts.delete(id);
+  }
   async session(hash: string) {
     return this.sessions.get(hash);
   }

@@ -3,7 +3,7 @@ export const fullNameSchema = z.string().trim().min(1).max(200);
 export const identificationSchema = z.string().trim().regex(/^\d{9}$/);
 export const phoneSchema = z.string().trim().regex(/^\d{8}$/);
 export const emailSchema = z.string().trim().toLowerCase().pipe(z.union([z.literal(''), z.email().max(254)]));
-export const plateSchema = z.string().transform(s => s.toUpperCase().replace(/[\s-]/g, '')).pipe(z.string().regex(/^[A-Z]{3}\d{3}$/));
+export const plateSchema = z.string().transform(s => s.toUpperCase().replace(/[\s-]/g, '')).pipe(z.string().regex(/^[A-Z0-9]{3,12}$/));
 export const makeSchema = z.string().trim().min(1).max(100);
 export const modelSchema = z.string().trim().min(1).max(100);
 export const yearSchema = z.number().int().min(1950);
@@ -20,6 +20,7 @@ export const draftSchema = z.object({
  make: blankOr(makeSchema).optional(), model: blankOr(modelSchema).optional(), year: yearSchema.nullable().optional(),
  mileage: mileageSchema, notes: z.string().max(5000).default(''), recommendations: z.string().max(5000).default(''),
  paymentMethod: paymentMethodSchema.optional(), electronicInvoice: z.boolean().optional(),
+ ownerResolution: z.object({decision:z.enum(['transfer','keep']),vehicleId:z.uuid(),customerId:z.uuid(),expectedOwnerId:z.uuid()}).strict().optional(),
  mechanicId: z.uuid().optional(), customerId: z.uuid().optional(), vehicleId: z.uuid().optional(), items: z.array(itemSchema).max(100).optional(),
  action: z.enum(['close', 'reopen', 'void', 'admin-edit', 'transfer-owner', 'assign-mechanic']).optional()
 }).strict().refine(d => amounts(d.items).total <= 9_999_999_999.99, 'Total exceeds DECIMAL(12,2)');

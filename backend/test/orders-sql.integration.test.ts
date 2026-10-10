@@ -306,6 +306,14 @@ it.skipIf(!enabled)(
           expect(mechanicTransfer.status, diagnostic).toBe(200);
           const mechanicTransferred: Order = await mechanicTransfer.json();
           expect((await tx.findVehicles(draft.plate))[0]?.ownerId).toBe(newOwnerId);
+          expect((await tx.query<{owner_id:string}>('SELECT owner_id FROM dbo.Vehicles WHERE id=@id',{id:transferredDraft.vehicleId!})).recordset[0]!.owner_id.toLowerCase()).toBe(newOwnerId);
+          const newOwnerVehicles=await call('/vehicles?customerId='+newOwnerId);
+          expect((await newOwnerVehicles.json()).vehicles.some((v:{id:string})=>v.id===transferredDraft.vehicleId)).toBe(true);
+          expect((await (await call('/vehicles?customerId='+customer.id)).json()).vehicles.some((v:{id:string})=>v.id===transferredDraft.vehicleId)).toBe(false);
+          const nextOrderId=randomUUID();
+          const nextOrder=await call('/orders/'+nextOrderId,'PUT',{...transferredDraft,customerId:newOwnerId});
+          expect(nextOrder.status,diagnostic).toBe(200);
+          expect((await nextOrder.json()).draft.vehicleId).toBe(transferredDraft.vehicleId);
           expect((await tx.query<{actor_id:string}>("SELECT actor_id FROM dbo.AuditLogs WHERE entity_id=@id AND action='VEHICLE_OWNER_CHANGED'", {id: transferredDraft.vehicleId!})).recordset.some(row=>row.actor_id.toLowerCase()===userId.toLowerCase())).toBe(true);
           const transferKey = randomUUID(),
             transferPayload = { ...transferredDraft, action: 'transfer-owner' };
@@ -391,9 +399,23 @@ it.skipIf(!enabled)(
           const ownId=randomUUID(), ownResponse=await call('/orders/'+ownId,'PUT',draft),own:Order=await ownResponse.json();
           expect((await call('/orders/'+ownId,'PUT',{...own.draft,action:'void'},false,randomUUID(),own.version)).status).toBe(200);
           const closedId=randomUUID(), terminalCreated=await call('/orders/'+closedId,'PUT',draft), terminalOpen:Order=await terminalCreated.json();
-          const terminalResponse=await call('/orders/'+closedId,'PUT',{...terminalOpen.draft,action:'close'},false,randomUUID(),terminalOpen.version), closedFixture:Order=await terminalResponse.json();
+          const terminalResponse=await call('/orders/'+closedId,'PUT',{...terminalOpen.draft,action:'close',ownerResolution:{decision:'keep',vehicleId:terminalOpen.draft.vehicleId!,customerId:terminalOpen.draft.customerId!,expectedOwnerId:(await tx.findVehicles(draft.plate))[0]!.ownerId}},false,randomUUID(),terminalOpen.version), closedFixture:Order=await terminalResponse.json();
           expect(terminalResponse.status,diagnostic).toBe(200);
           for(const action of ['void','assign-mechanic']) expect((await call('/orders/'+closedId,'PUT',{...closedFixture.draft,action,mechanicId:adminId},true,randomUUID(),closedFixture.version)).status).toBe(409);
+          // Repeat ownership across three customers; each following order must list the current owner's vehicle.
+          const thirdOwner=randomUUID(),thirdIdentification=String(randomInt(100000000,999999999));
+          await tx.query("INSERT dbo.Customers(id,full_name,identification,phone) VALUES(@id,N'Third owner fixture',@identification,'88888888')",{id:thirdOwner,identification:thirdIdentification});
+          const thirdOrderId=randomUUID();
+          const thirdOpen:Order=await (await call('/orders/'+thirdOrderId,'PUT',transferredDraft)).json();
+          const thirdPayload={...thirdOpen.draft,customerId:thirdOwner,customerName:'Third owner fixture',identification:thirdIdentification,action:'transfer-owner'};
+          const thirdKey=randomUUID();const thirdTransfer=await call('/orders/'+thirdOrderId,'PUT',thirdPayload,false,thirdKey,thirdOpen.version);
+          expect(thirdTransfer.status,diagnostic).toBe(200);
+          expect((await tx.findVehicles('',thirdOwner)).some(v=>v.id===transferredDraft.vehicleId)).toBe(true);
+          for(const former of [customer.id,newOwnerId])expect((await tx.findVehicles('',former)).some(v=>v.id===transferredDraft.vehicleId)).toBe(false);
+          expect((await call('/orders/'+thirdOrderId,'PUT',thirdPayload,false,thirdKey,thirdOpen.version)).status).toBe(200);
+          expect((await tx.order(orderId))?.draft).toEqual(closed.draft);
+          expect((await (await call('/vehicles?customerId='+thirdOwner)).json()).vehicles.some((v:{id:string})=>v.id===transferredDraft.vehicleId)).toBe(true);
+
 
         },
         undefined,
@@ -538,4 +560,66 @@ it.skipIf(!enabled)('SQL restores latest recorded mileage from VOID orders and s
  const zero=await tx.saveOrder(randomUUID(),userId,{...recent.draft,mileage:0});
  expect((await tx.findVehicles('',zero.draft.customerId))[0]?.lastMileage).toBe(0);
  },undefined,true);
+},60000);
+
+it.skipIf(!enabled)('SQL close resolves owner A to B to C atomically, requires current consent, preserves history and supports explicit keep (rollback)',async()=>{
+ const repo=new SqlRepository(),userId=randomUUID(),oldBudget=config.sql.retryBudgetMs;
+ config.sql.retryBudgetMs=90000;
+ try { await repo.runSql(async tx=>{
+  await tx.insertUser({id:userId,username:'close-owner-'+randomUUID().slice(0,8),fullName:'Close owner fixture',passwordHash:'unused',role:'MECHANIC',active:true});
+  const draft:Draft={customerName:'Owner A',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'OWN'+randomUUID().replaceAll('-','').slice(0,9).toUpperCase(),make:'Toyota',model:'Corolla',year:2020,mileage:100,notes:'Revisado',recommendations:'',paymentMethod:'CASH',electronicInvoice:false,items:[{description:'Servicio',price:100}]};
+  const first=await tx.saveOrder(randomUUID(),userId,draft);
+  const history=await tx.saveOrder(first.id,userId,{...first.draft,action:'close'},first);
+  let currentOwner=first.draft.customerId!;
+  const vehicleId=first.draft.vehicleId!;
+  for(const name of ['Owner B','Owner C']) {
+   const open=await tx.saveOrder(randomUUID(),userId,{...first.draft,customerId:undefined,customerName:name,identification:String(randomInt(100000000,999999999))});
+   const customerId=open.draft.customerId!;
+   expect(customerId).not.toBe(currentOwner);
+   // Merely creating an order must never change the owner.
+   expect((await tx.findVehicles(draft.plate))[0]!.ownerId).toBe(currentOwner);
+   await expect(tx.saveOrder(open.id,userId,{...open.draft,action:'close'},open)).rejects.toMatchObject({code:'OWNER_DECISION_REQUIRED'});
+   const ownerResolution={decision:'transfer' as const,vehicleId,customerId,expectedOwnerId:currentOwner};
+   await expect(tx.saveOrder(open.id,userId,{...open.draft,action:'close',ownerResolution:{...ownerResolution,expectedOwnerId:randomUUID()}},open)).rejects.toMatchObject({code:'OWNER_DECISION_STALE'});
+   // A failure after the owner UPDATE rolls the owner and audit back too.
+   await expect(tx.saveOrder(open.id,userId,{...open.draft,action:'close',ownerResolution},{...open,version:'0000000000000000'})).rejects.toMatchObject({code:'VERSION_CONFLICT'});
+   expect((await tx.findVehicles(draft.plate))[0]!.ownerId).toBe(currentOwner);
+   expect((await tx.order(open.id))!.status).toBe('OPEN');
+   const closed=await tx.saveOrder(open.id,userId,{...open.draft,action:'close',ownerResolution},open);
+   expect(closed.status).toBe('CLOSED');expect(closed.draft.ownerResolution).toBeUndefined();
+   expect((await tx.findVehicles('',customerId)).map(v=>v.id)).toContain(vehicleId);
+   expect((await tx.findVehicles('',currentOwner)).map(v=>v.id)).not.toContain(vehicleId);
+   expect((await tx.order(history.id))!.draft).toEqual(history.draft);
+   currentOwner=customerId;
+  }
+  const guest=await tx.saveOrder(randomUUID(),userId,{...first.draft,customerId:undefined,customerName:'Guest',identification:String(randomInt(100000000,999999999))});
+  const kept=await tx.saveOrder(guest.id,userId,{...guest.draft,action:'close',ownerResolution:{decision:'keep',vehicleId,customerId:guest.draft.customerId!,expectedOwnerId:currentOwner}},guest);
+  expect(kept.status).toBe('CLOSED');expect((await tx.findVehicles(draft.plate))[0]!.ownerId).toBe(currentOwner);
+  const audits=(await tx.query<{action:string}>('SELECT action FROM dbo.AuditLogs WHERE entity_id=@id',{id:vehicleId})).recordset;
+  expect(audits.filter(a=>a.action==='VEHICLE_OWNER_CHANGED')).toHaveLength(2);
+  expect(audits.filter(a=>a.action==='VEHICLE_OWNER_RETAINED')).toHaveLength(1);
+ },undefined,true); } finally {config.sql.retryBudgetMs=oldBudget;}
+},120000);
+
+it.skipIf(!enabled)('SQL closing trigger accepts every approved plate snapshot format (rollback)',async()=>{
+ const repo=new SqlRepository(),userId=randomUUID(),oldBudget=config.sql.retryBudgetMs;config.sql.retryBudgetMs=60000;
+ try {await repo.runSql(async tx=>{
+  await tx.insertUser({id:userId,username:'plate-close-'+randomUUID().slice(0,8),fullName:'Plate close fixture',passwordHash:'unused',role:'MECHANIC',active:true});
+  const draft:Draft={customerName:'Plate fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'P'+randomUUID().replaceAll('-','').slice(0,11).toUpperCase(),make:'Toyota',model:'Corolla',year:2020,mileage:0,notes:'',recommendations:'',paymentMethod:'CASH',electronicInvoice:false,items:[{description:'Servicio',price:1}]};
+  for(const plate of ['ABC111','ABC1234','CL111111','C111111','111111']) {
+   const open=await tx.saveOrder(randomUUID(),userId,draft);
+   // Isolate the closing trigger without taking ownership of an existing QA plate.
+   await tx.query("UPDATE dbo.Orders SET plate_snapshot=@plate,status='CLOSED',closed_at=SYSUTCDATETIME() WHERE id=@id",{id:open.id,plate});
+   expect((await tx.order(open.id))!.status).toBe('CLOSED');
+  }
+ },undefined,true);}finally{config.sql.retryBudgetMs=oldBudget;}
+},90000);
+
+it.skipIf(!enabled).each(['','AB','ABC!123','ABC🚘','ABCDEFGHIJKLM'])('SQL closing trigger rejects invalid snapshot %s (rollback)',async plate=>{
+ const repo=new SqlRepository(),userId=randomUUID();
+ await expect(repo.runSql(async tx=>{
+  await tx.insertUser({id:userId,username:'bad-close-'+randomUUID().slice(0,8),fullName:'Plate close fixture',passwordHash:'unused',role:'MECHANIC',active:true});
+  const open=await tx.saveOrder(randomUUID(),userId,{customerName:'Plate fixture',identification:String(randomInt(100000000,999999999)),phone:'88888888',plate:'P'+randomUUID().replaceAll('-','').slice(0,11).toUpperCase(),make:'Toyota',model:'Corolla',year:2020,mileage:0,notes:'',recommendations:'',paymentMethod:'CASH',electronicInvoice:false,items:[{description:'Servicio',price:1}]});
+  await tx.query("UPDATE dbo.Orders SET plate_snapshot=@plate,status='CLOSED',closed_at=SYSUTCDATETIME() WHERE id=@id",{id:open.id,plate});
+ },undefined,true)).rejects.toMatchObject({number:51004});
 },60000);

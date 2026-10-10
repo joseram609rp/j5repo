@@ -369,3 +369,29 @@ it('does not apply or send a resolution when saving the recovery copy fails',asy
  vi.mocked(api).mockResolvedValue(remote);const send=vi.fn(),service=new Autosave(state,'u','csrf',()=>{},()=>{},async()=>{throw new Error('quota');},send);
  await expect(service.resolveConflict('v2',state.draft)).rejects.toThrow('LOCAL_SAVE_FAILED');expect(state.conflict).toBeDefined();expect(state.draft.notes).toBe('local');expect(state.version).toBe('v1');expect(send).not.toHaveBeenCalled();
 });
+
+it.each(['OWNER_DECISION_REQUIRED','OWNER_DECISION_STALE'])('clears rejected close consent %s so the next attempt can review the current owner',async code=>{
+ const state=fresh();state.version='v1';state.order={id:state.id,version:'v1',status:'OPEN',draft:structuredClone(state.draft),mechanicId:'u'};
+ const report=vi.fn();
+ const send=vi.fn().mockRejectedValue(new ApiError(409,code));
+ const saver=new Autosave(state,'u','csrf',report,()=>{},async()=>{},send);
+ await expect(saver.action('close',{decision:'transfer',vehicleId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',customerId:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',expectedOwnerId:'cccccccc-cccc-4ccc-8ccc-cccccccccccc'})).rejects.toThrow('ACTION_REJECTED');
+ expect(state.pending).toBeUndefined();expect(state.draft.action).toBeUndefined();expect(state.draft.ownerResolution).toBeUndefined();
+ expect(report.mock.calls.some(c=>JSON.stringify(c).includes('Confirma quién será el dueño'))).toBe(true);
+ await saver.pause();
+});
+
+it('close consent survives a lost response and reload with the same idempotency key and expected owner',async()=>{
+ const state=fresh();state.version='v1';state.order={id:state.id,version:'v1',status:'OPEN',draft:structuredClone(state.draft),mechanicId:'u'};
+ const consent={decision:'transfer' as const,vehicleId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',customerId:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',expectedOwnerId:'cccccccc-cccc-4ccc-8ccc-cccccccccccc'};
+ const saver=new Autosave(state,'u','csrf',()=>{},()=>{},async()=>{},async()=>{throw new TypeError('lost response');});
+ await expect(saver.action('close',consent)).rejects.toThrow('SYNC_REQUIRED');
+ const pending=structuredClone(state.pending);expect(pending?.draft.ownerResolution).toEqual(consent);
+ const recovered=structuredClone(state);
+ const send=vi.fn().mockResolvedValue({...state.order,version:'v2',status:'CLOSED'});
+ const replay=new Autosave(recovered,'u','csrf',()=>{},()=>{},async()=>{},send);
+ expect((await replay.action('close'))?.status).toBe('CLOSED');
+ expect(send).toHaveBeenCalledTimes(1);expect(send.mock.calls[0]![1]).toEqual(pending);
+ expect(recovered.draft.ownerResolution).toBeUndefined();
+ await saver.pause();await replay.pause();
+});

@@ -43,6 +43,7 @@ const patchUserSchema = z
     active: z.boolean().optional(),
     role: roleSchema.optional(),
     password: passwordSchema.optional(),
+    unlock: z.literal(true).optional(),
   })
   .strict()
   .refine((x) => Object.keys(x).length > 0);
@@ -151,56 +152,38 @@ export function createApi(
       } else if (path === '/api/auth/login' && method === 'POST') {
         const input = loginSchema.parse(await body(request));
         limitLogin(input.username);
-        const candidate = await repository.run(
-          (tx) => tx.userByName(input.username),
-          signal,
-        );
-        const valid = await verifyPassword(
-          input.password,
-          candidate?.passwordHash,
-        );
-        if (!valid || !candidate?.active)
-          throw new HttpError(401, 'INVALID_CREDENTIALS');
         const token = randomBytes(32).toString('base64url');
         const hash = tokenHash(token);
         const csrf = randomBytes(32).toString('base64url');
-        reply = await repository.run(async (tx) => {
-          const current = await tx.userById(candidate.id);
-          if (
-            !current?.active ||
-            current.passwordHash !== candidate.passwordHash
-          )
-            throw new HttpError(401, 'INVALID_CREDENTIALS');
-          let session = await tx.session(hash);
-          if (!session) {
-            session = {
-              tokenHash: hash,
-              userId: current.id,
-              csrf,
-              lastActivity: await tx.time(),
-              revoked: false,
-            };
-            await tx.insertSession(session);
-            await tx.audit(current.id, 'LOGIN', current.id);
+        const attemptId = randomUUID();
+        reply = await repository.run(async tx => {
+          const current = await tx.userByName(input.username);
+          const now = await tx.time();
+          const invalid = () => errorReply(new HttpError(401, 'INVALID_CREDENTIALS'));
+          // Retry of an ambiguously committed successful login returns its original session.
+          const prior = current ? await tx.session(hash) : undefined;
+          if (prior && !prior.revoked && now-prior.lastActivity < IDLE_MS && current?.active)
+            return result({userId:current.id,username:current.username,fullName:current.fullName,role:current.role,csrf:prior.csrf,lastActivity:prior.lastActivity,idleMs:IDLE_MS},200,{'Set-Cookie':cookie(token)});
+          // Receipts survive intervening requests, so retrying an ambiguous failed COMMIT never increments twice.
+          if (current && await tx.receipt(current.id,attemptId)) return invalid();
+          if (!current?.active || (current.lockedUntil ?? 0) > now) {
+            // Dummy verification keeps unknown/inactive/locked responses prudent; never checks the locked user's hash.
+            await verifyPassword(input.password, undefined);
+            return invalid();
           }
-          if (
-            session.revoked ||
-            (await tx.time()) - session.lastActivity >= IDLE_MS
-          )
-            throw new HttpError(401, 'SESSION_EXPIRED');
-          return result(
-            {
-              userId: current.id,
-              username: current.username,
-              fullName: current.fullName,
-              role: current.role,
-              csrf: session.csrf,
-              lastActivity: session.lastActivity,
-              idleMs: IDLE_MS,
-            },
-            200,
-            { 'Set-Cookie': cookie(token) },
-          );
+          const valid = await verifyPassword(input.password, current.passwordHash);
+          if (!valid) {
+            const failed = ((current.lockedUntil ?? 0) > 0 && current.lockedUntil! <= now ? 0 : current.failedLoginAttempts ?? 0) + 1;
+            await tx.updateUser({...current,failedLoginAttempts:failed,lockedUntil:failed>=5 ? now+900000 : null,lastLoginAttemptId:attemptId});
+            await tx.insertReceipt(current.id,attemptId,{fingerprint:tokenHash(attemptId),reply:invalid()});
+            // Return, don't throw: failed credentials must COMMIT their counter.
+            return invalid();
+          }
+          await tx.updateUser({...current,failedLoginAttempts:0,lockedUntil:null,lastLoginAttemptId:attemptId});
+          const session = {tokenHash:hash,userId:current.id,csrf,lastActivity:now,revoked:false};
+          await tx.insertSession(session);
+          await tx.audit(current.id,'LOGIN',current.id);
+          return result({userId:current.id,username:current.username,fullName:current.fullName,role:current.role,csrf,lastActivity:now,idleMs:IDLE_MS},200,{'Set-Cookie':cookie(token)});
         }, signal);
       } else {
         const token =
@@ -217,7 +200,7 @@ export function createApi(
         const userRoute = /^\/api\/admin\/users\/([^/]+)$/.exec(path);
         const userWrite =
           (path === '/api/admin/users' && method === 'POST') ||
-          (userRoute && method === 'PATCH');
+          (userRoute && ['PATCH','DELETE'].includes(method));
         const write = Boolean(userWrite || (orderRoute && method === 'PUT'));
         // Authenticate before expensive password hashing. Authorization is repeated inside the write transaction.
         if (userWrite)
@@ -228,7 +211,7 @@ export function createApi(
             if (!csrfMatches(request.headers.get('x-csrf-token'), session.csrf))
               throw new HttpError(403, 'CSRF_REJECTED');
           }, signal);
-        const input = write ? await body(request) : undefined;
+        const input = write && method !== 'DELETE' ? await body(request) : undefined;
         const key = write
           ? uuid.parse(request.headers.get('idempotency-key'))
           : undefined;
@@ -306,8 +289,11 @@ export function createApi(
           if (path === '/api/vehicle-catalog' && method === 'GET') return result(await tx.vehicleCatalog());
           if (path.startsWith('/api/admin/') && user.role !== 'ADMIN')
             throw new HttpError(403, 'ADMIN_REQUIRED');
-          if (path === '/api/admin/users' && method === 'GET')
-            return result({ users: (await tx.users()).map(publicUser) });
+          if (path === '/api/admin/users' && method === 'GET') {
+            const users=[];
+            for(const target of await tx.users()) users.push({...publicUser(target),canDelete:!target.active && target.id!==user.id && !(await tx.userHasHistory(target.id))});
+            return result({users});
+          }
           if (path === '/api/orders' && method === 'GET') {
             const url = new URL(request.url);
             const status = z
@@ -459,6 +445,16 @@ export function createApi(
               await tx.insertUser(created);
               await tx.audit(user.id, 'USER_CREATED', created.id);
               response = result(publicUser(created), 201);
+            } else if (userRoute && method === 'DELETE') {
+              const id = uuid.parse(userRoute[1]);
+              const target = await tx.userById(id);
+              if (!target) throw new HttpError(404,'USER_NOT_FOUND');
+              if (id === user.id) throw new HttpError(409,'CANNOT_DELETE_SELF');
+              if (target.active && target.role === 'ADMIN' && (await tx.users()).filter(u=>u.active && u.role==='ADMIN').length<=1) throw new HttpError(409,'LAST_ADMIN');
+              if (target.active) throw new HttpError(409,'USER_MUST_BE_INACTIVE');
+              await tx.deleteUser(id);
+              await tx.audit(user.id,'USER_DELETED',id);
+              response = result({deleted:true});
             } else if (userRoute && patchInput) {
               const id = uuid.parse(userRoute[1]);
               const target = await tx.userById(id);
@@ -469,6 +465,7 @@ export function createApi(
                 role: patchInput.role ?? target.role,
                 active: patchInput.active ?? target.active,
                 passwordHash: passwordHash ?? target.passwordHash,
+                ...((passwordHash || patchInput.unlock || (patchInput.active && !target.active)) ? {failedLoginAttempts:0,lockedUntil:null,lastLoginAttemptId:null} : {}),
               };
               if (
                 target.active &&
@@ -487,7 +484,7 @@ export function createApi(
                 await tx.revokeUserSessions(id);
               await tx.audit(
                 user.id,
-                passwordHash ? 'USER_PASSWORD_RESET' : 'USER_UPDATED',
+                passwordHash ? 'USER_PASSWORD_RESET' : patchInput.unlock ? 'USER_UNLOCKED' : 'USER_UPDATED',
                 id,
               );
               response = result(publicUser(updated));
@@ -514,6 +511,7 @@ export function createApi(
         headers: reply.headers,
       });
     } catch (error) {
+      if ([2601,2627].includes((error as {number?:number})?.number ?? 0) && new URL(request.url).pathname === '/api/admin/users') error = new HttpError(409,'USERNAME_EXISTS');
       const reply =
         error instanceof z.ZodError || error instanceof SyntaxError
           ? result({ code: 'INVALID_INPUT' }, 400)

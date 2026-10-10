@@ -38,6 +38,7 @@ export function App() {
   const [order, setOrder] = useState<Order | null>(null);
   const [editorReady, setEditorReady] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [closeOwner,setCloseOwner]=useState<{vehicleId:string;customerId:string;expectedOwnerId:string;ownerName:string;decision:'transfer'|'keep'} | null>(null);
 
   const [confirmAction, setConfirmAction] = useState<
     'close' | 'reopen' | 'transfer-owner' | 'void' | null
@@ -48,10 +49,11 @@ export function App() {
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [draft, setDraft] = useState<Draft | null>(null);
   const [globalMessage, setGlobalMessage] = useState('');
+  const [editorAccessMessage, setEditorAccessMessage] = useState('');
   const [healthMessage, setHealthMessage] = useState('');
   useEffect(() => onBackendSuccess(() => setHealthMessage('')), []);
   const [editorId, setEditorId] = useState<string | null>(null);
-  useEffect(() => { setClosing(false); }, [page, editorId]);
+  useEffect(() => { setClosing(false); setCloseOwner(null); }, [page, editorId]);
   const [notice, setNotice] = useState<{ page: typeof page; orderId: string | null; message: string; retryable: boolean } | null>(null);
   const noticeGeneration = useRef(0);
   const generation = noticeGeneration.current;
@@ -134,6 +136,7 @@ export function App() {
   }, []);
   useEffect(() => {
     if (!session) return;
+    setEditorAccessMessage('');
     let disposed = false;
     let release: (() => void) | undefined;
     const expire = () => {
@@ -154,7 +157,7 @@ export function App() {
     };
     const stop = trackActivity(session, expire);
     if (!navigator.locks) {
-      setGlobalMessage(
+      setEditorAccessMessage(
         'Este navegador no admite el bloqueo de edición. Usa una versión reciente.',
       );
       return stop;
@@ -165,7 +168,7 @@ export function App() {
       async (lock) => {
         if (disposed) return;
         if (!lock) {
-          setGlobalMessage(
+          setEditorAccessMessage(
             'El borrador está abierto en otra pestaña. Ciérrala y recarga aquí.',
           );
           return;
@@ -178,17 +181,21 @@ export function App() {
           });
           await saver.current?.pause();
         } catch {
-          setGlobalMessage(
+          if (disposed) return;
+          setEditorAccessMessage(
             'No se pudo abrir el almacenamiento local. Revisa los permisos del navegador.',
           );
         }
       },
-    );
+    ).catch(() => {
+      if (!disposed) setEditorAccessMessage('No se pudo obtener el bloqueo de edición. Revisa los permisos del navegador y recarga.');
+    });
     const online = () => void saver.current?.sync();
     window.addEventListener('online', online);
     return () => {
       disposed = true;
       setEditorReady(false);
+      setEditorAccessMessage('');
       stop();
       void saver.current?.pause().catch(() => undefined);
       release?.();
@@ -208,11 +215,11 @@ export function App() {
       );
       setGlobalMessage('');
       setSessionStatus('authenticated');
+      setPassword('');
       setPage('dashboard');
     } catch (error) {
       setGlobalMessage(loginErrorMessage(error));
     } finally {
-      setPassword('');
       setBusy(false);
     }
   }
@@ -379,8 +386,14 @@ export function App() {
           savedRevision: 0,
         });
       if (!saver.current) throw new Error('EDITOR_NOT_READY');
-      const saved = await saver.current.action(action);
-      if (action === 'transfer-owner') setOwnerRevision(n => n + 1);
+      const saved = await saver.current.action(action, action==='close' && closeOwner ? {decision:closeOwner.decision,vehicleId:closeOwner.vehicleId,customerId:closeOwner.customerId,expectedOwnerId:closeOwner.expectedOwnerId} : undefined);
+      if (action === 'transfer-owner') {
+        const currentDraft=saver.current.state.draft;
+        const lookup=await api<{vehicles:{id:string;ownerId:string}[]}>(`/vehicles?q=${encodeURIComponent(currentDraft.plate)}`);
+        const vehicle=lookup.vehicles.find(v=>v.id.toLowerCase()===currentDraft.vehicleId?.toLowerCase());
+        if(!vehicle || vehicle.ownerId.toLowerCase()!==currentDraft.customerId?.toLowerCase()) throw new Error('OWNER_TRANSFER_NOT_APPLIED');
+        setOwnerRevision(n => n + 1);
+      }
       if (action === 'close') setClosing(false);
       setOrder(saved ?? null);
       setDraft(saver.current.state.draft);
@@ -394,10 +407,14 @@ export function App() {
             ? 'Orden reabierta.'
             : 'Dueño actual actualizado. El historial anterior se conserva.',
       });
-    } catch {
+    } catch (error) {
       if (!saver.current?.state.pending) setConfirmAction(null);
+      if(error instanceof Error && error.message==='OWNER_TRANSFER_NOT_APPLIED') {
+        setMessage('El dueño registrado del vehículo no cambió. Busca el vehículo por placa y confirma Actualizar dueño antes de crear otra orden.');
+        return;
+      }
       setMessage(
-        previous => previous.includes('Conflicto de versión.') ? previous : 'La acción no se confirmó. La copia local está protegida; reintenta para recuperar el resultado.',
+        previous => (previous.includes('Conflicto de versión.') || previous.includes('Confirma quién será el dueño')) ? previous : 'La acción no se confirmó. La copia local está protegida; reintenta para recuperar el resultado.',
       );
     } finally {
       setBusy(false);
@@ -558,6 +575,7 @@ export function App() {
                 </button>
               )}
             </nav>
+            {editorAccessMessage && ['dashboard', 'open', 'history', 'editor'].includes(page) && <p role="status" className="editor-access-notice">{editorAccessMessage}</p>}
             {page === 'dashboard' && (
               <Dashboard
                 session={session}
@@ -658,6 +676,7 @@ export function App() {
                 <label>
                   Usuario
                   <input
+                    disabled={busy}
                     autoComplete="username"
                     required
                     maxLength={64}
@@ -669,6 +688,7 @@ export function App() {
                   Contraseña
                   <input
                     type="password"
+                    disabled={busy}
                     autoComplete="current-password"
                     required
                     maxLength={72}
@@ -679,6 +699,7 @@ export function App() {
                 <button disabled={busy} type="submit">
                   {busy ? 'Ingresando…' : 'Entrar'}
                 </button>
+                {busy && <p role="status">Conectando con el servicio. La base de datos puede tardar hasta un minuto en iniciar.</p>}
               </form>
             }
             authenticated={
@@ -997,13 +1018,21 @@ export function App() {
                           setBusy(true);
                           void saver.current
                             ?.flush()
-                            .then(() => {
+                            .then(async () => {
+                              const current=saver.current?.state.draft;
+                              if(!current) throw new Error('EDITOR_NOT_READY');
+                              const lookup=await api<{vehicles:{id:string;ownerId:string;owner?:{fullName:string}}[]}>(`/vehicles?q=${encodeURIComponent(current.plate)}`);
+                              const vehicle=lookup.vehicles.find(v=>!current.vehicleId || v.id.toLowerCase()===current.vehicleId.toLowerCase());
+                              // Require the resolved persisted identities when a known vehicle is involved.
+                              if(current.vehicleId && (!vehicle || !current.customerId)) throw new Error('OWNER_LOOKUP_REQUIRED');
+                              setCloseOwner(vehicle && current.customerId && vehicle.ownerId.toLowerCase()!==current.customerId.toLowerCase()
+                                ? {vehicleId:vehicle.id,customerId:current.customerId,expectedOwnerId:vehicle.ownerId,ownerName:vehicle.owner?.fullName ?? 'dueño actual',decision:'transfer'} : null);
                               setOrder(saver.current?.state.order ?? null);
                               setConfirmAction('close');
                             })
                             .catch(() =>
                               setMessage(
-                                'Sincroniza la orden antes de confirmar su cierre.',
+                                'No se pudo preparar el cierre. Sincroniza la orden y comprueba la conexión para verificar el dueño del vehículo.',
                               ),
                             )
                             .finally(() => setBusy(false));
@@ -1042,6 +1071,13 @@ export function App() {
                             ? `¿Reabrir la orden ${order?.displayOrderId}?`
                             : `¿Asignar el vehículo ${draft.plate} a ${draft.customerName} (${draft.identification})? Las órdenes anteriores conservan su cliente.`}
                       </p>
+                      {confirmAction==='close' && closeOwner && <fieldset className="close-owner" disabled={busy}>
+                        <legend>Dueño de {draft.plate}</legend>
+                        <p>Actualmente está registrado a nombre de {closeOwner.ownerName}. Elegí cómo cerrar esta orden:</p>
+                        <label><input type="radio" name="close-owner" value="transfer" checked={closeOwner.decision==='transfer'} onChange={()=>setCloseOwner({...closeOwner,decision:'transfer'})}/>Asignar el vehículo a {draft.customerName} al cerrar. Aparecerá en su próxima orden.</label>
+                        <label><input type="radio" name="close-owner" value="keep" checked={closeOwner.decision==='keep'} onChange={()=>setCloseOwner({...closeOwner,decision:'keep'})}/>Conservar a {closeOwner.ownerName} como dueño. {draft.customerName} será solo el cliente de esta orden.</label>
+                        <p>Las órdenes anteriores conservan su cliente original.</p>
+                      </fieldset>}
                       <p>Total: {formatCRC(totals.total)}</p>
                       <button
                         type="button"

@@ -12,12 +12,19 @@ BEGIN TRY
  INSERT @Expected VALUES ('Users'),('Sessions'),('IdempotencyRequests'),('AuditLogs'),('OrderItems'),('Orders'),('Vehicles'),('Customers'),('SchemaMigrations'),('VehicleMakes'),('VehicleModels');
  IF EXISTS(SELECT name FROM @Expected EXCEPT SELECT name FROM sys.tables WHERE schema_id=SCHEMA_ID('dbo'))
  OR EXISTS(SELECT name FROM sys.tables WHERE is_ms_shipped=0 AND (schema_id<>SCHEMA_ID('dbo') OR name NOT IN(SELECT name FROM @Expected))) THROW 51103,'UNEXPECTED_SCHEMA',1;
- IF (SELECT COUNT(*) FROM dbo.SchemaMigrations)<>11
- OR EXISTS(SELECT name FROM dbo.SchemaMigrations WHERE name NOT IN('001_core.sql','002_receipts_audit.sql','003_order_guards.sql','004_vehicle_model.sql','005_closed_notes.sql','006_open_order_selection.sql','007_optional_notes_year.sql','008_open_mechanic_reassignment.sql','009_order_billing.sql','010_vehicle_catalog.sql','011_daily_order_numbers.sql')) THROW 51103,'UNEXPECTED_MIGRATIONS',1;
+ IF (SELECT COUNT(*) FROM dbo.SchemaMigrations)<>15
+ OR EXISTS(SELECT name FROM dbo.SchemaMigrations WHERE name NOT IN('001_core.sql','002_receipts_audit.sql','003_order_guards.sql','004_vehicle_model.sql','005_closed_notes.sql','006_open_order_selection.sql','007_optional_notes_year.sql','008_open_mechanic_reassignment.sql','009_order_billing.sql','010_vehicle_catalog.sql','011_daily_order_numbers.sql','012_user_lockout.sql','013_flexible_plates.sql','014_username_check_pattern.sql','015_flexible_order_plate_guard.sql')) THROW 51103,'UNEXPECTED_MIGRATIONS',1;
  IF NOT EXISTS(SELECT 1 FROM sys.triggers WHERE object_id=OBJECT_ID('dbo.TR_Orders_Guard') AND is_disabled=0)
  OR NOT EXISTS(SELECT 1 FROM sys.triggers WHERE object_id=OBJECT_ID('dbo.TR_OrderItems_Total') AND is_disabled=0) THROW 51103,'UNEXPECTED_TRIGGERS',1;
  IF OBJECT_ID('dbo.OrderNumber','SO') IS NULL OR COL_LENGTH('dbo.Orders','tax_rate') IS NULL OR COL_LENGTH('dbo.OrderItems','notes') IS NULL THROW 51103,'UNEXPECTED_SCHEMA',1;
+IF NOT EXISTS(SELECT 1 FROM sys.triggers WHERE object_id=OBJECT_ID('dbo.TR_Orders_Guard') AND is_disabled=0) OR COALESCE(CHARINDEX(N'LEN(i.plate_snapshot) NOT BETWEEN 3 AND 12',OBJECT_DEFINITION(OBJECT_ID('dbo.TR_Orders_Guard'))),0)=0 THROW 51103,'UNEXPECTED_CLOSE_PLATE_GUARD',1;
 IF COL_LENGTH('dbo.Orders','order_date') IS NULL OR COL_LENGTH('dbo.Orders','daily_order_number') IS NULL OR NOT EXISTS(SELECT 1 FROM sys.triggers WHERE object_id=OBJECT_ID('dbo.TR_Orders_DailyNumber') AND is_disabled=0) THROW 51103,'UNEXPECTED_DAILY_ORDER_SCHEMA',1;
+IF COL_LENGTH('dbo.Users','failed_login_attempts') IS NULL OR COL_LENGTH('dbo.Users','locked_until') IS NULL OR COL_LENGTH('dbo.Users','last_login_attempt_id') IS NULL
+ OR NOT EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.Users') AND name='UQ_Users_Username' AND is_unique=1 AND is_disabled=0)
+ OR EXISTS(SELECT LOWER(LTRIM(RTRIM(username))) FROM dbo.Users GROUP BY LOWER(LTRIM(RTRIM(username))) HAVING COUNT(*)>1)
+ OR NOT EXISTS(SELECT 1 FROM sys.check_constraints WHERE name='CK_Users_FailedLogin' AND is_disabled=0 AND is_not_trusted=0)
+ OR NOT EXISTS(SELECT 1 FROM sys.check_constraints WHERE name='CK_Vehicles_Plate' AND is_disabled=0 AND is_not_trusted=0)
+ THROW 51103,'UNEXPECTED_SECURITY_PLATE_SCHEMA',1;
  IF NOT EXISTS(SELECT 1 FROM dbo.Users WITH(TABLOCKX,HOLDLOCK) WHERE role='ADMIN') THROW 51104,'ADMIN_REQUIRED',1;
  SELECT * INTO #AdminsBefore FROM dbo.Users WHERE role='ADMIN';
 IF (SELECT COUNT(*) FROM dbo.VehicleMakes)<>57 OR (SELECT COUNT(*) FROM dbo.VehicleModels)<>986

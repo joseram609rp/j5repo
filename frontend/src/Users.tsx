@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { passwordIssue } from './PasswordInput';
+import { useEffect, useRef, useState } from 'react';
 import { api } from './api';
 import type { Session } from './session';
 
@@ -8,6 +9,8 @@ type User = {
   fullName: string;
   role: 'ADMIN' | 'MECHANIC';
   active: boolean;
+  lockedUntil?: number | null;
+  canDelete?: boolean;
 };
 export function Users({ session }: { session: Session }) {
   const [users, setUsers] = useState<User[]>([]),
@@ -22,22 +25,39 @@ export function Users({ session }: { session: Session }) {
       user: User;
       patch: object;
       label: string;
+      method?: 'DELETE';
     } | null>(null),
     [reset, setReset] = useState<User | null>(null),
     [resetPassword, setResetPassword] = useState('');
+  const [confirmPassword,setConfirmPassword]=useState('');
+  const [confirmReset,setConfirmReset]=useState('');
+  const [showInactive,setShowInactive]=useState(false);
+  const [passwordError,setPasswordError]=useState('');
+  const [resetPasswordError,setResetPasswordError]=useState('');
+  const [confirmPasswordTouched,setConfirmPasswordTouched]=useState(false);
+  const [confirmResetTouched,setConfirmResetTouched]=useState(false);
+  const passwordMismatch=confirmPasswordTouched && password!==confirmPassword;
+  const resetMismatch=confirmResetTouched && resetPassword!==confirmReset;
+  const createNotice=passwordMismatch ? 'Las contraseñas no coinciden.' : passwordError;
+  const resetNotice=resetMismatch ? 'Las contraseñas no coinciden.' : resetPasswordError;
+  const loadRevision=useRef(0);
   async function load() {
+    const revision=++loadRevision.current;
     setLoading(true);
     try {
-      setUsers((await api<{ users: User[] }>('/admin/users')).users);
+      const result=await api<{ users: User[] }>('/admin/users');
+      if(revision!==loadRevision.current) return;
+      setUsers(result.users);
       setError('');
     } catch {
-      setError('No se pudieron cargar los usuarios.');
+      if(revision===loadRevision.current) setError('No se pudieron cargar los usuarios.');
     } finally {
-      setLoading(false);
+      if(revision===loadRevision.current) setLoading(false);
     }
   }
   useEffect(() => {
     void load();
+    return ()=>{loadRevision.current++;};
   }, []);
   async function mutate(path: string, method: string, body: object) {
     setBusy(true);
@@ -56,7 +76,15 @@ export function Users({ session }: { session: Session }) {
       return true;
     } catch (error) {
       setError(
-        error instanceof Error && error.message === 'LAST_ADMIN'
+        error instanceof Error && error.message === 'USERNAME_EXISTS'
+          ? `El nombre de usuario ${username.trim().toLowerCase()} ya existe.`
+          : error instanceof Error && error.message === 'USER_HAS_HISTORY'
+          ? 'Este usuario tiene historial y solo puede desactivarse.'
+          : error instanceof Error && error.message === 'USER_MUST_BE_INACTIVE'
+          ? 'Desactiva el usuario antes de eliminarlo.'
+          : error instanceof Error && error.message === 'CANNOT_DELETE_SELF'
+          ? 'No puedes eliminar tu propia cuenta.'
+          : error instanceof Error && error.message === 'LAST_ADMIN'
           ? 'Debe quedar al menos un ADMIN activo.'
           : 'No se pudo guardar. Verifica los datos y recarga para comprobar el resultado.',
       );
@@ -80,13 +108,14 @@ export function Users({ session }: { session: Session }) {
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          const issue=passwordIssue(password,confirmPassword); setConfirmPasswordTouched(true); setPasswordError(password===confirmPassword ? issue : ''); if(issue) return;
           void mutate('/admin/users', 'POST', {
             username,
             fullName,
             password,
             role,
           }).then((ok) => {
-            setPassword('');
+            setPassword(''); setConfirmPassword(''); setConfirmPasswordTouched(false); setPasswordError('');
             if (ok) {
               setUsername('');
               setFullName('');
@@ -124,9 +153,10 @@ export function Users({ session }: { session: Session }) {
                 minLength={12}
                 maxLength={72}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {setPassword(e.target.value);setPasswordError('');}}
               />
             </label>
+            <label>Confirmar contraseña<input type="password" required autoComplete="new-password" value={confirmPassword} aria-invalid={passwordMismatch || undefined} aria-describedby={createNotice ? 'create-password-notice' : undefined} onChange={e=>{setConfirmPassword(e.target.value);setConfirmPasswordTouched(true);setPasswordError('');}}/></label>
             <label>
               Rol
               <select
@@ -138,17 +168,22 @@ export function Users({ session }: { session: Session }) {
               </select>
             </label>
           </div>
+          {createNotice && <p id="create-password-notice" className="password-validation-banner" role="alert">{createNotice}</p>}
           <button>Crear usuario</button>
         </fieldset>
       </form>
+      <label className="users-inactive-filter"><input type="checkbox" checked={showInactive} onChange={e=>setShowInactive(e.target.checked)}/>Mostrar usuarios inactivos</label>
       <div className="order-list">
-        {users.map((user) => (
+        {users.filter(user=>showInactive || user.active).map((user) => (
           <article className="order-card" key={user.id}>
             <h3>{user.fullName}</h3>
             <p>
               {user.username} · {user.role} ·{' '}
-              {user.active ? 'Activo' : 'Inactivo'}
+              {!user.active ? 'Inactivo' : (user.lockedUntil ?? 0)>Date.now() ? 'Bloqueado temporalmente' : 'Activo'}
             </p>
+            {(user.lockedUntil ?? 0)>Date.now() && <button disabled={busy} onClick={()=>void mutate('/admin/users/'+user.id,'PATCH',{unlock:true})}>Desbloquear</button>}
+            {user.canDelete && user.id!==session.userId && <button disabled={busy} onClick={()=>setChange({user,patch:{},label:'Eliminar definitivamente',method:'DELETE'})}>Eliminar definitivamente</button>}
+            {!user.active && user.canDelete===false && <p>Este usuario tiene historial y solo puede desactivarse.</p>}
             <button
               disabled={busy || user.id === session.userId}
               className="quiet"
@@ -180,7 +215,7 @@ export function Users({ session }: { session: Session }) {
               className="quiet"
               onClick={() => {
                 setReset(user);
-                setResetPassword('');
+                setResetPassword(''); setConfirmReset(''); setConfirmResetTouched(false); setResetPasswordError('');
               }}
             >
               Reset de contraseña
@@ -192,6 +227,7 @@ export function Users({ session }: { session: Session }) {
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            const issue=passwordIssue(resetPassword,confirmReset); setConfirmResetTouched(true); setResetPasswordError(resetPassword===confirmReset ? issue : ''); if(issue) return;
             setChange({
               user: reset,
               patch: { password: resetPassword },
@@ -210,9 +246,11 @@ export function Users({ session }: { session: Session }) {
               minLength={12}
               maxLength={72}
               value={resetPassword}
-              onChange={(e) => setResetPassword(e.target.value)}
+              onChange={(e) => {setResetPassword(e.target.value);setResetPasswordError('');}}
             />
           </label>
+          <label>Confirmar nueva contraseña<input type="password" required autoComplete="new-password" value={confirmReset} aria-invalid={resetMismatch || undefined} aria-describedby={resetNotice ? 'reset-password-notice' : undefined} onChange={e=>{setConfirmReset(e.target.value);setConfirmResetTouched(true);setResetPasswordError('');}}/></label>
+          {resetNotice && <p id="reset-password-notice" className="password-validation-banner" role="alert">{resetNotice}</p>}
           <button disabled={busy}>Continuar</button>
           <button
             type="button"
@@ -239,7 +277,7 @@ export function Users({ session }: { session: Session }) {
             onClick={() =>
               void mutate(
                 '/admin/users/' + change.user.id,
-                'PATCH',
+                change.method ?? 'PATCH',
                 change.patch,
               ).then((ok) => {
                 if (ok) setChange(null);

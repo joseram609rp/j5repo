@@ -27,4 +27,6 @@ En producción NO reiniciar salvo decisión explícita; configure @ResetOrderNum
 No ejecutar test:sql si crea fixtures. Si se ejecuta, repetir postcheck.
 Complete [limpieza local](04_clear_local_cache.md) antes de reabrir frontend.
 
-VehicleMakes (57) y VehicleModels (986) son tablas esperadas y se preservan completas, sin DELETE/TRUNCATE. Cleanup compara todas sus columnas antes/después dentro de la transacción y verifica 0 huérfanos. SchemaMigrations contiene 11 migraciones incluyendo 011_daily_order_numbers.sql. ADMIN y reset QA de OrderNumber conservan su comportamiento.
+VehicleMakes (57) y VehicleModels (986) son tablas esperadas y se preservan completas, sin DELETE/TRUNCATE. Cleanup compara todas sus columnas antes/después dentro de la transacción y verifica 0 huérfanos. SchemaMigrations contiene 15 migraciones incluyendo 012_user_lockout.sql, 013_flexible_plates.sql , 014_username_check_pattern.sql y 015_flexible_order_plate_guard.sql. La última actualiza también el trigger de cierre para placas de 3..12 caracteres. ADMIN y reset QA de OrderNumber conservan su comportamiento.
+
+Lockout persistido: 5 fallos / 15 minutos. Reactivación, desbloqueo y reset limpian el bloqueo; reset revoca sesiones. Cleanup conserva ADMIN con todas sus columnas y catálogo 57/986. No ejecutar cleanup como parte de las migraciones.

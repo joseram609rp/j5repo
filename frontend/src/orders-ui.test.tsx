@@ -122,6 +122,7 @@ beforeEach(() => {
           totalAmount: amounts(d.items, old && old.status !== 'OPEN' ? old.taxRate ?? 0 : 13).total,
         };
         delete o.draft.action;
+        delete o.draft.ownerResolution;
         delete o.draft.mechanicId;
         orders.set(id, clone(o));
         return clone(o) as never;
@@ -437,6 +438,7 @@ it('ADMIN user creation sends role, CSRF and idempotency and clears the password
   await input('input[pattern]', 'newmechanic');
   await input('input[required][maxlength="200"]', 'Nuevo usuario');
   await input('input[autocomplete="new-password"]', 'Fixture-only-123!');
+  await input('label:nth-child(4) input[autocomplete="new-password"]', 'Fixture-only-123!');
   await click('Crear usuario');
   const mutation = vi
     .mocked(api)
@@ -489,6 +491,8 @@ it('ADMIN user activation is explicit and confirmed', async () => {
   );
   await click('Confirmar');
   expect(target.active).toBe(false);
+  expect(button('Activar')).toBeUndefined();
+  await act(async()=>{(container.querySelector('input[type=checkbox]') as HTMLInputElement).click();});
   expect(button('Activar')).toBeTruthy();
 });
 
@@ -847,6 +851,9 @@ it.each(['ADMIN','MECHANIC'] as const)('%s confirms one owner transfer after sel
  expect(button('Cambiar cliente manteniendo este vehículo')).toBeUndefined();expect(button('Actualizar dueño a Nuevo cliente')).toBeUndefined();expect(transferred).toBe(true);expect(container.querySelector('[aria-label="Cambio de cliente"]')).toBeNull();expect(text()).not.toContain('Este vehículo está registrado');
  expect(vi.mocked(api).mock.calls.filter(([,o])=>o?.body?.toString().includes('transfer-owner'))).toHaveLength(1);
  await click('Inicio');expect(notices()).not.toContain('Dueño actual actualizado');
+ await click('Nueva orden');await input('.lookup input','Nuevo');await click('Buscar');await click('Nuevo cliente · 111222333');
+ expect(vi.mocked(api).mock.calls.some(([path])=>path==='/vehicles?customerId='+customer.id)).toBe(true);expect(button('XYZ987')).toBeTruthy();await click('XYZ987');
+ expect(disk?.draft).toMatchObject({customerId:customer.id,vehicleId,plate:'XYZ987'});
 });
 
 it('lower close banner resets on leaving the editor and opening a different order',async()=>{
@@ -902,4 +909,110 @@ it('new order search is visible and usable before the initial server save comple
  expect(disk?.draft.plate).toBe('XYZ987');
  await act(async()=>{release();for(let i=0;i<60;i++)await Promise.resolve();});
  expect(disk?.draft.plate).toBe('XYZ987');expect(container.querySelector<HTMLInputElement>('[data-field=plate]')!.value).toBe('XYZ987');
+});
+
+it('never reports transfer success when persisted vehicle ownership remains unchanged',async()=>{
+ const role='MECHANIC' as const;
+ seed();vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role},status:'authenticated',healthOk:true});
+ const implementation=vi.mocked(api).getMockImplementation()!;
+ const customer={id:crypto.randomUUID(),fullName:'Nuevo cliente',identification:'111222333',phone:'77777777',email:'new@example.com'};
+ let transferred=false;const vehicleId=crypto.randomUUID(),ownerId=crypto.randomUUID();
+ vi.mocked(api).mockImplementation(async(path,options)=>{
+ if(path.startsWith('/customers')) return {customers:[customer]} as never;
+ if(path.startsWith('/orders/') && options?.method==='PUT' && options.body?.toString().includes('transfer-owner')) transferred=true;
+ const result=await implementation(path,options);
+ if(path.startsWith('/vehicles')) return {vehicles:[{id:vehicleId,ownerId:ownerId,plate:'XYZ987',make:'Honda',model:'Civic',year:2022,owner:{id:ownerId,fullName:'Existente',identification:'987654321',phone:'87654321',email:null}}]} as never;
+ return result;
+ });
+ await mount();await click('Órdenes abiertas');await click('Continuar');await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
+ await click('Cambiar cliente manteniendo este vehículo');await input('.lookup input','Nuevo');await click('Buscar');await click('Nuevo cliente · 111222333');
+ expect(button('Cambiar cliente manteniendo este vehículo')).toBeUndefined();
+ expect([...container.querySelectorAll('button')].filter(b=>b.textContent==='Actualizar dueño a Nuevo cliente')).toHaveLength(1);
+ expect(container.querySelector('[aria-label="Dueño actual del vehículo"]')).toBeNull();expect(button('Actualizar dueño a Nuevo cliente')).toBeTruthy();
+ await click('Actualizar dueño a Nuevo cliente');expect(container.querySelector('[role=dialog]')).toBeTruthy();await click('Confirmar');
+ expect(transferred).toBe(true);expect(text()).toContain('El dueño registrado del vehículo no cambió.');expect(notices()).not.toContain('Dueño actual actualizado');
+});
+
+it.each(['transfer','keep'] as const)('normal close explicitly resolves a different owner (%s); transfer appears when selecting the customer in the next order',async decision=>{
+ const customerId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',vehicleId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',oldOwnerId='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+ const initial=seed();initial.draft={...initial.draft,customerId,vehicleId};
+ disk!.draft=clone(initial.draft);disk!.order=clone(initial);records.set(initial.id,clone(disk!));
+ let ownerId=oldOwnerId;
+ const original=vi.mocked(api).getMockImplementation()!;
+ const customer={id:customerId,fullName:complete.customerName,identification:complete.identification,phone:complete.phone,email:null};
+ vi.mocked(api).mockImplementation(async(path,options={})=>{
+  if(path.startsWith('/customers'))return {customers:[customer]} as never;
+  if(path.startsWith('/vehicles')) {
+   const requested=new URL('http://test'+path).searchParams.get('customerId');
+   return {vehicles:requested && requested!==ownerId ? [] : [{id:vehicleId,ownerId,plate:complete.plate,make:complete.make,model:complete.model,year:2020,owner:ownerId===customerId ? customer : {...customer,id:oldOwnerId,fullName:'Dueña anterior',identification:'987654321'}}]} as never;
+  }
+  if(options.method==='PUT') {
+   const payload=JSON.parse(options.body as string);
+   if(payload.action==='close') {
+    expect(payload.ownerResolution).toEqual({decision,vehicleId,customerId,expectedOwnerId:oldOwnerId});
+    if(decision==='transfer')ownerId=customerId;
+   }
+  }
+  return original(path,options);
+ });
+ await mount();await click('Órdenes abiertas');await click('Continuar');await click('Cerrar orden');
+ const dialog=container.querySelector('[role=dialog]')!;
+ expect(dialog.textContent).toContain('Dueña anterior');expect(dialog.textContent).toContain('Asignar el vehículo a Cliente de prueba al cerrar');
+ if(decision==='keep')await act(async()=>{container.querySelector<HTMLInputElement>('input[name=close-owner][value=keep]')!.click();});
+ await click('Confirmar');expect(orders.get(initial.id)!.status).toBe('CLOSED');
+ expect(ownerId).toBe(decision==='transfer'?customerId:oldOwnerId);
+ expect(orders.get(initial.id)!.draft.ownerResolution).toBeUndefined();
+ await click('Inicio');await click('Nueva orden');
+ await input('.lookup input','Cliente');await click('Buscar');await click('Cliente de prueba ·');
+ if(decision==='transfer') {expect(button('ABC123 ·')).toBeTruthy();await click('ABC123 ·');expect(container.querySelector<HTMLInputElement>('[data-field=plate]')!.value).toBe('ABC123');}
+ else expect(button('ABC123 ·')).toBeUndefined();
+});
+
+
+it('a concurrent owner change rejects close and asks for a fresh owner decision without trapping the draft',async()=>{
+ const customerId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',vehicleId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',oldOwnerId='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+ const initial=seed();initial.draft={...initial.draft,customerId,vehicleId};disk!.draft=clone(initial.draft);disk!.order=clone(initial);records.set(initial.id,clone(disk!));
+ const original=vi.mocked(api).getMockImplementation()!;let calls=0;
+ vi.mocked(api).mockImplementation(async(path,options={})=>{
+  if(path.startsWith('/vehicles'))return {vehicles:[{id:vehicleId,ownerId:oldOwnerId,plate:complete.plate,owner:{fullName:'Dueña anterior'}}]} as never;
+  if(options.method==='PUT' && JSON.parse(options.body as string).action==='close'){calls++;throw new ApiError(409,'OWNER_DECISION_STALE');}
+  return original(path,options);
+ });
+ await mount();await click('Órdenes abiertas');await click('Continuar');await click('Cerrar orden');await click('Confirmar');
+ expect(calls).toBe(1);expect(orders.get(initial.id)!.status).toBe('OPEN');
+ expect(text()).toContain('Confirma quién será el dueño');expect(container.querySelector('[role=dialog]')).toBeNull();
+ expect(disk!.pending).toBeUndefined();expect(disk!.draft.ownerResolution).toBeUndefined();
+ await click('Cerrar orden');expect(container.querySelector('[role=dialog]')).toBeTruthy();
+});
+
+it('login retains credentials while waiting and after service failure, with no extra Mostrar button',async()=>{
+ vi.mocked(bootstrapSession).mockResolvedValue({session:null,status:'anonymous',healthOk:true});
+ const original=vi.mocked(api).getMockImplementation()!;let fail!:(error:unknown)=>void;
+ vi.mocked(api).mockImplementation(async(path,options)=>path==='/auth/login'?new Promise((_resolve,reject)=>{fail=reject;}):original(path,options));
+ await mount();await input('input[autocomplete=username]','fixture');await input('input[autocomplete=current-password]','Fixture-only-123!');
+ expect(button('Mostrar')).toBeUndefined();expect(container.querySelector('[aria-label="Mostrar contraseña"]')).toBeNull();
+ await click('Entrar');
+ const password=container.querySelector<HTMLInputElement>('input[autocomplete=current-password]')!;
+ expect(password.value).toBe('Fixture-only-123!');expect(password.disabled).toBe(true);expect(text()).toContain('hasta un minuto');
+ await act(async()=>{fail(new ApiError(503,'LOGIN_SERVICE_UNAVAILABLE'));});
+ expect(password.value).toBe('Fixture-only-123!');expect(password.disabled).toBe(false);expect(notices()).toContain('Reporta el problema a soporte');
+});
+
+it('editor lock notices stay in order screens and never leak to Usuarios or login',async()=>{
+ vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
+ Object.defineProperty(navigator,'locks',{configurable:true,value:{request:async(_name:string,_options:unknown,callback:(lock:object|null)=>Promise<void>)=>callback(null)}});
+ await mount();expect(notices()).toContain('El borrador está abierto en otra pestaña');expect(button('Nueva orden').disabled).toBe(true);
+ await click('Usuarios');expect(text()).toContain('Crear usuario');expect(notices()).not.toContain('otra pestaña');
+ await click('Órdenes abiertas');expect(notices()).toContain('otra pestaña');
+ await click('Usuarios');const expire=vi.mocked(trackActivity).mock.calls.at(-1)![1];await act(async()=>{expire();});
+ expect(notices()).toContain('La sesión terminó');expect(notices()).not.toContain('otra pestaña');
+});
+
+it('late editor lock errors cannot display an order notice in Usuarios',async()=>{
+ vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
+ let reject!:(error:Error)=>void;
+ Object.defineProperty(navigator,'locks',{configurable:true,value:{request:()=>new Promise<void>((_resolve,fail)=>{reject=fail;})}});
+ await mount();await click('Usuarios');await act(async()=>{reject(new Error('lock unavailable'));});
+ expect(text()).toContain('Crear usuario');expect(notices()).not.toContain('bloqueo de edición');
+ await click('Inicio');expect(notices()).toContain('No se pudo obtener el bloqueo de edición');
 });

@@ -64,7 +64,7 @@ it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer
     expect(update.status).toBe(200);
     expect((await update.json()).draft.customerId).toBe(customerId);
     expect((await save(randomUUID(), etag)).status).toBe(412);
-    const closeDraft={...draft,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Frenos revisados',identification,phone:'88888888',make:'Toyota',model:'Corolla',year:2020,mileage:100,items:[{description:'Frenos',price:100.10},{description:'Ajuste',price:0.20}],action:'close'};
+    const closeDraft={...draft,ownerResolution:{decision:'keep',vehicleId,customerId,expectedOwnerId:nextOwnerId},paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Frenos revisados',identification,phone:'88888888',make:'Toyota',model:'Corolla',year:2020,mileage:100,items:[{description:'Frenos',price:100.10},{description:'Ajuste',price:0.20}],action:'close'};
     const latest=(await tx.order(orderId))!;
     const close=(payload:unknown,expected=latest.version)=>call('/orders/'+orderId,'PUT',payload,{...mechanic.headers,'idempotency-key':randomUUID(),'if-match':'"'+expected+'"'});
     expect((await close({...closeDraft,items:[]})).status).toBe(400);
@@ -220,3 +220,50 @@ it.skipIf(!enabled)('active catalog counts may change without breaking reads and
  },undefined,true);
  expect(await sql.run(tx=>tx.vehicleCatalog())).toMatchObject({version:1});
 },60000);
+it.skipIf(!enabled)('SQL lockout, canonical duplicates, admin reset/unlock, safe deletion and user-list identity (rollback only)',async()=>{
+ const oldBudget=config.sql.retryBudgetMs;config.sql.retryBudgetMs=100000;
+ const password='SQL-fixture-only-123!',passwordHash=await hashPassword(password),adminId=randomUUID(),userId=randomUUID(),suffix=randomUUID().slice(0,8),username='lock-'+suffix;
+ try{await sql.runSql(async tx=>{
+  await tx.insertUser({id:adminId,username:'admin-'+suffix,fullName:'Fixture admin',role:'ADMIN',active:true,passwordHash});
+  await tx.insertUser({id:userId,username,fullName:'Fixture user',role:'MECHANIC',active:true,passwordHash});
+  const scoped:Repository={run:work=>work(tx)};
+  let api=createApi({repository:scoped,origin});
+  const call=(path:string,method='GET',body?:unknown,headers:Record<string,string>={})=>api(new Request(origin+'/api'+path,{method,headers:{origin,'content-type':'application/json',...headers},...(body===undefined?{}:{body:JSON.stringify(body)})}));
+  const login=(name=username,pwd=password)=>call('/auth/login','POST',{username:name,password:pwd});
+  const admin=await login('admin-'+suffix);const data=await admin.json();const headers={cookie:admin.headers.get('set-cookie')!.split(';')[0]!,'x-csrf-token':data.csrf,'idempotency-key':randomUUID()};
+  for(let i=0;i<4;i++)expect((await login(username,'incorrect')).status).toBe(401);
+  expect(await tx.userById(userId)).toMatchObject({active:true,failedLoginAttempts:4,lockedUntil:null});
+  const before=await tx.time();expect((await login(username,'incorrect')).status).toBe(401);const locked=(await tx.userById(userId))!;
+  expect(locked.lockedUntil!-before).toBeGreaterThanOrEqual(900000);expect(locked.lockedUntil!-before).toBeLessThan(902000);
+  api=createApi({repository:scoped,origin});expect((await login()).status).toBe(401);expect((await tx.userById(userId))!.failedLoginAttempts).toBe(5);
+  await tx.query('UPDATE dbo.Users SET locked_until=DATEADD(second,-1,SYSUTCDATETIME()) WHERE id=@id',{id:userId});expect((await login()).status).toBe(200);expect(await tx.userById(userId)).toMatchObject({failedLoginAttempts:0,lockedUntil:null});
+  for(let i=0;i<2;i++)await login(username,'incorrect');expect((await login()).status).toBe(200);expect((await tx.userById(userId))!.failedLoginAttempts).toBe(0);
+  const patch=(body:unknown)=>call('/admin/users/'+userId,'PATCH',body,{...headers,'idempotency-key':randomUUID()});
+  await tx.query('UPDATE dbo.Users SET failed_login_attempts=5,locked_until=DATEADD(minute,15,SYSUTCDATETIME()) WHERE id=@id',{id:userId});expect((await patch({unlock:true})).status).toBe(200);expect(await tx.userById(userId)).toMatchObject({failedLoginAttempts:0,lockedUntil:null});
+  await tx.query('UPDATE dbo.Users SET failed_login_attempts=5,locked_until=DATEADD(minute,15,SYSUTCDATETIME()) WHERE id=@id',{id:userId});expect((await patch({password:'Reset-fixture-only-123!'})).status).toBe(200);expect(await tx.userById(userId)).toMatchObject({failedLoginAttempts:0,lockedUntil:null});
+  expect((await tx.query<{count:number}>('SELECT COUNT(*) AS count FROM dbo.Sessions WHERE user_id=@id AND revoked_at IS NULL',{id:userId})).recordset[0]!.count).toBe(0);
+  expect((await patch({active:false})).status).toBe(200);expect((await login(username,'Reset-fixture-only-123!')).status).toBe(401);
+  const remove=(id:string,key=randomUUID())=>call('/admin/users/'+id,'DELETE',undefined,{...headers,'idempotency-key':key});
+  expect(await (await remove(userId)).json()).toEqual({code:'USER_HAS_HISTORY'});expect(await (await remove(adminId)).json()).toEqual({code:'CANNOT_DELETE_SELF'});
+  const unused=randomUUID();await tx.insertUser({id:unused,username:'unused-'+suffix,fullName:'Unused fixture',role:'MECHANIC',active:false,passwordHash});
+  const key=randomUUID();expect((await remove(unused,key)).status).toBe(200);expect(await tx.userById(unused)).toBeUndefined();expect((await remove(unused,key)).status).toBe(200);
+  const users=(await (await call('/admin/users','GET',undefined,headers)).json()).users;expect(new Set(users.map((u:{id:string})=>u.id)).size).toBe(users.length);expect(users.find((u:{id:string})=>u.id===userId).canDelete).toBe(false);
+  for(const name of [username,username.toUpperCase(),' '+username+' ']){const response=await call('/admin/users','POST',{username:name,fullName:'Other name',role:'ADMIN',password},{...headers,'idempotency-key':randomUUID()});expect(response.status).toBe(409);expect(await response.json()).toEqual({code:'USERNAME_EXISTS'});}
+  const racing='race-'+suffix;const create=()=>call('/admin/users','POST',{username:racing,fullName:'Race fixture',role:'MECHANIC',password},{...headers,'idempotency-key':randomUUID()});
+  // A shared SQL transaction requires a serialized request queue, like the real SERIALIZABLE repository.
+  let queue=Promise.resolve();scoped.run=work=>{const next=queue.then(()=>work(tx));queue=next.then(()=>undefined,()=>undefined);return next;};
+  expect((await Promise.all([create(),create()])).map(r=>r.status).sort()).toEqual([201,409]);
+ },undefined,true);}finally{config.sql.retryBudgetMs=oldBudget;}
+},120000);
+it.skipIf(!enabled)('SQL unique username constraint rejects the same name under a different role (rollback)',async()=>{
+ const id=randomUUID(),name='unique-'+randomUUID().slice(0,8);
+ await expect(sql.runSql(async tx=>{await tx.insertUser({id,username:name,fullName:'One',passwordHash:'fixture',role:'ADMIN',active:false});await tx.query("INSERT dbo.Users(id,username,full_name,password_hash,role,active) VALUES(@id,@name,'Two','fixture','MECHANIC',0)",{id:randomUUID(),name});},undefined,true)).rejects.toMatchObject({number:2627});
+},15000);
+it.skipIf(!enabled)('SQL accepts approved plate formats and preserves normalized lookup (rollback)',async()=>{
+ await sql.runSql(async tx=>{const owner=randomUUID();await tx.query("INSERT dbo.Customers(id,full_name,identification,phone) VALUES(@id,'Plate fixture',@identification,'88888888')",{id:owner,identification:String(randomInt(100000000,999999999))});
+ for(const plate of ['ABC111','ABC1234','CL111111','C111111','111111']){const existing=await tx.findVehicles(plate);if(existing.length)continue;const id=randomUUID();await tx.query("INSERT dbo.Vehicles(id,owner_id,plate,make,model,year) VALUES(@id,@owner,@plate,'Toyota','Corolla',2020)",{id,owner,plate});expect((await tx.findVehicles(plate.toLowerCase().split('').join('-')))[0]!.id).toBe(id);}
+ },undefined,true);
+},20000);
+it.skipIf(!enabled).each(['','AB','ABC!123','ABC🚘','ABCDEFGHIJKLM','ÁBC123'])('SQL rejects invalid plate %s (rollback)',async plate=>{
+ await expect(sql.runSql(async tx=>{const owner=randomUUID();await tx.query("INSERT dbo.Customers(id,full_name,identification,phone) VALUES(@id,'Plate fixture',@identification,'88888888')",{id:owner,identification:String(randomInt(100000000,999999999))});await tx.query("INSERT dbo.Vehicles(id,owner_id,plate,make,model,year) VALUES(@id,@owner,@plate,'Toyota','Corolla',2020)",{id:randomUUID(),owner,plate});},undefined,true)).rejects.toMatchObject({number:547});
+},15000);

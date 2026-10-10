@@ -10,9 +10,10 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
   const method = options.method ?? 'GET';
   const headers = new Headers(options.headers);
+  const login = path === '/auth/login' && method === 'POST';
   const safe = method === 'GET' || headers.has('Idempotency-Key');
   const catalog = path === '/vehicle-catalog' && method === 'GET';
-  const deadline = Date.now() + 120000;
+  const deadline = Date.now() + (login ? 60000 : 120000);
   for (let attempt = 0; ; attempt++) {
     let response: Response | undefined;
     try {
@@ -26,6 +27,19 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
       throw new ApiError(response.status, body.code);
     } catch (error) {
       const transient = error instanceof ApiError ? [408, 429, 502, 503, 504].includes(error.status) : error instanceof TypeError || (error instanceof DOMException && ['TimeoutError', 'AbortError'].includes(error.name));
+      if (login) {
+        // Retry availability only: never repeat credentials rejected by authentication/rate limits.
+        if (!transient || (error instanceof ApiError && error.status === 429)) throw error;
+        const remaining = deadline - Date.now();
+        if (remaining <= 0) throw new ApiError(503, 'LOGIN_SERVICE_UNAVAILABLE');
+        const retryAfter = response?.headers.get('Retry-After');
+        const seconds = Number(retryAfter);
+        const retryMs = retryAfter ? (Number.isFinite(seconds) ? seconds * 1000 : Date.parse(retryAfter) - Date.now()) : 0;
+        const wait = Math.min(remaining, Math.max(attempt === 0 ? 5000 : 10000, Number.isFinite(retryMs) ? retryMs : 0));
+        await delay(wait);
+        if (Date.now() >= deadline) throw new ApiError(503, 'LOGIN_SERVICE_UNAVAILABLE');
+        continue;
+      }
       if (!safe || !transient || attempt >= 3) throw error;
       const retryAfter = response?.headers.get('Retry-After');
       const seconds = Number(retryAfter);

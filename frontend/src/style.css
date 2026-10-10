@@ -492,3 +492,8 @@ header .tag {
   background: #f2eef3;
   border-color: #ddd4df;
 }
+.close-owner label { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; cursor: pointer; }
+.close-owner input[type="radio"] { flex: 0 0 22px; width: 22px; height: 22px; min-height: 22px; margin: 0; padding: 0; accent-color: var(--primary); }
+.users-inactive-filter { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; }
+.users-inactive-filter input[type="checkbox"] { flex: 0 0 20px; width: 20px; height: 20px; min-height: 20px; margin: 0; padding: 0; accent-color: var(--primary); }
+.password-validation-banner { padding: 12px 16px; border: 1px solid #d92f38; border-radius: 8px; color: #8b2029; background: #fff0f1; }

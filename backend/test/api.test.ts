@@ -256,3 +256,62 @@ it('catalog requires authentication and GET never renews idle session',async()=>
  expect(await response.json()).toEqual(await repo.vehicleCatalog());
  expect([...repo.sessions.values()][0]!.lastActivity).toBe(before);
 });
+it('locks after five failures across API instances, rejects correct credentials while locked, expires and resets',async()=>{
+ const {repo,login}=setup();
+ for(let i=0;i<4;i++)expect((await login('mechanic','wrong')).response.status).toBe(401);
+ expect(repo.accounts.get(mechanicId)).toMatchObject({active:true,failedLoginAttempts:4,lockedUntil:null});
+ expect((await login('mechanic','wrong')).response.status).toBe(401);
+ expect(repo.accounts.get(mechanicId)!.lockedUntil).toBe(repo.clock+900000);
+ const other=createApi({repository:repo,origin});
+ const retry=()=>other(new Request(origin+'/api/auth/login',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify({username:'mechanic',password})}));
+ expect((await retry()).status).toBe(401);expect(repo.accounts.get(mechanicId)!.failedLoginAttempts).toBe(5);
+ repo.clock+=900000;expect((await retry()).status).toBe(200);
+ expect(repo.accounts.get(mechanicId)).toMatchObject({failedLoginAttempts:0,lockedUntil:null});
+});
+it('correct login before threshold resets consecutive failures; inactive stays blocked',async()=>{
+ const {repo,login}=setup();for(let i=0;i<4;i++)await login('mechanic','wrong');
+ expect((await login('mechanic')).response.status).toBe(200);expect(repo.accounts.get(mechanicId)!.failedLoginAttempts).toBe(0);
+ repo.accounts.get(mechanicId)!.active=false;repo.clock+=900000;expect((await login('mechanic')).response.status).toBe(401);
+});
+it.each([{unlock:true},{password:'Replacement-123!'},{active:true}])('ADMIN clears persistent lockout %j',async patch=>{
+ const {repo,login,call}=setup();const {headers}=await login();
+ Object.assign(repo.accounts.get(mechanicId)!,{failedLoginAttempts:5,lockedUntil:repo.clock+900000,...('active' in patch?{active:false}:{})});
+ const response=await call('/admin/users/'+mechanicId,'PATCH',patch,{...headers,'idempotency-key':crypto.randomUUID()});
+ expect(response.status).toBe(200);expect(repo.accounts.get(mechanicId)).toMatchObject({failedLoginAttempts:0,lockedUntil:null});
+});
+it('five concurrent failures serialize without lost increments; local limiter remains effective',async()=>{
+ const {repo,login}=setup();await Promise.all(Array.from({length:5},()=>login('mechanic','wrong')));
+ expect(repo.accounts.get(mechanicId)).toMatchObject({failedLoginAttempts:5,lockedUntil:repo.clock+900000});
+ for(let i=5;i<15;i++)expect((await login('mechanic','wrong')).response.status).toBe(401);
+ expect((await login('mechanic','wrong')).response.status).toBe(429);
+});
+it('username uniqueness ignores role and canonicalizes exact/case/trim; concurrent create yields one account',async()=>{
+ const {repo,login,call}=setup();const {headers}=await login();
+ const create=(username:string,role='MECHANIC')=>call('/admin/users','POST',{username,fullName:'Different name',password,role},{...headers,'idempotency-key':crypto.randomUUID()});
+ expect((await create('mechanic','ADMIN')).status).toBe(409);
+ expect(await (await create(' MECHANIC ','ADMIN')).json()).toEqual({code:'USERNAME_EXISTS'});
+ const responses=await Promise.all([create('racing'),create(' RACING ','ADMIN')]);
+ expect(responses.map(r=>r.status).sort()).toEqual([201,409]);expect([...repo.accounts.values()].filter(u=>u.username==='racing')).toHaveLength(1);
+});
+it('safe deletion requires inactive, preserves history, blocks self and replays deletion',async()=>{
+ const {repo,login,call}=setup();const {headers}=await login();
+ const remove=(id:string,key=crypto.randomUUID())=>call('/admin/users/'+id,'DELETE',undefined,{...headers,'idempotency-key':key});
+ expect(await (await remove(adminId)).json()).toEqual({code:'CANNOT_DELETE_SELF'});
+ expect(await (await remove(mechanicId)).json()).toEqual({code:'USER_MUST_BE_INACTIVE'});
+ repo.accounts.get(mechanicId)!.active=false;
+ repo.audits.push({actorId:mechanicId,action:'LOGIN',entityId:mechanicId});
+ expect(await (await remove(mechanicId)).json()).toEqual({code:'USER_HAS_HISTORY'});
+ repo.audits=repo.audits.filter(a=>a.actorId!==mechanicId);
+ const key=crypto.randomUUID();expect((await remove(mechanicId,key)).status).toBe(200);expect(repo.accounts.has(mechanicId)).toBe(false);
+ expect((await remove(mechanicId,key)).status).toBe(200);
+});
+it('retry after committed invalid login uses a durable receipt and never counts twice',async()=>{
+ const {repo}=setup();let repeated=false;
+ const api=createApi({origin,repository:{run:async work=>{const result=await repo.run(work);if(!repeated){repeated=true;return repo.run(work);}return result;}}});
+ const response=await api(new Request(origin+'/api/auth/login',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify({username:'mechanic',password:'wrong'})}));
+ expect(response.status).toBe(401);expect(repo.accounts.get(mechanicId)!.failedLoginAttempts).toBe(1);expect(repo.receipts.size).toBe(1);
+});
+it.each([2601,2627])('maps SQL duplicate error %i to USERNAME_EXISTS',async number=>{
+ const {repo,login}=setup();const {headers}=await login();repo.insertUser=async()=>{throw Object.assign(new Error('duplicate'),{number});};
+ const api=createApi({repository:repo,origin});const response=await api(new Request(origin+'/api/admin/users',{method:'POST',headers:{origin,'content-type':'application/json',...headers,'idempotency-key':crypto.randomUUID()},body:JSON.stringify({username:'race',fullName:'Race',password,role:'ADMIN'})}));expect(response.status).toBe(409);expect(await response.json()).toEqual({code:'USERNAME_EXISTS'});
+});
