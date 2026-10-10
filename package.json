@@ -1,12 +1,24 @@
 {
-  "name": "frenos-la-bandera", "private": true, "version": "0.1.0",
+  "name": "frenos-la-bandera",
+  "private": true,
+  "version": "0.1.0",
   "packageManager": "pnpm@11.19.0",
-  "engines": { "node": ">=22.12.0 <25" },
+  "engines": {
+    "node": ">=22.12.0 <25"
+  },
   "scripts": {
     "dev": "concurrently -k -n api,web \"pnpm --filter @j5/backend dev\" \"pnpm --filter @j5/frontend dev\"",
     "build": "pnpm -r build",
     "test": "vitest run",
-    "check": "pnpm -r typecheck && pnpm test && pnpm build"
+    "check": "pnpm -r typecheck && pnpm test && pnpm build",
+    "db:migrate": "pnpm --filter @j5/backend db:migrate",
+    "admin:create": "pnpm --filter @j5/backend admin:create",
+    "test:sql": "node --env-file-if-exists=.env scripts/test-sql.mjs"
   },
-  "devDependencies": { "concurrently": "^9.2.1", "typescript": "~5.9.3", "vitest": "^3.2.4", "@types/node": "^22.19.0" }
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.4",
+    "@types/node": "^22.19.0"
+  }
 }

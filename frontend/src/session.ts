@@ -1,5 +1,5 @@
 import { api } from './api';
-export type Session = { userId: string; csrf: string; idleMs: number; lastActivity: number };
+export type Session = { userId: string; username?: string; fullName?: string; role?: 'ADMIN' | 'MECHANIC'; csrf: string; idleMs: number; lastActivity: number };
 /** Heartbeats only after actual foreground input. Polling/autosave never extends a session. */
 export function trackActivity(session: Session, expired: () => void) {
   let last = session.lastActivity; let acknowledged = session.lastActivity; let inFlight = false; let ended = false;
@@ -10,7 +10,7 @@ export function trackActivity(session: Session, expired: () => void) {
     if (last <= acknowledged || inFlight) return;
     inFlight = true;
     try {
-      const response = await api<{ lastActivity: number }>('/session/activity', { method: 'POST', headers: { 'X-CSRF-Token': session.csrf } });
+      const response = await api<{ lastActivity: number }>('/auth/activity', { method: 'POST', headers: { 'X-CSRF-Token': session.csrf } });
       acknowledged = response.lastActivity;
     } catch (error) {
       if (error instanceof Error && 'status' in error && error.status === 401) expire();
