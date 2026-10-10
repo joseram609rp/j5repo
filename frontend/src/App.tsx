@@ -38,6 +38,7 @@ export function App() {
   const [order, setOrder] = useState<Order | null>(null);
   const [editorReady, setEditorReady] = useState(false);
   const [closing, setClosing] = useState(false);
+
   const [confirmAction, setConfirmAction] = useState<
     'close' | 'reopen' | 'transfer-owner' | 'void' | null
   >(null);
@@ -50,6 +51,7 @@ export function App() {
   const [healthMessage, setHealthMessage] = useState('');
   useEffect(() => onBackendSuccess(() => setHealthMessage('')), []);
   const [editorId, setEditorId] = useState<string | null>(null);
+  useEffect(() => { setClosing(false); }, [page, editorId]);
   const [notice, setNotice] = useState<{ page: typeof page; orderId: string | null; message: string; retryable: boolean } | null>(null);
   const noticeGeneration = useRef(0);
   const generation = noticeGeneration.current;
@@ -372,6 +374,7 @@ export function App() {
       if (!saver.current) throw new Error('EDITOR_NOT_READY');
       const saved = await saver.current.action(action);
       if (action === 'transfer-owner') setOwnerRevision(n => n + 1);
+      if (action === 'close') setClosing(false);
       setOrder(saved ?? null);
       setDraft(saver.current.state.draft);
       setConfirmAction(null);
@@ -969,6 +972,12 @@ export function App() {
                       />
                     </label>
                   </fieldset>
+                  {editor && closing && (!order || order.status === 'OPEN') && visibleErrors(draft, touched, true).length > 0 && (
+                    <div className="close-errors confirmation" role="alert">
+                      <p>Para cerrar la orden, completa:</p>
+                      <ul>{visibleErrors(draft, touched, true).map(error => <li key={error.field}>{error.section}: {error.message}</li>)}</ul>
+                    </div>
+                  )}
                   <div className="order-actions">
                   {(!order || order.status === 'OPEN') && !conflict && canFinish && (
                     <button

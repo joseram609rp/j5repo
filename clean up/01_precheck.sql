@@ -19,4 +19,5 @@ SELECT 'VehicleMakes' AS table_name,COUNT(*) AS row_count FROM dbo.VehicleMakes 
 IF (SELECT COUNT(*) FROM dbo.VehicleMakes)<>57 OR (SELECT COUNT(*) FROM dbo.VehicleModels)<>986
  OR EXISTS(SELECT 1 FROM dbo.VehicleModels v LEFT JOIN dbo.VehicleMakes m ON m.id=v.make_id WHERE m.id IS NULL)
  THROW 51108,'CATALOG_INTEGRITY_FAILED',1;
-IF (SELECT COUNT(*) FROM dbo.SchemaMigrations)<>10 OR NOT EXISTS(SELECT 1 FROM dbo.SchemaMigrations WHERE name='010_vehicle_catalog.sql') THROW 51103,'UNEXPECTED_MIGRATIONS',1;
+IF (SELECT COUNT(*) FROM dbo.SchemaMigrations)<>11 OR NOT EXISTS(SELECT 1 FROM dbo.SchemaMigrations WHERE name='011_daily_order_numbers.sql') THROW 51103,'UNEXPECTED_MIGRATIONS',1;
+IF COL_LENGTH('dbo.Orders','order_date') IS NULL OR COL_LENGTH('dbo.Orders','daily_order_number') IS NULL OR NOT EXISTS(SELECT 1 FROM sys.triggers WHERE object_id=OBJECT_ID('dbo.TR_Orders_DailyNumber') AND is_disabled=0) THROW 51103,'UNEXPECTED_DAILY_ORDER_SCHEMA',1;

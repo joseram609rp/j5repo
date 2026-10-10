@@ -529,6 +529,7 @@ it('ADMIN gets active assignees on OPEN; MECHANIC remains read-only and year has
 it('owner mismatch preserves chosen customer and requires an explicit decision', async () => {
  seed(); await mount(); await click('Órdenes abiertas'); await click('Continuar');
  await input('.lookup input','XYZ987'); await click('Buscar'); await click('XYZ987');
+ await input('[data-field=customerName]','Cliente de prueba');await input('[data-field=identification]','123456789');
  expect(container.querySelector('[aria-label="Dueño actual del vehículo"]')?.textContent).toContain('Existente');
  expect(container.querySelector('[aria-label="Dueño actual del vehículo"]')?.textContent).toContain('Cliente de prueba');
  expect(container.querySelector<HTMLInputElement>('[data-field=identification]')?.value).toBe('123456789');
@@ -551,8 +552,12 @@ it('ADMIN can select an active mechanic and owner update is explicitly labeled',
  expect(orders.get(selected.id)?.mechanicId).toBe(next);
  expect(vi.mocked(api).mock.calls.some(([,options])=>options?.body?.toString().includes('assign-mechanic'))).toBe(true);
  await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
+ await input('[data-field=customerName]','Cliente de prueba');
+ await click('Cambiar cliente manteniendo este vehículo');await input('.lookup input','Existente');await click('Buscar');await click('Existente · 987654321');
+ await input('[data-field=customerName]','Cliente de prueba');
  // Exact selections become valid UUIDs in the real API; the UI test fixture uses short identifiers.
- expect(button('Actualizar dueño a Cliente de prueba')).toBeTruthy();
+ expect(button('Actualizar dueño a Cliente de prueba')).toBeUndefined(); // selected customer is already the owner
+ expect(container.querySelector('[aria-label="Cambio de cliente"]')).toBeTruthy();
 });
 it('notes empty still opens the close confirmation', async()=>{
  const selected=seed(); selected.draft.notes=''; disk!.draft.notes=''; records.set(selected.id,clone(disk!));
@@ -636,9 +641,9 @@ it('refetch removes close permission from the previous mechanic',async()=>{
 it('payment and electronic invoice require an explicit choice; No is valid; all observations are optional',async()=>{
  const initial=seed();delete initial.draft.paymentMethod;delete initial.draft.electronicInvoice;initial.draft.notes='';initial.draft.recommendations='';orders.set(initial.id,clone(initial));disk!.draft=clone(initial.draft);disk!.order=clone(initial);records.set(initial.id,clone(disk!));
  await mount();await click('Órdenes abiertas');await click('Continuar');await click('Cerrar orden');
- expect(container.querySelector('[role=dialog]')).toBeNull();expect(text()).toContain('Selecciona el método de pago.');expect(text()).toContain('Indica si requiere factura electrónica');expect(text()).not.toContain('Escribe las observaciones');
+ expect(container.querySelector('.close-errors')?.textContent).toContain('Selecciona el método de pago.');expect(container.querySelector('[role=dialog]')).toBeNull();expect(text()).toContain('Selecciona el método de pago.');expect(text()).toContain('Indica si requiere factura electrónica');expect(text()).not.toContain('Escribe las observaciones');
  const select=async(field:string,value:string)=>act(async()=>{const e=container.querySelector<HTMLSelectElement>(`[data-field=${field}]`)!;e.value=value;e.dispatchEvent(new Event('change',{bubbles:true}));});
- await select('paymentMethod','SINPE');await select('electronicInvoice','false');await click('Cerrar orden');expect(container.querySelector('[role=dialog]')).toBeTruthy();await click('Confirmar');
+ await select('paymentMethod','SINPE');await select('electronicInvoice','false');expect(container.querySelector('.close-errors')).toBeNull();await click('Cerrar orden');expect(container.querySelector('[role=dialog]')).toBeTruthy();await click('Confirmar');
  expect(disk?.order?.status).toBe('CLOSED');expect(disk?.draft.paymentMethod).toBe('SINPE');expect(disk?.draft.electronicInvoice).toBe(false);expect(disk?.draft.notes).toBe('');expect(disk?.draft.recommendations).toBe('');
 });
 it('line IVA and subtotal/final totals recalculate while optional item notes persist',async()=>{
@@ -785,4 +790,42 @@ it('only applies a PWA update after the pending draft is safely synchronized',as
  vi.mocked(api).mockImplementation(async(path,options)=>{if(offline && options?.method==='PUT')throw new TypeError('offline');return original(path,options);});
  await click('Actualizar aplicación');expect(update).not.toHaveBeenCalled();expect(disk?.draft.customerName).toBe('Borrador pendiente');
  offline=false;await click('Actualizar aplicación');expect(update).toHaveBeenCalledTimes(1);expect(disk?.pending).toBeUndefined();
+});
+
+it('keeps the vehicle while typing a new identification without repeated owner warnings; navigation clears intent',async()=>{
+ seed();await mount();await click('Órdenes abiertas');await click('Continuar');
+ await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
+ await click('Cambiar cliente manteniendo este vehículo');
+ for(const field of ['customerName','identification','phone','email']) expect(container.querySelector<HTMLInputElement>('[data-field='+field+']')!.value).toBe('');
+ for(const value of ['1','12','123456789']) { await input('[data-field=identification]',value);expect(container.querySelector('[aria-label="Dueño actual del vehículo"]')).toBeNull();expect(text()).not.toContain('Este vehículo está registrado'); }
+ expect(disk?.draft.vehicleId).toBe('v');expect(disk?.draft.plate).toBe('XYZ987');expect(disk?.draft.make).toBe('Honda');expect(disk?.draft.model).toBe('Civic');expect(disk?.draft.year).toBe(2022);
+ expect(button('Actualizar dueño a')).toBeUndefined();await click('Usar otro vehículo');expect(container.querySelector('[aria-label="Cambio de cliente"]')).toBeNull();
+ await click('Inicio');expect(container.querySelector('.close-errors')).toBeNull();
+});
+
+it('ADMIN confirms one owner transfer after selecting the new customer; success clears local intent and warnings',async()=>{
+ seed();vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
+ const implementation=vi.mocked(api).getMockImplementation()!;
+ const customer={id:crypto.randomUUID(),fullName:'Nuevo cliente',identification:'111222333',phone:'77777777',email:'new@example.com'};
+ let transferred=false;const vehicleId=crypto.randomUUID(),ownerId=crypto.randomUUID();
+ vi.mocked(api).mockImplementation(async(path,options)=>{
+ if(path.startsWith('/customers')) return {customers:[customer]} as never;
+ if(path.startsWith('/orders/') && options?.method==='PUT' && options.body?.toString().includes('transfer-owner')) transferred=true;
+ const result=await implementation(path,options);
+ if(path.startsWith('/vehicles')) return {vehicles:[{id:vehicleId,ownerId:transferred?customer.id:ownerId,plate:'XYZ987',make:'Honda',model:'Civic',year:2022,owner:transferred?customer:{id:ownerId,fullName:'Existente',identification:'987654321',phone:'87654321',email:null}}]} as never;
+ return result;
+ });
+ await mount();await click('Órdenes abiertas');await click('Continuar');await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
+ await click('Cambiar cliente manteniendo este vehículo');await input('.lookup input','Nuevo');await click('Buscar');await click('Nuevo cliente · 111222333');
+ expect(container.querySelector('[aria-label="Dueño actual del vehículo"]')).toBeNull();expect(button('Actualizar dueño a Nuevo cliente')).toBeTruthy();
+ await click('Actualizar dueño a Nuevo cliente');expect(container.querySelector('[role=dialog]')).toBeTruthy();await click('Confirmar');
+ expect(transferred).toBe(true);expect(container.querySelector('[aria-label="Cambio de cliente"]')).toBeNull();expect(text()).not.toContain('Este vehículo está registrado');
+ expect(vi.mocked(api).mock.calls.filter(([,o])=>o?.body?.toString().includes('transfer-owner'))).toHaveLength(1);
+ await click('Inicio');expect(notices()).not.toContain('Dueño actual actualizado');
+});
+
+it('lower close banner resets on leaving the editor and opening a different order',async()=>{
+ const initial=seed();initial.draft.mileage=null;orders.set(initial.id,clone(initial));disk!.draft=clone(initial.draft);disk!.order=clone(initial);records.set(initial.id,clone(disk!));
+ await mount();await click('Órdenes abiertas');await click('Continuar');await click('Cerrar orden');expect(container.querySelector('.close-errors')).toBeTruthy();
+ await click('Inicio');expect(container.querySelector('.close-errors')).toBeNull();await click('Nueva orden');expect(container.querySelector('.close-errors')).toBeNull();expect(disk?.id).not.toBe(initial.id);
 });

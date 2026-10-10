@@ -466,3 +466,46 @@ it.skipIf(!enabled).each([{paymentMethod:undefined},{electronicInvoice:undefined
   const open=await tx.saveOrder(id,userId,draft);await tx.saveOrder(id,userId,{...draft,action:'close'},open);
  },undefined,true)).rejects.toMatchObject({number:547});expect(await repo.run(tx=>tx.order(id))).toBeUndefined();
 },60000);
+
+it.skipIf(!enabled)('SQL current customer contact changes only at valid close and leaves history snapshots intact (rollback)',async()=>{
+ const repo=new SqlRepository(),userId=randomUUID();
+ await repo.runSql(async tx=>{
+ await tx.insertUser({id:userId,username:'contact-'+randomUUID().slice(0,8),fullName:'Contact fixture',passwordHash:'unused',role:'MECHANIC',active:true});
+ const draft:Draft={customerName:'Contact old',identification:String(randomInt(100000000,999999999)),phone:'88888888',email:'old@example.com',plate:'CON'+String(randomInt(0,1000)).padStart(3,'0'),make:'Toyota',model:'Corolla',year:2020,mileage:0,notes:'',recommendations:'',paymentMethod:'CASH',electronicInvoice:false,items:[{description:'Servicio',price:1}]};
+ const first=await tx.saveOrder(randomUUID(),userId,draft);const historical=await tx.saveOrder(first.id,userId,{...first.draft,action:'close'},first);
+ const next=await tx.saveOrder(randomUUID(),userId,{...historical.draft,customerName:'Contact current',phone:'77777777',email:'new@example.com'});
+ expect((await tx.findCustomers(draft.identification!))[0]?.email).toBe('old@example.com');
+ await tx.saveOrder(next.id,userId,{...next.draft,action:'close'},next);
+ expect((await tx.findCustomers(draft.identification!))[0]).toMatchObject({fullName:'Contact current',phone:'77777777',email:'new@example.com',identification:draft.identification});
+ expect((await tx.findVehicles(draft.plate))[0]?.owner).toMatchObject({fullName:'Contact current',phone:'77777777',email:'new@example.com'});
+ expect((await tx.order(historical.id))?.draft).toEqual(historical.draft);
+ },undefined,true);
+},60000);
+
+it.skipIf(!enabled)('SQL daily OT: UTC-6 boundary, sequential numbers beyond 100, day prefix and stable pages (rollback)',async()=>{
+ const repo=new SqlRepository(),userId=randomUUID();const rows=Array.from({length:103},(_,i)=>({id:randomUUID(),created:i<102?'1998-04-03T05:59:59.000':'1998-04-03T06:00:00.000'}));
+ await repo.runSql(async tx=>{
+ await tx.insertUser({id:userId,username:'daily-'+randomUUID().slice(0,8),fullName:'Daily fixture',passwordHash:'unused',role:'MECHANIC',active:true});
+ const customerId=randomUUID(),vehicleId=randomUUID(),identification=String(randomInt(100000000,999999999)),plate='DAY'+String(randomInt(0,1000)).padStart(3,'0');
+ await tx.query("INSERT dbo.Customers(id,full_name,identification,phone) VALUES(@id,N'Daily fixture',@identification,'88888888')",{id:customerId,identification});
+ await tx.query("INSERT dbo.Vehicles(id,owner_id,plate,make,model,year) VALUES(@id,@owner,@plate,'Toyota','Corolla',2020)",{id:vehicleId,owner:customerId,plate});
+ await tx.query(`INSERT dbo.Orders(id,mechanic_id,created_at,order_date,customer_id,vehicle_id,customer_name_snapshot,plate_snapshot,mileage,notes,recommendations,draft_data)
+ SELECT id,@userId,created,CONVERT(date,DATEADD(hour,-6,created)),@customerId,@vehicleId,N'Daily fixture',@plate,0,N'',N'',N'{}' FROM OPENJSON(@rows) WITH(id uniqueidentifier '$.id',created datetime2 '$.created');
+ INSERT dbo.OrderItems(id,order_id,description,price) SELECT NEWID(),id,N'Service',1 FROM OPENJSON(@rows) WITH(id uniqueidentifier '$.id');
+ UPDATE o SET status='CLOSED',total_amount=1,closed_at=SYSUTCDATETIME() FROM dbo.Orders o JOIN OPENJSON(@rows) WITH(id uniqueidentifier '$.id') r ON r.id=o.id;`,{userId,customerId,vehicleId,plate,rows:JSON.stringify(rows)});
+ const first=await tx.listOrders('CLOSED','ot-19980402'),second=await tx.listOrders('CLOSED','OT-19980402',first.at(-1)!.id),third=await tx.listOrders('CLOSED','OT-19980402',second.at(-1)!.id);
+ const all=[...first,...second,...third];expect(all).toHaveLength(102);expect(new Set(all.map(o=>o.id)).size).toBe(102);
+ for(const suffix of ['01','02','03','100','102']) expect(all.some(o=>o.displayOrderId==='OT-19980402-'+suffix)).toBe(true);
+ expect((await tx.listOrders('CLOSED','ot-19980403'))[0]?.displayOrderId).toBe('OT-19980403-01');
+ expect(await tx.listOrders('CLOSED','ot-19980402-102')).toHaveLength(1);
+ },undefined,true);
+},60000);
+it.skipIf(!enabled)('SQL concurrent allocators serialize through a transaction lock; rollback releases allocation (rollback only)',async()=>{
+ const repo=new SqlRepository();let acquired!:()=>void,release!:()=>void;
+ const ready=new Promise<void>(r=>acquired=r),gate=new Promise<void>(r=>release=r);
+ const first=repo.runSql(async tx=>{await tx.query("DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'j5:daily-orders',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=4000; IF @r<0 THROW 51011,'Allocation unavailable',1;");acquired();await gate;},undefined,true);
+ await ready;
+ try { await new SqlRepository().runSql(async tx=>{const r=await tx.query<{result:number}>("DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'j5:daily-orders',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=100; SELECT @r AS result;");expect(r.recordset[0]!.result).toBeLessThan(0);},undefined,true); }
+ finally {release();await first;}
+ await repo.runSql(async tx=>{const r=await tx.query<{result:number}>("DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'j5:daily-orders',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=1000; SELECT @r AS result;");expect(r.recordset[0]!.result).toBeGreaterThanOrEqual(0);},undefined,true);
+},60000);

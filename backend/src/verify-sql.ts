@@ -12,7 +12,7 @@ async function main() {
   if(process.argv.includes('--preflight')) return;
   for(const name of ['Users','Customers','Vehicles','Orders','OrderItems','Sessions','AuditLogs','IdempotencyRequests','SchemaMigrations','VehicleMakes','VehicleModels']) if(!tables.includes(name)) throw new Error('SCHEMA_INCOMPLETE');
   const migrations=(await tx.query<{name:string}>('SELECT name FROM dbo.SchemaMigrations')).recordset;
-  if(migrations.length!==10 || !migrations.some(m=>m.name==='010_vehicle_catalog.sql')) throw new Error('SCHEMA_INCOMPLETE');
+  if(migrations.length!==11 || !migrations.some(m=>m.name==='011_daily_order_numbers.sql')) throw new Error('SCHEMA_INCOMPLETE');
   await tx.query(`IF (SELECT COUNT(*) FROM dbo.VehicleMakes)<>57 OR (SELECT COUNT(*) FROM dbo.VehicleModels)<>986
  OR EXISTS(SELECT 1 FROM dbo.VehicleModels v LEFT JOIN dbo.VehicleMakes m ON m.id=v.make_id WHERE m.id IS NULL)
  THROW 51010,'CATALOG_INTEGRITY_FAILED',1;
@@ -24,6 +24,7 @@ async function main() {
   if(unique.length!==2 || !(await tx.query("SELECT name FROM sys.foreign_keys WHERE name='FK_VehicleModels_Make' AND is_disabled=0 AND is_not_trusted=0")).recordset.length) throw new Error('SCHEMA_INCOMPLETE');
   if((await tx.query("SELECT normalized_name FROM dbo.VehicleMakes GROUP BY normalized_name HAVING COUNT(*)>1; SELECT make_id,normalized_name FROM dbo.VehicleModels GROUP BY make_id,normalized_name HAVING COUNT(*)>1")).recordsets.some(r=>r.length)) throw new Error('SCHEMA_INCOMPLETE');
   console.log('VehicleMakes=57; VehicleModels=986; duplicates=0; orphans=0');
+  await tx.query("IF COL_LENGTH('dbo.Orders','order_date') IS NULL OR COL_LENGTH('dbo.Orders','daily_order_number') IS NULL OR EXISTS(SELECT 1 FROM dbo.Orders WHERE daily_order_number IS NULL OR daily_order_number<1) OR NOT EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.Orders') AND name='UX_Orders_Daily' AND is_unique=1 AND is_disabled=0) OR NOT EXISTS(SELECT 1 FROM sys.triggers WHERE object_id=OBJECT_ID('dbo.TR_Orders_DailyNumber') AND is_disabled=0) THROW 51012,'DAILY_ORDER_SCHEMA_INCOMPLETE',1;");
   const columns=(await tx.query("SELECT t.name AS table_name,c.name AS column_name,c.is_nullable FROM sys.tables t JOIN sys.columns c ON t.object_id=c.object_id WHERE t.name IN ('Users','Customers','Vehicles','Orders','OrderItems') ORDER BY t.name,c.column_id")).recordset;
   if (!columns.some(c => c.table_name === 'Vehicles' && c.column_name === 'model')) throw new Error('SCHEMA_INCOMPLETE');
   for(const [table,column] of [['Orders','tax_rate'],['OrderItems','notes']]) if(!columns.some(c=>c.table_name===table && c.column_name===column)) throw new Error('SCHEMA_INCOMPLETE');

@@ -77,7 +77,7 @@ it.skipIf(!enabled)('executes auth, receipts, rowversion and historical customer
     expect(closed.totalAmount).toBe(113.34);
     expect(closed.status).toBe('CLOSED');
     expect(closed.closedAt).toBeTruthy();
-    expect(closed.displayOrderId).toMatch(/^OT-\d{4}-\d{6,}$/);
+    expect(closed.displayOrderId).toMatch(/^OT-\d{8}-\d{2,}$/);
     expect((await close({...closeDraft,action:undefined},closed.version)).status).toBe(409);
     expect((await close({...closeDraft,action:'reopen'},closed.version)).status).toBe(403);
     const edited=await call('/orders/'+orderId,'PUT',{...closeDraft,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Admin correction',action:'admin-edit'},{...admin.headers,'idempotency-key':randomUUID(),'if-match':'"'+closed.version+'"'});

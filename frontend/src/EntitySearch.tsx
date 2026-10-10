@@ -52,6 +52,7 @@ export function EntitySearch({
   }, [draft.plate, draft.vehicleId, ownerRevision]);
   const mismatch = ownerVehicle?.owner && !!draft.identification && ownerVehicle.owner.identification !== draft.identification;
   const [keepVehicle, setKeepVehicle] = useState(false);
+  useEffect(() => { setKeepVehicle(false); setOwnerDecision(''); setMessage(''); }, [ownerRevision, draft.vehicleId, draft.plate]);
   const [query, setQuery] = useState(''),
     [customers, setCustomers] = useState<Customer[]>([]),
     [vehicles, setVehicles] = useState<Vehicle[]>([]),
@@ -94,6 +95,7 @@ export function EntitySearch({
     });
     setCustomers([]);
     setVehicles([]);
+    if (keepVehicle) { setMessage(''); return; }
     setLoading(true);
     try {
       setVehicles(
@@ -115,7 +117,7 @@ export function EntitySearch({
     setKeepVehicle(false);
     onSelect({
       ...draft,
-      ...(!draft.identification && v.owner ? customerFields(v.owner) : {}),
+      ...(v.owner ? customerFields(v.owner) : {}),
       vehicleId: v.id,
       plate: v.plate,
       make: v.make,
@@ -151,7 +153,12 @@ export function EntitySearch({
         </button>
       </div>
       <p role="status">{message}</p>
-      {mismatch && ownerDecision !== identity && <div className="confirmation" role="group" aria-label="Dueño actual del vehículo">
+      {keepVehicle && <div className="confirmation" role="group" aria-label="Cambio de cliente">
+        <p>Vehículo conservado. El dueño actual solo cambia con confirmación ADMIN.</p>
+        {allowTransfer && draft.customerId && draft.vehicleId && /^\d{9}$/.test(draft.identification ?? '') && mismatch && <button type="button" onClick={onTransfer}>Actualizar dueño a {draft.customerName}</button>}
+        {!allowTransfer && <small>Un administrador puede actualizar el dueño.</small>}
+      </div>}
+      {!keepVehicle && mismatch && ownerDecision !== identity && <div className="confirmation" role="group" aria-label="Dueño actual del vehículo">
         <p>Este vehículo está registrado actualmente a nombre de {ownerVehicle?.owner?.fullName}. El cliente de esta orden es {draft.customerName}.</p>
         <button type="button" className="quiet" onClick={() => setOwnerDecision(identity)}>Mantener dueño actual</button>
         {allowTransfer && draft.customerId && draft.vehicleId && <button type="button" onClick={onTransfer}>Actualizar dueño a {draft.customerName}</button>}
@@ -184,6 +191,8 @@ export function EntitySearch({
           type="button"
           className="quiet"
           onClick={() => {
+            setKeepVehicle(false);
+            setOwnerDecision('');
             onSelect({
               ...draft,
               vehicleId: undefined,
@@ -212,9 +221,7 @@ export function EntitySearch({
               phone: '',
               email: '',
             });
-            setMessage(
-              'Busca o completa el nuevo cliente. El dueño actual del vehículo no cambia automáticamente.',
-            );
+            setMessage(draft.vehicleId ? '' : 'Busca o completa el nuevo cliente.');
           }}
         >
           {draft.vehicleId

@@ -268,7 +268,7 @@ export class SqlUnit implements UnitOfWork {
       JOIN dbo.Users u ON u.id=o.mechanic_id LEFT JOIN dbo.Customers c ON c.id=o.customer_id
       WHERE o.status=@status AND (@before IS NULL OR o.created_at < (SELECT created_at FROM dbo.Orders WHERE id=@before)
         OR (o.created_at=(SELECT created_at FROM dbo.Orders WHERE id=@before) AND o.order_number<(SELECT order_number FROM dbo.Orders WHERE id=@before)))
-      AND (@search='' OR LEFT(o.display_order_id,LEN(@search))=@search OR o.plate_snapshot=@plate
+      AND (@search='' OR LEFT(o.display_order_id,LEN(@search)) COLLATE Latin1_General_100_CI_AS=@search COLLATE Latin1_General_100_CI_AS OR o.plate_snapshot=@plate
       OR CHARINDEX(@search COLLATE Latin1_General_100_CI_AI,o.customer_name_snapshot COLLATE Latin1_General_100_CI_AI)>0
       OR COALESCE(JSON_VALUE(o.draft_data,'$.identification'),c.identification)=@search)
       ORDER BY o.created_at DESC,o.order_number DESC`,
@@ -592,6 +592,8 @@ export class SqlUnit implements UnitOfWork {
       );
       if (r.rowsAffected[0] !== 1) throw new HttpError(412, 'VERSION_CONFLICT');
     } else {
+      // Serialize allocation before INSERT row locks; the trigger also protects direct SQL inserts.
+      await this.query("DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'j5:daily-orders',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=4000; IF @r<0 THROW 51011,'Daily order allocation unavailable',1;");
       await this.query(
         'INSERT dbo.Orders(id,customer_id,vehicle_id,mechanic_id,draft_data,customer_name_snapshot,plate_snapshot,mileage,notes,recommendations,tax_rate) VALUES(@id,@customerId,@vehicleId,@userId,@data,@name,@plate,@mileage,@notes,@recommendations,@taxRate)',
         params,
@@ -625,6 +627,14 @@ export class SqlUnit implements UnitOfWork {
       "EXEC sys.sp_set_session_context @key=N'j5_admin_mutation',@value=NULL",
     );
     await this.query("EXEC sys.sp_set_session_context @key=N'j5_mechanic_reassignment',@value=NULL");
+    // Update the current contact only after a successful validated close.
+    // Historical contact remains in each order's draft_data snapshot.
+    if (action === 'close' && customerId && customer.success) {
+      await this.query('UPDATE dbo.Customers SET full_name=@name,phone=@phone,email=@email WHERE id=@id AND identification=@identification', {
+        id: customerId, identification: customer.data.identification, name: customer.data.fullName,
+        phone: customer.data.phone, email: customer.data.email || null,
+      });
+    }
     return (await this.order(id))!;
   }
   async receipt(userId: string, key: string) {

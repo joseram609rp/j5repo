@@ -20,7 +20,7 @@ Node 22.12+ (<25) y pnpm 11.19.0.
 
 1. `pnpm install --frozen-lockfile`.
 2. Copiar `.env.example` a `.env` en la raíz y completar las credenciales localmente. Nunca usar secretos en `VITE_*`.
-3. `pnpm db:migrate` con una cuenta autorizada para DDL. Las migraciones 001–010 son inmutables tras aplicación; 007 deja año >=1950 y notas opcionales; 008 permite reasignar OPEN; 009 agrega IVA/pago/notas por trabajo; 010 crea y siembra catálogo. Ver [base de datos](database/README.md).
+3. `pnpm db:migrate` con una cuenta autorizada para DDL. Las migraciones 001–011 son inmutables tras aplicación; 007 deja año >=1950 y notas opcionales; 008 permite reasignar OPEN; 009 agrega IVA/pago/notas por trabajo; 010 crea y siembra catálogo; 011 agrega consecutivos diarios y migra identificadores visibles. Ver [base de datos](database/README.md).
 4. Solo en instalaciones sin ADMIN: `pnpm admin:create` desde una terminal interactiva; contraseña oculta, sin argumentos.
 5. `pnpm dev` y abrir `http://localhost:5173`. API local en `http://127.0.0.1:7071`; APP_ORIGIN debe coincidir exactamente.
 
@@ -100,3 +100,6 @@ saveOrder usa savepoint para revertir todos los efectos de un rechazo de negocio
 GET vehicle-catalog devuelve version=1 y cantidades activas dinámicas. El seed y cleanup mantienen su validación 57/986; el runtime permite futuras altas/desactivaciones. Cache schema=2 conserva sugerencias schema=1 y las refresca, TTL 7 días. Reconectar vuelve a cargar el catálogo sin tocar drafts; retries limitados a cuatro intentos, timeout 35s por petición y 120s total, para permitir el presupuesto SQL de 28s. Los campos manuales siguen disponibles durante la carga.
 
 La PWA anuncia actualizaciones con botón explícito. Antes de actualizar intenta sincronizar el editor; pendientes/conflictos o error bloquean la actualización y conservan datos. IndexedDB cierra sus conexiones después de cada operación; limpieza local sigue requiriendo cerrar pestañas/PWA y detener APIs antes del cleanup SQL.
+
+
+QA 011: Customers conserva nombre/teléfono/email actuales al cerrar válidamente; cédula permanece inmutable y draft_data conserva snapshots de contacto por orden. Seleccionar vehículo carga su dueño actual completo. Cambiar cliente conservando vehículo inicia un modo local; únicamente ADMIN confirma el cambio de dueño. El aviso inferior de campos faltantes es local y derivado del intento de cierre y validaciones actuales.
