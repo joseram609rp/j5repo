@@ -52,6 +52,7 @@ export function EntitySearch({
   }, [draft.plate, draft.vehicleId, ownerRevision]);
   const mismatch = ownerVehicle?.owner && !!draft.identification && ownerVehicle.owner.identification !== draft.identification;
   const [changingCustomerForVehicle, setChangingCustomerForVehicle] = useState(false);
+  const previousCustomer = useRef<Pick<Draft, 'customerId' | 'customerName' | 'identification' | 'phone' | 'email'> | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [transferCompleted, setTransferCompleted] = useState(false);
   useEffect(() => { setTransferCompleted(false); }, [draft.vehicleId, draft.plate]);
@@ -60,7 +61,7 @@ export function EntitySearch({
     if (previousOwnerRevision.current !== ownerRevision) setTransferCompleted(true);
     previousOwnerRevision.current = ownerRevision;
   }, [ownerRevision]);
-  useEffect(() => { setChangingCustomerForVehicle(false); setOwnerDecision(''); setMessage(''); }, [ownerRevision, draft.vehicleId, draft.plate]);
+  useEffect(() => { previousCustomer.current = null; setChangingCustomerForVehicle(false); setOwnerDecision(''); setMessage(''); }, [ownerRevision, draft.vehicleId, draft.plate]);
   const [query, setQuery] = useState(''),
     [customers, setCustomers] = useState<Customer[]>([]),
     [vehicles, setVehicles] = useState<Vehicle[]>([]),
@@ -164,7 +165,17 @@ export function EntitySearch({
       <p role="status">{message}</p>
       {changingCustomerForVehicle && <div className="confirmation" role="group" aria-label="Cambio de cliente">
         <p>Vehículo {draft.plate} conservado. Selecciona o completa el nuevo cliente.</p>
-        <button type="button" className="quiet" onClick={() => { setChangingCustomerForVehicle(false); setOwnerDecision(identity); setMessage(''); }}>Cancelar cambio de cliente</button>
+        <button type="button" className="quiet" onClick={() => {
+          if (previousCustomer.current) onSelect({ ...draft, ...previousCustomer.current });
+          previousCustomer.current = null;
+          setChangingCustomerForVehicle(false);
+          setSelectedCustomer(null);
+          setOwnerDecision('');
+          setCustomers([]);
+          setVehicles([]);
+          setQuery('');
+          setMessage('');
+        }}>Cancelar cambio de cliente</button>
         {allowTransfer && selectedCustomer?.id === draft.customerId && selectedCustomer?.identification === draft.identification && draft.customerId && draft.vehicleId && /^\d{9}$/.test(draft.identification ?? '') && mismatch && <button type="button" onClick={onTransfer}>Actualizar dueño a {draft.customerName}</button>}
       </div>}
       {!changingCustomerForVehicle && mismatch && ownerDecision !== identity && <div className="confirmation" role="group" aria-label="Dueño actual del vehículo">
@@ -220,6 +231,7 @@ export function EntitySearch({
           type="button"
           className="quiet"
           onClick={() => {
+            previousCustomer.current = { customerId: draft.customerId, customerName: draft.customerName, identification: draft.identification, phone: draft.phone, email: draft.email };
             setSelectedCustomer(null);
             setChangingCustomerForVehicle(!!draft.vehicleId);
             onSelect({

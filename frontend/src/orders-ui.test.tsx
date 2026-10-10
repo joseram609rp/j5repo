@@ -804,11 +804,22 @@ it('keeps the vehicle while typing a new identification without repeated owner w
  await click('Inicio');expect(container.querySelector('.close-errors')).toBeNull();
 });
 
-it('cancels customer-change intent and clears it when switching orderId or view',async()=>{
+it.each(['typing','selected'] as const)('cancels customer-change after %s and restores previous customer without changing vehicle',async(mode)=>{
  seed();await mount();await click('Órdenes abiertas');await click('Continuar');
  await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
  expect([...container.querySelectorAll('button')].filter(b=>b.textContent==='Cambiar cliente manteniendo este vehículo')).toHaveLength(1);
- await click('Cambiar cliente manteniendo este vehículo');await click('Cancelar cambio de cliente');
+ await input('[data-field=email]','previous@example.com');
+ const previous=clone(disk!.draft);
+ await click('Cambiar cliente manteniendo este vehículo');
+ if(mode==='selected') { await input('.lookup input','Existente');await click('Buscar');await click('Existente · 987654321'); }
+ await input('[data-field=customerName]','Cliente cambiado');await input('[data-field=phone]','77777777');await input('[data-field=email]','changed@example.com');
+ if(mode==='typing') await input('[data-field=identification]','111222333');
+ await click('Cancelar cambio de cliente');
+ for(const field of ['customerId','customerName','identification','phone','email','vehicleId','plate','make','model','year'] as const) expect(disk!.draft[field]).toEqual(previous[field]);
+ for(const field of ['customerName','identification','phone','email'] as const) expect(container.querySelector<HTMLInputElement>('[data-field='+field+']')!.value).toBe(previous[field] ?? '');
+ expect(container.querySelector('[aria-label="Dueño actual del vehículo"]')).toBeNull();
+ expect(button('Actualizar dueño a')).toBeUndefined();
+ expect(button('Cambiar cliente manteniendo este vehículo')).toBeTruthy();
  expect(container.querySelector('[aria-label="Cambio de cliente"]')).toBeNull();
  await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
  await click('Cambiar cliente manteniendo este vehículo');await click('Inicio');await click('Nueva orden');
