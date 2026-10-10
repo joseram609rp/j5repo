@@ -383,7 +383,7 @@ export function createApi(
                 throw new HttpError(412, 'VERSION_CONFLICT');
               if (
                 draft.action &&
-                ['reopen', 'admin-edit', 'transfer-owner', 'assign-mechanic'].includes(
+                ['reopen', 'admin-edit', 'assign-mechanic'].includes(
                   draft.action,
                 ) &&
                 user.role !== 'ADMIN'

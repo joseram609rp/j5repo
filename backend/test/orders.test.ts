@@ -90,44 +90,15 @@ it('bounds lookup input and passes exact selections to the repository', async ()
   expect((await call('/vehicles?customerId=bad')).status).toBe(400);
   expect((await call('/orders?before=bad')).status).toBe(400);
 });
-it('a mechanic cannot transfer vehicle ownership using order actions', async () => {
-  const { repo } = setup();
-  const id = randomUUID();
-  await repo.saveOrder(id, userId, {
-    customerName: 'Ana',
-    plate: 'ABC123',
-    mileage: 0,
-    paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Revisado',
-    recommendations: '',
-  });
-  const raw = randomBytes(32).toString('base64url');
-  repo.sessions.set(tokenHash(raw), {
-    tokenHash: tokenHash(raw),
-    userId,
-    csrf: 'fixture',
-    lastActivity: repo.clock,
-    revoked: false,
-  });
-  const origin = 'http://localhost:5173',
-    api = createApi({ repository: repo, origin });
-  const response = await api(
-    new Request(origin + '/api/orders/' + id, {
-      method: 'PUT',
-      headers: {
-        origin,
-        cookie: 'j5_session=' + raw,
-        'content-type': 'application/json',
-        'x-csrf-token': 'fixture',
-        'idempotency-key': randomUUID(),
-        'if-match': '"' + repo.orders.get(id)!.version + '"',
-      },
-      body: JSON.stringify({
-        ...repo.orders.get(id)!.draft,
-        action: 'transfer-owner',
-      }),
-    }),
-  );
-  expect(response.status).toBe(403);
+it.each(['MECHANIC', 'ADMIN'] as const)('%s can transfer ownership on OPEN and rejects CLOSED/VOID', async role => {
+  const {repo, mutate}=setup(); repo.accounts.get(userId)!.role=role;
+  const id=randomUUID(), draft={customerName:'Nuevo cliente',customerId:randomUUID(),vehicleId:randomUUID(),identification:'123456789',plate:'ABC123',mileage:0,paymentMethod:'CASH' as const,electronicInvoice:false,notes:'',recommendations:''};
+  const initial=await repo.saveOrder(id,userId,draft);
+  expect((await mutate(id,{...draft,action:'transfer-owner'},initial.version)).status).toBe(200);
+  for (const status of ['CLOSED','VOID'] as const) {
+    repo.orders.get(id)!.status=status;
+    expect((await mutate(id,{...draft,action:'transfer-owner'})).status).toBeGreaterThanOrEqual(400);
+  }
 });
 
 it('history rejects missing criteria before reaching the repository', async()=>{

@@ -699,12 +699,12 @@ export function App() {
                   )}
                   {conflict && saver.current && <ConflictReview key={editorId+':'+conflict.remote.version} record={saver.current.state} busy={busy} onResolve={(version,selected)=>void resolveConflict(version,selected)} />}
                   {!!saver.current?.state.recoveryCopies?.length && <button type="button" className="quiet" onClick={()=>{if(saver.current)downloadRecovery(saver.current.state);}}>Descargar copias de recuperación</button>}
-                  {(!order || order.status === 'OPEN') && !conflict && !confirmAction && !busy && (
-                    <EntitySearch key={`${page}:${editorId}`} ownerRevision={ownerRevision} draft={draft} onSelect={saveDraft} allowTransfer={session.role === 'ADMIN'} onTransfer={() => {
+                  {(!order || order.status === 'OPEN') && !conflict && (
+                    <div hidden={!!confirmAction || busy}><EntitySearch key={`${page}:${editorId}`} ownerRevision={ownerRevision} draft={draft} onSelect={saveDraft} allowTransfer={(session.role === 'ADMIN' || session.role === 'MECHANIC')} onTransfer={() => {
                       setBusy(true);
                       void saver.current?.flush().then(() => { setOrder(saver.current?.state.order ?? null); setConfirmAction('transfer-owner'); })
                         .catch(() => setMessage('Sincroniza la orden antes de actualizar el dueño.')).finally(() => setBusy(false));
-                    }} />
+                    }} /></div>
                   )}
                   <fieldset disabled={readOnly}>
                     <h3>Datos del cliente</h3>

@@ -14,7 +14,9 @@ it.skipIf(!enabled)(
       orderId = randomUUID(),
       secondId = randomUUID();
     const oldBudget = config.sql.retryBudgetMs;
-    config.sql.retryBudgetMs = 55000;
+    // This rollback fixture includes both roles, audit and terminal-state checks.
+    // Its aggregate budget is separate from the production request budget.
+    config.sql.retryBudgetMs = 100000;
     try {
       await repo.runSql(
         async (tx) => {
@@ -300,18 +302,11 @@ it.skipIf(!enabled)(
           expect((await tx.findVehicles(draft.plate))[0]?.ownerId).toBe(
             customer.id,
           );
-          expect(
-            (
-              await call(
-                '/orders/' + secondId,
-                'PUT',
-                { ...transferredDraft, action: 'transfer-owner' },
-                false,
-                randomUUID(),
-                changed.version,
-              )
-            ).status,
-          ).toBe(403);
+          const mechanicTransfer = await call('/orders/' + secondId, 'PUT', { ...transferredDraft, action: 'transfer-owner' }, false, randomUUID(), changed.version);
+          expect(mechanicTransfer.status, diagnostic).toBe(200);
+          const mechanicTransferred: Order = await mechanicTransfer.json();
+          expect((await tx.findVehicles(draft.plate))[0]?.ownerId).toBe(newOwnerId);
+          expect((await tx.query<{actor_id:string}>("SELECT actor_id FROM dbo.AuditLogs WHERE entity_id=@id AND action='VEHICLE_OWNER_CHANGED'", {id: transferredDraft.vehicleId!})).recordset.some(row=>row.actor_id.toLowerCase()===userId.toLowerCase())).toBe(true);
           const transferKey = randomUUID(),
             transferPayload = { ...transferredDraft, action: 'transfer-owner' };
           const transferResponse = await call(
@@ -320,7 +315,7 @@ it.skipIf(!enabled)(
             transferPayload,
             true,
             transferKey,
-            changed.version,
+            mechanicTransferred.version,
           );
           expect(transferResponse.status).toBe(200);
           expect((await tx.findVehicles(draft.plate))[0]?.ownerId).toBe(
@@ -336,10 +331,14 @@ it.skipIf(!enabled)(
                 transferPayload,
                 true,
                 transferKey,
-                changed.version,
+                mechanicTransferred.version,
               )
             ).status,
           ).toBe(200);
+          expect((await tx.order(orderId))?.draft).toEqual(closed.draft);
+          for (const admin of [false, true]) {
+            expect((await call('/orders/' + orderId, 'PUT', { ...closed.draft, action:'transfer-owner' }, admin, randomUUID(), closed.version)).status).toBeGreaterThanOrEqual(400);
+          }
           const reopenedResponse = await call(
             '/orders/' + orderId,
             'PUT',
@@ -385,6 +384,7 @@ it.skipIf(!enabled)(
           expect(await snapshot()).toEqual(before);expect(voided.draft).toEqual(operational.draft);
           expect((await call('/orders/'+operationalId,'PUT',cancel,true,key,assigned.version)).status).toBe(200);
           expect((await call('/orders/'+operationalId,'PUT',cancel,true,randomUUID(),voided.version)).status).toBe(409);
+          for (const admin of [false,true]) expect((await call('/orders/'+operationalId,'PUT',{...voided.draft,action:'transfer-owner'},admin,randomUUID(),voided.version)).status).toBeGreaterThanOrEqual(400);
           expect((await call('/orders/'+operationalId,'PUT',assignment,true,randomUUID(),voided.version)).status).toBe(409);
           expect((await (await call('/orders?status=OPEN&q='+encodeURIComponent(suffix))).json()).orders.some((o:Order)=>o.id===operationalId)).toBe(false);
           expect((await tx.query('SELECT action FROM dbo.AuditLogs WHERE entity_id=@id',{id:operationalId})).recordset.map(r=>r.action)).toEqual(expect.arrayContaining(['ORDER_MECHANIC_CHANGED','ORDER_VOIDED']));
@@ -405,7 +405,7 @@ it.skipIf(!enabled)(
       config.sql.retryBudgetMs = oldBudget;
     }
   },
-  90000,
+  120000,
 );
 
 it.skipIf(!enabled)('SQL history: accent-insensitive partial names, literal patterns, exact identity and 50-row pages (rollback)',async()=>{

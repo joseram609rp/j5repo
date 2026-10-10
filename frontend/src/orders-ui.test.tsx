@@ -797,14 +797,26 @@ it('keeps the vehicle while typing a new identification without repeated owner w
  await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
  await click('Cambiar cliente manteniendo este vehículo');
  for(const field of ['customerName','identification','phone','email']) expect(container.querySelector<HTMLInputElement>('[data-field='+field+']')!.value).toBe('');
- for(const value of ['1','12','123456789']) { await input('[data-field=identification]',value);expect(container.querySelector('[aria-label="Dueño actual del vehículo"]')).toBeNull();expect(text()).not.toContain('Este vehículo está registrado'); }
+ expect([...container.querySelectorAll('button')].filter(b=>b.textContent?.includes('Cambiar cliente manteniendo este vehículo'))).toHaveLength(0);
+ for(const value of Array.from({length:9},(_,i)=>'123456789'.slice(0,i+1))) { expect(button('Cambiar cliente manteniendo este vehículo')).toBeUndefined(); await input('[data-field=identification]',value);expect(container.querySelector('[aria-label="Dueño actual del vehículo"]')).toBeNull();expect(text()).not.toContain('Este vehículo está registrado'); }
  expect(disk?.draft.vehicleId).toBe('v');expect(disk?.draft.plate).toBe('XYZ987');expect(disk?.draft.make).toBe('Honda');expect(disk?.draft.model).toBe('Civic');expect(disk?.draft.year).toBe(2022);
  expect(button('Actualizar dueño a')).toBeUndefined();await click('Usar otro vehículo');expect(container.querySelector('[aria-label="Cambio de cliente"]')).toBeNull();
  await click('Inicio');expect(container.querySelector('.close-errors')).toBeNull();
 });
 
-it('ADMIN confirms one owner transfer after selecting the new customer; success clears local intent and warnings',async()=>{
- seed();vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
+it('cancels customer-change intent and clears it when switching orderId or view',async()=>{
+ seed();await mount();await click('Órdenes abiertas');await click('Continuar');
+ await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
+ expect([...container.querySelectorAll('button')].filter(b=>b.textContent==='Cambiar cliente manteniendo este vehículo')).toHaveLength(1);
+ await click('Cambiar cliente manteniendo este vehículo');await click('Cancelar cambio de cliente');
+ expect(container.querySelector('[aria-label="Cambio de cliente"]')).toBeNull();
+ await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
+ await click('Cambiar cliente manteniendo este vehículo');await click('Inicio');await click('Nueva orden');
+ expect(container.querySelector('[aria-label="Cambio de cliente"]')).toBeNull();expect(text()).not.toContain('Vehículo XYZ987 conservado');
+});
+
+it.each(['ADMIN','MECHANIC'] as const)('%s confirms one owner transfer after selecting the new customer; success clears local intent and warnings',async(role)=>{
+ seed();vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role},status:'authenticated',healthOk:true});
  const implementation=vi.mocked(api).getMockImplementation()!;
  const customer={id:crypto.randomUUID(),fullName:'Nuevo cliente',identification:'111222333',phone:'77777777',email:'new@example.com'};
  let transferred=false;const vehicleId=crypto.randomUUID(),ownerId=crypto.randomUUID();
@@ -817,9 +829,11 @@ it('ADMIN confirms one owner transfer after selecting the new customer; success 
  });
  await mount();await click('Órdenes abiertas');await click('Continuar');await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
  await click('Cambiar cliente manteniendo este vehículo');await input('.lookup input','Nuevo');await click('Buscar');await click('Nuevo cliente · 111222333');
+ expect(button('Cambiar cliente manteniendo este vehículo')).toBeUndefined();
+ expect([...container.querySelectorAll('button')].filter(b=>b.textContent==='Actualizar dueño a Nuevo cliente')).toHaveLength(1);
  expect(container.querySelector('[aria-label="Dueño actual del vehículo"]')).toBeNull();expect(button('Actualizar dueño a Nuevo cliente')).toBeTruthy();
  await click('Actualizar dueño a Nuevo cliente');expect(container.querySelector('[role=dialog]')).toBeTruthy();await click('Confirmar');
- expect(transferred).toBe(true);expect(container.querySelector('[aria-label="Cambio de cliente"]')).toBeNull();expect(text()).not.toContain('Este vehículo está registrado');
+ expect(button('Cambiar cliente manteniendo este vehículo')).toBeUndefined();expect(button('Actualizar dueño a Nuevo cliente')).toBeUndefined();expect(transferred).toBe(true);expect(container.querySelector('[aria-label="Cambio de cliente"]')).toBeNull();expect(text()).not.toContain('Este vehículo está registrado');
  expect(vi.mocked(api).mock.calls.filter(([,o])=>o?.body?.toString().includes('transfer-owner'))).toHaveLength(1);
  await click('Inicio');expect(notices()).not.toContain('Dueño actual actualizado');
 });

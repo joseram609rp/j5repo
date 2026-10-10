@@ -507,7 +507,9 @@ export class SqlUnit implements UnitOfWork {
     }
     if (draft.action === 'transfer-owner') {
       const actor = await this.userById(userId);
-      if (actor?.role !== 'ADMIN') throw new HttpError(403, 'ADMIN_REQUIRED');
+      if (!actor?.active || !['ADMIN', 'MECHANIC'].includes(actor.role)) throw new HttpError(403, 'UNAUTHORIZED');
+      if (!previous || previous.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');
+      if (!draft.customerId || !draft.vehicleId) throw new HttpError(400, 'OWNER_TRANSFER_INCOMPLETE');
       const selectedCustomer = (
         await this.query<{ identification: string }>(
           'SELECT identification FROM dbo.Customers WHERE id=@id',
