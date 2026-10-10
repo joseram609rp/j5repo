@@ -1,3 +1,143 @@
+# Correcciones de auditoría Phase 3 — 2026-10-09
+
+Esta sección reemplaza referencias anteriores a conflictos pendientes para Phase 4 y presupuestos antiguos del catálogo. Cierre rechazado: savepoint elimina efectos laterales y conserva receipt. Conflictos: comparación/elección por grupos, archivo local y backup descargable, nuevo GET/ETag/clave antes de guardar; no replay automático de acciones. Catálogo: version=1, cantidades activas dinámicas, cache schema=2 con fallback legacy, recarga online, timeout HTTP 35s y presupuesto 120s. PWA: prompt de actualización explícito y guardado antes de activación. Conexiones de drafts cerradas por operación.
+
+No se modificaron migraciones ni cleanup. No se hizo commit/push/merge. Las pruebas SQL nuevas de atomicidad y active usan rollback y número explícito para no consumir OrderNumber. Validación final: pnpm check aprobado (216 pruebas locales, 19 SQL omitidas en check), tipos y builds backend/frontend/PWA correctos. SQL focalizado: 3 pruebas aprobadas con rollback, incluyendo rechazo sin residuos, replay, cierre válido posterior y catálogo active dinámico. db:verify aprobado; 10 checksums coinciden, catálogo 57/986 sin duplicados/huérfanos; conteos de negocio y OrderNumber=143 sin cambios. Validación JSON y git diff --check aprobados. Suite SQL completa, móvil físico y despertar real de serverless siguen pendientes de QA; no se ejecutó cleanup. Los registros siguientes son históricos.
+
+---
+
+# Phase 3 — cierre por asignación, pago e IVA (2026-10-05, America/Guatemala)
+
+Repositorio C:\j5repo limpio al inicio, branch feature/orders-mvp. Esta ronda reemplaza las reglas previas de cierre: MECHANIC solo cierra su OPEN asignada; ADMIN puede cerrar cualquier OPEN. La edición general de OPEN conserva su regla previa. Sin merge, push, staging ni commit.
+
+## Cambios
+
+- API y SqlUnit rechazan cierre por el mecánico anterior después de la reasignación. El refresco actualiza metadata/ETag y oculta Cerrar orden al usuario no asignado; las reglas de cancelación no se relajan.
+- Observaciones y recomendaciones generales opcionales: vacías/espacios aceptados; ausentes normalizan a cadena vacía. Textareas etiquetadas opcionales. El mensaje reportado «Escribe las observaciones de la orden.» no aparece en el código/build inspeccionados; no se confirmó qué versión ejecuta el navegador del usuario.
+- Observación opcional por trabajo en textarea y dbo.OrderItems.notes; precio/descripción mantienen su validación. Máximo 2000 caracteres, vacío o ausente válido.
+- Método de pago requerido para cierre: SINPE, crédito, débito, efectivo o transferencia bancaria. Factura electrónica requiere seleccionar Sí/No; false no se confunde con falta de elección. OPEN permite pago/factura pendientes para conservar autosave.
+- Precio de trabajo sin IVA; cálculo automático de IVA 13% por línea, redondeado a centavos, y subtotal/IVA/precio final al pie. SQL y frontend coinciden; las guardas verifican total. El cliente no puede enviar tasa ni total oficiales.
+- Migración aditiva 009_order_billing.sql aplicada; 001–008 permanecen intactas. tax_rate inicial 0 conserva los importes históricos; órdenes nuevas y guardados OPEN usan 13%. No se recalcularon órdenes históricas ni se modificaron usuarios ADMIN ni referencias reales. La bandera de factura registra la solicitud; no genera factura electrónica.
+
+## Verificación
+
+- pnpm check: typecheck y builds backend/frontend/PWA correctos; 180 pruebas locales aprobadas y 16 SQL omitidas por diseño.
+- pnpm --filter @j5/backend db:verify: conectividad/esquema correctos; migraciones 001–009, nuevas columnas, constraints trusted y triggers activos.
+- pnpm test:sql: 16 pruebas reales aprobadas; todas con fixtures rollback-only.
+- Cobertura local: cierre propio, 403 tras reasignación, ADMIN, todos los métodos de pago, Sí y No, ausencia de campos obligatorios, notas vacías/ausentes, observaciones opcionales por trabajo, límites, IVA por línea y consistencia de totales.
+- Cobertura SQL: pago/factura y nuevos totales end-to-end, cierre bloqueado al mecánico anterior, observación por trabajo persistida, redondeo por línea y órdenes históricas con importes intactos. Pruebas de constraints para cierre sin pago/factura se ejecutan en rollback.
+- git diff --check sin errores. Sesión, idempotencia/ETag, cancelación VOID y refresco permanecen cubiertos. .env local ignorado y sin tracking/staging; no se imprimieron secretos.
+
+---
+
+# Phase 3 — cancelación y reasignación operativas (2026-10-05, America/Guatemala)
+
+Repositorio C:\j5repo inspeccionado limpio, en feature/orders-mvp antes de editar. Sin merge, push, commit, staging ni despliegue; dev/main intactos. CarsXE fuera de scope.
+
+## Resultado de esta ronda
+
+- Cancelar orden visible en editor y lista OPEN; desde la lista abre el detalle y confirmación de la orden seleccionada. MECHANIC solo cancela la asignada a su usuario; ADMIN cualquier OPEN. Backend y repositorio SQL validan permisos y estado. CLOSED/VOID rechazan cancelación y reasignación. La confirmación usa el número de orden y avisa que desaparecerá de abiertas.
+- action=void usa PUT /api/orders/:uuid, status=VOID y audit ORDER_VOIDED con entity_id=orderId. La operación SQL actualiza únicamente estado/fecha; no hace DELETE ni reemplaza OrderItems ni customer/vehicle/referencias históricas. Un borrador local inválido no impide cancelar una OPEN ya persistida. VOID queda read-only, desaparece de OPEN y se excluye de historial normal.
+- ADMIN selecciona un usuario activo elegible y pulsa Actualizar mecánico. Cambiar el dropdown no edita el borrador ni inicia autosave. action=assign-mechanic actualiza solo mechanic_id/fecha, devuelve orden y ETag nuevos y audita ORDER_MECHANIC_CHANGED. El mecánico normal ve el asignado read-only. Se conserva la edición general de OPEN por los mecánicos del taller.
+- La lista se monta/consulta SQL al entrar o reentrar. Editor y lista OPEN refrescan mediante GET al recuperar foco/visibilidad y cada 30 segundos estando visibles. El editor avisa de la reasignación y recalcula permiso de cancelación inmediatamente. Las respuestas tardías de una orden abandonada se ignoran.
+- Borradores sucios mantienen su versión base; GET no reconoce como guardados cambios locales. Un 412 refetch conserva el borrador. Reasignación sin cambio de contenido permite retry explícito con ETag y clave de idempotencia nuevos; cambios remotos de contenido detienen sync para revisión. No se reintenta automáticamente una cancelación rechazada.
+- Se mantienen Origin/CSRF, recibos idempotentes, If-Match y rowversion, transacciones y parámetros SQL. Solo actividad real renueva la sesión de dos horas; GET/polls/foco/autosave no la renuevan.
+
+## Verificación final
+
+- pnpm check: typecheck, 168 pruebas locales aprobadas y builds backend/frontend/PWA correctos; 13 SQL omitidas en el comando local por diseño.
+- pnpm --filter @j5/backend db:verify: conectividad y estructura correctas; SchemaMigrations 001–008 ya aplicadas y triggers activos. AuditLogs existente basta. No se crearon ni editaron migraciones ni se aplicó DDL.
+- pnpm test:sql: 13 pruebas reales aprobadas, todas rollback-only. Incluye cancelar propia/403 para no asignado, ADMIN, idempotencia, CLOSED/VOID, reasignación y rowversion/ETag, listado con asignado actual, auditoría, preservación de IDs/contenido de trabajos, cliente, vehículo e historial anterior. Las fixtures y sus usuarios no persisten; no se modificaron usuarios ADMIN ni datos reales.
+- Frontend: selector sin autosave y botón explícito ADMIN; cancelación por permisos desde editor/lista; confirmación, VOID read-only y retirada de lista; foco y polling con aviso de reasignación; sesión sin renovación por consultas; 412 con copia local conservada y clave nueva al retry; respuesta tardía ignorada al cambiar de orden.
+- git diff --check sin errores. .env local ignorado, sin tracking/staging y sin imprimir secretos.
+
+README actualizado con contratos, permisos, auditoría y refresco. Los registros siguientes documentan rondas anteriores; las reglas de esta ronda sustituyen sus descripciones antiguas de void/reasignación.
+
+---
+
+# Phase 3 — cambios 1–7 verificados el 2026-10-05 (America/Guatemala)
+
+Trabajo en C:\j5repo, branch feature/orders-mvp inspeccionado antes de editar. Sin merge, push, staging, commit ni despliegue. El cambio previo en .env.example se conservó. CarsXE, catálogos, seed y llamadas externas no se implementaron.
+
+## Cambios entregados
+
+- Nueva orden crea un UUID nuevo por acción explícita aunque el usuario ya tenga OPEN. Una guarda impide ejecuciones concurrentes del mismo clic. Login, refresh y re-render no crean órdenes.
+- IndexedDB usa [userId, orderId], con migración atómica del borrador legacy. Cada orden conserva su payload, revisión, ETag y clave de idempotencia. La lista OPEN pagina todas las órdenes del taller e incorpora borradores locales pendientes; Continuar recupera la copia de la orden elegida. Ver CLOSED no descarta las OPEN.
+- ADMIN puede seleccionar usuarios activos MECHANIC o ADMIN en OPEN: ambos roles pueden trabajar como mecánicos. MECHANIC ve el nombre sin selector; cambiarlo por API devuelve 403. CLOSED/VOID no admiten reasignación, ni usando reopen/admin-edit. AuditLogs guarda actor_id, entity_id de orden y action=ORDER_MECHANIC:<nuevo UUID> sin migrar el schema de auditoría.
+- Seleccionar una placa existente mantiene el cliente elegido. Solo si el dueño difiere se muestran ambos nombres, Mantener dueño actual y, para ADMIN con referencias válidas, Actualizar dueño a [nombre] con confirmación. Un guardado normal nunca modifica owner_id; transfer-owner conserva Orders.customer_id histórico.
+- Historial inicia vacío sin consultar el endpoint. CLOSED requiere q de al menos dos caracteres en API y repositorio. Nombre parcial con Latin1_General_100_CI_AI, cédula exacta, placa exacta normalizada y OT por prefijo literal. SQL parametrizado CHARINDEX/LEFT trata %, _ y [ como texto. Páginas de 50 con cursor before y desempate por order_number.
+- Observaciones y recomendaciones opcionales en OPEN/CLOSED; se conserva validación de cliente/cédula/teléfono/placa/marca/modelo/año/kilometraje y servicios válidos con total calculado en backend.
+- Año entero >=1950, sin máximo funcional ni atributo max. SQL conserva su tipo int. Probados 1949 (rechazo), 1950, 2028, 2035, 100000 y 2147483647 (aceptación).
+
+## Endpoints afectados
+
+- GET /api/orders?status=OPEN|CLOSED&q=...&before=uuid: CLOSED exige criterio; búsqueda exacta/parcial según campo; límite server-side 50.
+- PUT /api/orders/:uuid: intención mechanicId para ADMIN OPEN; notas vacías y años futuros válidos; mantiene ETag, rowversion, idempotencia y total oficial.
+- GET /api/customers?q=...: nombre parcial case/accent-insensitive; cédula exacta; máximo 20.
+- GET /api/vehicles?q=...: placa exacta normalizada; devuelve dueño para la decisión explícita.
+- GET /api/admin/users: endpoint existente reutilizado para listar candidatos activos; no se cambió su contrato ni se exponen hashes.
+
+## Migraciones y validación
+
+Preflight SQL confirmó 001–006 aplicadas y tres vehículos antes de trabajar. No se editaron los archivos aplicados ni sus checksums.
+
+- 007_optional_notes_year.sql elimina CK_Orders_ClosedNotes y reemplaza CK_Vehicles_Year por year >=1950. Solo metadata.
+- 008_open_mechanic_reassignment.sql conserva los guards existentes y permite cambio de mecánico solo entre estados OPEN con contexto autorizado por backend.
+- pnpm check final: tipos y builds backend/frontend/PWA aprobados, 150 tests locales aprobados; 13 SQL omitidos intencionalmente en este comando.
+- pnpm db:migrate después de pnpm check: únicamente 007 y 008 aplicadas.
+- pnpm --filter @j5/backend db:verify: 9 tablas, 8 migraciones, 21 CHECK habilitados/trusted, 2 triggers activos y 1 ADMIN activo. Tres vehículos, todos con modelo, y tres órdenes CLOSED. Las migraciones no modificaron filas reales.
+- pnpm test:sql: 13 aprobados en 123.50 s, dos suites secuenciales. Fixtures nuevos, rollback-only y comprobaciones de ausencia de las órdenes/usuarios temporales. Incluye auth/permisos, idempotencia, ETag/rowversion, totales, guards, selección de cliente, propiedad histórica, reasignación, notas vacías y whitespace, límites/paginación y año.
+- UI automatizada y fake-indexeddb: múltiples OPEN, continuaciones independientes, refresh/re-render, legacy, colas/claves distintas, selector por rol/estado, decisión de dueño sin transferencia implícita, cierre sin notas, historia sin consulta inicial y Cargar más.
+
+## Límites antes del catálogo
+
+No hay blocker detectado para retomar el catálogo como trabajo separado. No se hizo un nuevo smoke visual autenticado con credenciales humanas. Las pruebas SQL con rollback no acreditan COMMIT ambiguo ni concurrencia real entre procesos; permanecen en Phase 4, junto a recuperación guiada de conflictos, despliegue, Managed Identity, limitador compartido y PWA en dispositivos reales. El límite por usuario del Web Lock se conserva, aunque se permiten múltiples órdenes por usuario en almacenamiento y SQL.
+
+---
+
+Los reportes siguientes son históricos y sus conteos/reglas anteriores fueron sustituidos por el estado de entrega descrito arriba.
+
+# Phase 3 — Orders MVP verificado el 2026-10-05 (America/Guatemala)
+
+## Entrega vigente
+
+`C:\j5repo`, branch `feature/orders-mvp`. Phase 2 (`15994cf`) integrada a `dev` mediante fast-forward local antes de crear el branch. `main` intacto. Phase 3 queda en su rama para revisión; sin push, merge final ni despliegue Azure.
+
+Flujo implementado: login → dashboard → nueva OPEN/retomar → SQL + IndexedDB autosave → lista OPEN de todos los mecánicos → continuar → cierre validado/confirmado → CLOSED de solo lectura → historial/búsqueda. ADMIN también tiene usuarios básicos completos y reapertura confirmada. Cambiar el dueño requiere acción ADMIN explícita; guardar/seleccionar otro cliente no transfiere ownership y las órdenes anteriores conservan su cliente.
+
+## Validación
+
+- `pnpm check`: tipos y builds backend/frontend/PWA aprobados; **135 tests locales** aprobados. Los 11 SQL se omiten por diseño en este comando.
+- `pnpm db:migrate`: aplicó solo **006_open_order_selection.sql**. 001–005 intactas; checksums verificados por el runner. 006 permite correcciones de selecciones OPEN, conserva guards de CLOSED/VOID, mechanic_id y total/servicios, y agrega índice de listas. Sin modificaciones de datos.
+- `pnpm test:sql`: **11 tests aprobados**, aproximadamente 112 s; ambas suites ejecutadas secuencialmente. Se usan exclusivamente fixtures nuevos, transacciones rollback-only y comprobación posterior de ausencia de usuarios/órdenes de prueba.
+- SQL real: login/auth/roles/CSRF/expiración/revocación; ETag/rowversion, replay y conflictos; total oficial SUM; cierre válido/faltantes/whitespace; guards directos; modelo legacy; listas cross-mechanic; búsquedas por OT/placa/cédula/nombre; reutilización sin duplicados; dueño permanece intacto en guardado normal; transferencia explícita ADMIN e histórico conservado; reapertura ADMIN.
+- `db:verify` después de la suite: 9 tablas, **6 migraciones**, 22 CHECK habilitados/trusted, índices únicos e IX_Orders_StatusCreated, 2 triggers activos, **1 ADMIN activo** y el **mismo vehículo existente** con modelo desconocido. Cero CLOSED sin observaciones. No se cambió el ADMIN ni se rellenaron datos reales.
+- UI automatizada interactiva: dashboard por rol sin crear órdenes al login; crear/retomar OPEN; legacy local; validación completa con errores inline/resumen; close/read-only/reopen; búsqueda/selección de dueño; historial vacío; detalle CLOSED conserva borrador activo; usuarios crear/desactivar confirmados; estado local en listas.
+- IndexedDB real emulado con fake-indexeddb: aislamiento por usuario, pending close persistido, recuperación de payload/clave/ETag exactos tras reinicio, sin segundo cierre. Regresiones autosave incluyen respuesta perdida, edición bloqueada CLOSED, rechazo conocido de cierre y replay rechazado sin falsa confirmación.
+- Retry manual solo ante error recuperable. Offline, conflicto y expiración mantienen sus comportamientos. CRC y kilometraje siguen numéricos; previews probados.
+- Navegador real con API simulada temporal, sin credenciales humanas ni escrituras SQL: dashboard desktop/móvil, entrada de todos los campos/trabajo, confirmación con OT/total, cierre y campos bloqueados. Viewport 390 px: scrollWidth 375 px, botones visibles mínimo 48 px. Vista temporal retirada después de revisión.
+- `git diff --check` aprobado. `.env` ignorado, sin seguimiento ni staging; secretos locales nunca impresos. Revisión del diff frente a credenciales locales sin revelar valores.
+
+## Límites y Phase 4
+
+Las pruebas SQL hacen rollback: no acreditan COMMIT persistente real, pérdida de respuesta tras COMMIT real ni concurrencia entre procesos. El browser smoke usa datos simulados; las suites API/SQL verifican los contratos del runtime real. Las suites SQL son secuenciales porque sus transacciones largas de fixtures y lecturas globales pueden provocar deadlocks artificiales cuando se ejecutan juntas; los reintentos transaccionales de producción conservan su presupuesto original.
+
+Phase 4: recuperación guiada de conflictos, anulación/admin-edit UI, reportes, retención de recibos/sesiones, catálogos extensos y pruebas de COMMIT/concurrencia. Antes de producción: despliegue/configuración HTTPS/Functions/Managed Identity, mínimos permisos SQL, limitador compartido y PWA en dispositivos reales. Usuarios básicos ya implementados; no se deja un módulo funcional a medias.
+
+---
+
+Los reportes siguientes son históricos de Phase 2 y fases anteriores; el estado vigente es Phase 3 arriba.
+
+# Limpieza final de UI Phase 2 — 2026-10-05 (America/Guatemala)
+
+- Se eliminaron slogans, panel de módulos futuros y footer decorativo. Formulario a todo el ancho, login centrado y campos apilados en móvil; logo J5 y paleta azul/rojo conservados.
+- Retry manual condicionado a fallo recuperable de sincronización. Estados de progreso/guardado/copia local visibles; offline no ofrece retry manual y conserva el listener online existente. Conflictos y expiración no ofrecen un botón ineficaz.
+- Pruebas de render conectadas a los reportes de Autosave verifican estado sano, fallo, replay con la misma mutación, recuperación offline, conflictos y expiración. Persistencia, debounce, idempotencia y ETag sin cambios.
+- pnpm check: 112 pruebas locales aprobadas, 10 SQL omitidas por diseño; typecheck y builds correctos. git diff --check correcto; .env ignorado y no staged.
+- Sin migración, acceso a Azure SQL, cambios de ADMIN, merge ni push. Layout verificado por código y render automatizado; sin revisión visual manual en navegador.
+
+---
+
 # Cierre final Phase 2 — 2026-10-05 (America/Guatemala)
 
 ## Resultado actual

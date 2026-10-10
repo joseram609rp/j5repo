@@ -1,73 +1,105 @@
 # Frenos La Bandera
 
-PWA React/TypeScript/Vite y API Node/TypeScript para el taller. Phase 2.1 incorpora schema y validaciones de negocio, servicios con precio final CRC y branding J5. Rama de trabajo: feature/backend-foundation. No se desplegó a Azure y no hay UI completa de órdenes.
+PWA React/TypeScript/Vite y API Node/TypeScript para el taller. Phase 3 implementa Orders MVP: login → dashboard → crear nueva orden/continuar cualquiera → autosave → órdenes abiertas → cierre → detalle de solo lectura → historial. Rama de revisión: `feature/orders-mvp`. Sin despliegue Azure.
 
-## Estado de validación
+## Uso
 
-Cierre final de Phase 2 verificado el 2026-10-05: 104 pruebas locales y 10 pruebas SQL rollback-only pasan. Migraciones 001–005 aplicadas y metadata verificada en tallerj5. El ADMIN existente sigue activo. Sesión sin flash de login, errores inline por campo, modelo, vistas CRC y kilometraje con preview 128,400 km implementados. Observaciones obligatorias al cerrar; OPEN permite vacío y recomendaciones siguen opcionales. Sin blockers identificados para iniciar Phase 3. Ver [verificación](docs/verification.md).
+- **Nueva orden** crea una OPEN en SQL y conserva su UUID en IndexedDB. Cada acción explícita crea una orden distinta aunque haya otras OPEN. Refresh/login/re-render no crean órdenes.
+- **Órdenes abiertas** muestra órdenes de todos los mecánicos, más recientes primero. **Continuar** carga su detalle y ETag. Incluye copias locales pendientes sin sobrescribir otras órdenes. ADMIN puede reasignar OPEN a usuarios activos MECHANIC o ADMIN; ambos roles pueden trabajar como mecánicos. CLOSED no admite reasignación, ni mediante reopen/admin-edit.
+- **Historial** inicia vacío y no consulta SQL hasta recibir al menos dos caracteres. Busca CLOSED por OT, placa, cédula o nombre y abre detalles de solo lectura. Listas en páginas de 50, con cursor estable por orden.
+- Buscar cliente/vehículo por cédula, nombre o placa y seleccionar una coincidencia carga los datos. Seleccionar un vehículo mantiene el cliente ya elegido y muestra la diferencia con el dueño actual; sin cliente elegido, carga su dueño actual; seleccionar cliente permite elegir sus vehículos. Clientes/vehículos nuevos se crean cuando sus datos son válidos, reutilizando cédula/placa únicas. Los cambios del formulario son snapshots de la orden; no sobrescriben indiscriminadamente el catálogo.
+- **Cerrar orden** valida todas las secciones, muestra errores inline y resumen, sincroniza los cambios y solicita confirmación con OT y total. El servidor calcula el total oficial; CLOSED queda bloqueada. Solo ADMIN puede confirmar **Reabrir orden**.
+- **Usuarios**, visible solo para ADMIN, lista y crea ADMIN/MECHANIC; permite activar/desactivar, cambiar rol y resetear contraseñas de otros usuarios con confirmación. Se conserva la protección del último ADMIN activo y la revocación de sesiones.
+- Para un cambio de dueño: seleccionar el vehículo; usar **Cambiar cliente manteniendo este vehículo**; buscar/seleccionar o completar el nuevo cliente; esperar guardado. Si dueño y cliente difieren se muestran sus nombres y **Mantener dueño actual**; ADMIN también ve **Actualizar dueño a [nombre]**, con confirmación. Guardar una orden por sí solo nunca cambia `Vehicles.owner_id`; las órdenes anteriores conservan su cliente.
+
+Logo real J5 y azul/rojo, botones de al menos 48 px, campos apilados en móvil. Sin slogans ni footer decorativo.
 
 ## Preparación local
 
-Requiere Node 22.12+ (<25) y pnpm 11.19.0.
+Node 22.12+ (<25) y pnpm 11.19.0.
 
-1. Ejecutar **pnpm install --frozen-lockfile**.
-2. Copiar .env.example a .env en la raíz. Completar SQL_USER y SQL_PASSWORD localmente. Usar SQL_AUTH_MODE=sql, servidor j5sqlserver.database.windows.net y base tallerj5.
-3. Revisar [migraciones y permisos](database/README.md). Ejecutar **pnpm db:migrate** con una cuenta autorizada para DDL. Si ya existen tablas incompatibles, la migración falla y revierte; nunca borra tablas.
-4. Solo en una instalación sin ADMIN, ejecutar **pnpm admin:create** en una terminal interactiva. Solicita nombre completo, usuario y contraseña oculta, sin argumentos de contraseña. Solo permite bootstrap cuando no existe ADMIN activo.
-5. Ejecutar **pnpm dev**; abrir http://localhost:5173. API en http://127.0.0.1:7071. Iniciar sesión con el administrador creado.
+1. `pnpm install --frozen-lockfile`.
+2. Copiar `.env.example` a `.env` en la raíz y completar las credenciales localmente. Nunca usar secretos en `VITE_*`.
+3. `pnpm db:migrate` con una cuenta autorizada para DDL. Las migraciones 001–011 son inmutables tras aplicación; 007 deja año >=1950 y notas opcionales; 008 permite reasignar OPEN; 009 agrega IVA/pago/notas por trabajo; 010 crea y siembra catálogo; 011 agrega consecutivos diarios y migra identificadores visibles. Ver [base de datos](database/README.md).
+4. Solo en instalaciones sin ADMIN: `pnpm admin:create` desde una terminal interactiva; contraseña oculta, sin argumentos.
+5. `pnpm dev` y abrir `http://localhost:5173`. API local en `http://127.0.0.1:7071`; APP_ORIGIN debe coincidir exactamente.
 
-SQL debe permitir la IP local en su firewall. No usar credenciales administrativas de migración como identidad normal del servicio. El servidor lee .env de la raíz; jamás colocar secretos en VITE_*. .env y local.settings.json están ignorados por Git. Si pnpm no está en PATH, usar scripts/pnpm.ps1 con el comando deseado.
+SQL requiere firewall para la IP local. El runtime usa SQL real, no una base en memoria ni un acceso demo. Health devuelve 503 si SQL no está disponible. `.env` y `local.settings.json` están ignorados por Git.
 
-La UI permite autenticarse y probar el borrador existente. Los usuarios se administran por API durante esta fase. No existe acceso demo ni almacenamiento en memoria en el runtime. Sin SQL configurado, health devuelve 503.
+## Verificación
 
-## Comandos
+- `pnpm check`: tipos, tests locales y compilación backend/frontend/PWA.
+- `pnpm db:migrate`: migraciones transaccionales con checksums/applock.
+- `pnpm --filter @j5/backend db:verify`: metadata y conteo de ADMIN, sin listar cuentas o hashes.
+- `pnpm test:sql`: ambas suites SQL, secuencialmente, con fixtures nuevos y rollback. Para aislar Phase 3: `pnpm test:sql backend/test/orders-sql.integration.test.ts`.
 
-- **pnpm check**: tipos, pruebas automáticas y compilaciones backend/frontend/PWA.
-- **pnpm test**: pruebas locales, sin conexión SQL.
-- **pnpm db:migrate**: aplica migraciones numeradas en una transacción, registra checksums y detecta cambios en migraciones ya aplicadas.
-- **pnpm admin:create**: crea el primer administrador; bcrypt coste 12.
-- **pnpm test:sql**: prueba explícita contra SQL configurado; requiere migraciones aplicadas. Solo fixtures nuevos, transacciones con ROLLBACK; ver límites en database/README.md.
+Resultados y límites en [verificación](docs/verification.md). Las pruebas SQL no confirman un COMMIT real ni sustituyen pruebas de concurrencia entre procesos.
 
-Sesiones: token aleatorio solo en cookie HttpOnly/SameSite=Strict; Secure en producción. SQL almacena SHA-256 del token. Inactividad máxima fija de dos horas; GET, polling y autosave no renuevan. Solo actividad de usuario notificada por el cliente renueva una sesión aún vigente. Logout, desactivación, cambio de rol y reset de contraseña revocan sesiones.
+## API
 
-## API mínima
-
-Todas las mutaciones requieren Origin=APP_ORIGIN. Salvo login, requieren cookie y X-CSRF-Token. Crear/modificar usuarios y guardar órdenes también requieren Idempotency-Key UUID. Las respuestas no se cachean.
+Todas las mutaciones requieren Origin=APP_ORIGIN. Salvo login, requieren cookie y X-CSRF-Token. Usuarios y órdenes requieren Idempotency-Key UUID. Actualizar una orden requiere If-Match con ETag; respuestas sin caché.
 
 | Método | Ruta | Uso |
 | --- | --- | --- |
-| GET | /api/health | Conectividad SQL; 503 y Retry-After al agotar reintentos |
-| POST | /api/auth/login | JSON username/password; devuelve usuario, csrf, lastActivity, idleMs; cookie opaca |
-| GET | /api/auth/me | Sesión y rol actuales |
-| POST | /api/auth/activity | Renueva solo una sesión vigente; sin body |
-| POST | /api/auth/logout | Revoca sesión y elimina cookie |
-| GET | /api/admin/users | ADMIN: lista sin hashes |
-| POST | /api/admin/users | ADMIN: JSON username/fullName/password/role |
-| PATCH | /api/admin/users/:uuid | ADMIN: fullName, active, role y/o password; impide eliminar el último ADMIN activo |
-| GET | /api/orders/:uuid | Lee borrador con ETag |
-| PUT | /api/orders/:uuid | Guarda borrador; If-Match obligatorio al actualizar |
+| GET | /api/health | Conectividad SQL |
+| POST | /api/auth/login | username/password; cookie opaca, CSRF y datos de sesión |
+| GET | /api/auth/me | Usuario/rol/sesión |
+| POST | /api/auth/activity | Actividad explícita en sesión vigente |
+| POST | /api/auth/logout | Revoca sesión |
+| GET | /api/orders?status=OPEN\|CLOSED&q=...&before=uuid | Lista/búsqueda; CLOSED exige q de mínimo 2 caracteres; máximo 50, cursor before |
+| GET | /api/orders/:uuid | Detalle, ETag, apertura/cierre, mecánico y total |
+| PUT | /api/orders/:uuid | Crear/guardar, acciones close/reopen/transfer-owner/void/assign-mechanic; ETag e idempotencia |
+| GET | /api/customers?q=... | Cédula exacta o nombre parcial case/accent-insensitive; máximo 20, mínimo 2 caracteres |
+| GET | /api/vehicles?q=... | Placa exacta normalizada, mínimo 3 caracteres; devuelve dueño actual |
+| GET | /api/vehicles?customerId=uuid | Vehículos del cliente, máximo 20 |
+| GET/POST | /api/admin/users | ADMIN: listar/crear, sin hashes en respuesta |
+| PATCH | /api/admin/users/:uuid | ADMIN: active/role/password/fullName |
 
-Se conservan GET/DELETE /api/session y POST /api/session/activity como aliases. PUT /orders admite customerName, plate, mileage nullable, notes, recommendations identification (9 dígitos), phone (8 dígitos), email opcional, make, model, year, items [{description,price}] y customerId/vehicleId opcionales. Campos incompletos pueden quedar en el respaldo local/OPEN; los valores no vacíos deben ser válidos y cerrar exige datos completos, kilometraje, observaciones no vacías y servicios válidos. El servidor rechaza cualquier total enviado por el cliente. Roles válidos: ADMIN y MECHANIC. Ambos leen/guardan borradores abiertos del taller; no hay restricciones por mecánico asignado en esta fase. PUT admite action=close; action=reopen, void o admin-edit exige ADMIN. Cerradas requieren una operación explícita admin y conservan ETag e idempotencia. El formulario permite editar el borrador y servicios; la UI completa de cierre/reapertura queda para la siguiente fase.
+GET/DELETE `/api/session` y POST `/api/session/activity` siguen como aliases. `admin-edit` continúa disponible solo para ADMIN en backend. `void` tiene confirmación en editor y lista OPEN: ADMIN puede cancelar cualquier OPEN; MECHANIC solo la asignada a su usuario. CLOSED/VOID no admiten cancelación ni reasignación.
 
-Ver [arquitectura](docs/architecture.md), [base de datos](database/README.md) e [infraestructura](infra/README.md).
+Datos de cierre: nombre requerido, cédula 9 dígitos, teléfono 8, email opcional válido, placa ABC123, marca/modelo, año entero >=1950, sin máximo funcional (almacenado como int SQL), kilometraje entero 0..10,000,000, al menos un trabajo con descripción/precio positivo, método de pago y selección explícita Sí/No para factura electrónica. Observaciones/recomendaciones generales y observaciones por trabajo son opcionales (también se aceptan ausentes en el payload). Valores incompletos/incorrectos se conservan localmente; SQL autosave espera payload válido. Kilometraje y precios siguen numéricos; previews `128,400 km` y CRC no alteran el payload.
 
-## Branding
+El servidor asigna mechanic_id y calcula subtotal, IVA por línea y total. Solo el mecánico asignado o ADMIN puede cerrar OPEN; backend responde 403 al mecánico anterior tras reasignación. MECHANIC puede editar OPEN del taller y no modificar CLOSED; reopen/transfer-owner/assign-mechanic/admin-edit requieren ADMIN. Cancelar usa VOID, sin DELETE ni cambios a cliente/vehículo/trabajos, y registra ORDER_VOIDED. El dueño actual solo se cambia mediante `action=transfer-owner`, con identidad exacta de cliente/vehículo, ETag, idempotencia y auditoría.
 
-Logo real en frontend/public/logo.png; el original images/J5 logo.PNG permanece intacto. Paleta centralizada azul #0847ad y rojo #ed1017. Favicon/PWA usan icon.svg cuadrado con el símbolo J5 y el logo original embebido; no depende de rutas absolutas.
+## Persistencia y sesión
 
-## Verificar SQL y primer ADMIN
+IndexedDB mantiene registros por clave compuesta [userId, orderId], migrando atómicamente el borrador legacy por usuario sin descartarlo; payload/clave/ETag pendientes y metadata de la orden. El cierre se persiste antes del envío; una respuesta perdida se recupera con la misma clave. Se protege el borrador antes de cambiar de orden. Un 412 consulta la orden nuevamente y conserva el borrador. Si únicamente cambió la metadata por reasignación, permite reintentar con ETag y clave nuevos; si cambió el contenido remoto, detiene sync para revisión. La revisión de conflictos compara cliente, vehículo, trabajos y demás campos; permite combinar elecciones o usar el servidor. Guarda la copia anterior y su pending en recoveryCopies de IndexedDB, permite descargar el respaldo y exige nueva revisión si el servidor cambió otra vez. La resolución nunca repite automáticamente cierre/cancelación/cambio de dueño.
 
-Ejecutar `pnpm --filter @j5/backend db:verify` para metadata y número de ADMIN activos, sin listar cuentas ni hashes. En una terminal PowerShell normal: `cd C:\j5repo`, luego `pnpm admin:create`. No pasar passwords por argumentos ni compartirlos en chat.
+Estados: Guardado, Sincronizando, copia local/offline y error. Retry manual aparece solo ante fallo recuperable; al volver la conexión se reintenta automáticamente. Un Web Lock por usuario evita dos editores locales simultáneos.
+
+Sesión: cookie HttpOnly/SameSite=Strict y Secure en producción; SQL guarda hash del token. Inactividad de dos horas, sin renovación por GET/autosave. Logout, cambio de rol, desactivación y reset revocan sesiones.
+
+## Phase 4
+
+Anulación/correcciones administrativas avanzadas, reportes, catálogos más amplios, retención de recibos/sesiones y pruebas de COMMIT ambiguo/concurrencia entre procesos. Antes de producción: configuración HTTPS/Functions/Managed Identity, permisos SQL mínimos, limitador compartido y pruebas PWA en dispositivos reales.
+
+Ver [arquitectura](docs/architecture.md) e [infraestructura](infra/README.md).
+
+Búsqueda de órdenes: nombres parciales con collation Latin1_General_100_CI_AI; cédula exacta (trim) y placa exacta normalizada (uppercase sin espacios/guiones). display_order_id admite prefijo literal. CHARINDEX/LEFT usan parámetros, sin LIKE: %, _ y [ son caracteres literales. Las páginas SQL se limitan a 50, ordenadas por created_at y order_number para desempatar; Cargar más envía before con el último UUID. Una página exacta de 50 puede mostrar Cargar más y terminar en una página vacía.
+
+Reasignación: ADMIN elige un usuario activo y pulsa Actualizar mecánico, usando action=assign-mechanic y mechanicId. AuditLogs guarda actor_id, entity_id de la orden y action=ORDER_MECHANIC_CHANGED. No requiere ampliar schema. El mecánico actual viaja en Order.mechanicId; el campo Draft.mechanicId es una intención de cambio y se retira del borrador al guardar.
+
+Catálogo de marcas/modelos integrado mediante 010; no se realizan llamadas externas CarsXE en runtime.
+
+Editor y lista OPEN consultan SQL al recuperar foco/visibilidad y cada 30 segundos mientras están visibles. El editor avisa de la reasignación y actualiza los permisos de cancelación; los borradores pendientes conservan su versión base hasta resolver el conflicto. Estos GET no generan actividad ni renuevan la sesión de dos horas. La lista se vuelve a consultar al entrar al módulo.
+
+## Pago, IVA y observaciones por trabajo
+
+Cada trabajo guarda precio sin IVA y observación opcional (máximo 2000 caracteres). SQL calcula IVA 13% con ROUND por línea y total = subtotal + suma del IVA; frontend usa los mismos centavos/redondeo y muestra IVA junto al precio y subtotal/IVA/precio final al pie. GET incluye subtotalAmount, taxAmount, taxRate y totalAmount calculados en backend. No se aceptan totales ni tasa enviados por el cliente.
+
+paymentMethod admite SINPE, CREDIT_CARD, DEBIT_CARD, CASH y BANK_TRANSFER (SINPE, tarjeta de crédito, tarjeta de débito, efectivo y transferencia bancaria). electronicInvoice es booleano: true o false son elecciones válidas; ausente no permite cerrar. OPEN puede guardar campos de pago pendientes. La elección de factura solo registra el requerimiento; no emite ni integra facturación electrónica.
+
+009_order_billing.sql agrega OrderItems.notes y Orders.tax_rate y actualiza guardas/cálculo de totales. Conserva los importes históricos con tasa inicial 0; las nuevas órdenes y guardados normales de OPEN aplican 13%. CLOSED históricas conservan sus importes y no se recalculan al leer. Las guardas impiden cerrar órdenes nuevas con IVA sin las elecciones de pago/factura y comprueban el total contra los servicios.
+
+El mensaje «Escribe las observaciones de la orden.» no existe en este código ni su build. Si se ve tras actualizar los archivos, comprobar que el navegador/PWA esté ejecutando el build reciente; recargar sin borrar IndexedDB ni los borradores locales.
+
+## Correcciones de revisión Phase 3
+
+saveOrder usa savepoint para revertir todos los efectos de un rechazo de negocio antes de guardar su recibo idempotente. Errores SQL/driver siguen revirtiendo toda la transacción. No requiere una migración nueva.
+
+GET vehicle-catalog devuelve version=1 y cantidades activas dinámicas. El seed y cleanup mantienen su validación 57/986; el runtime permite futuras altas/desactivaciones. Cache schema=2 conserva sugerencias schema=1 y las refresca, TTL 7 días. Reconectar vuelve a cargar el catálogo sin tocar drafts; retries limitados a cuatro intentos, timeout 35s por petición y 120s total, para permitir el presupuesto SQL de 28s. Los campos manuales siguen disponibles durante la carga.
+
+La PWA anuncia actualizaciones con botón explícito. Antes de actualizar intenta sincronizar el editor; pendientes/conflictos o error bloquean la actualización y conservan datos. IndexedDB cierra sus conexiones después de cada operación; limpieza local sigue requiriendo cerrar pestañas/PWA y detener APIs antes del cleanup SQL.
 
 
-### Smoke testing: sesión, validación y modelo (2026-10-04)
-
-Para pruebas locales ejecutar `pnpm dev` y abrir **http://localhost:5173**; el origen debe coincidir con APP_ORIGIN. El arranque comprueba health y auth/me antes de mostrar login o formulario. Un 401 muestra login; un fallo de red mantiene la pantalla J5 con Reintentar, sin asumir que se perdió la sesión. Tras autenticarse se recupera el mismo borrador IndexedDB y se mantiene el bloqueo entre pestañas.
-
-El formulario separa Datos del cliente, Datos del vehículo y Trabajos realizados. Los errores inline aparecen tras blur o contenido inválido; los campos vacíos iniciales no se marcan todos en rojo. Nombre completo, cédula, teléfono, placa, marca, **modelo**, año, kilometraje y trabajos válidos son obligatorios para cerrar en API. Modelo admite hasta 100 caracteres, por ejemplo Fortuner, Corolla o Hilux. Email y recomendaciones son opcionales. Observaciones generales son obligatorias al cerrar; OPEN admite vacío y el error inline aparece tras blur. OPEN permite valores faltantes; los valores inválidos se conservan localmente mientras se corrigen. La UI completa de cierre sigue pendiente; las pruebas de action=close cubren sus requisitos.
-
-Kilometraje conserva el input numérico y muestra debajo una vista con comas, por ejemplo 128,400 km; formatMileage no altera estado ni payload. Los inputs de precio conservan números sin formato y muestran una vista CRC de lectura con Intl.NumberFormat es-CR (separador de miles: espacio no separable; decimal: coma). El total mostrado es estimado; SQL sigue calculando el total oficial. No se cambia el payload, ni se parsean comas en un input numérico.
-
-`004_vehicle_model.sql` no cambia 001/002/003 ni sus checksums. Si Vehicles está vacía crea model NOT NULL; con registros existentes crea model nullable para conservar modelos desconocidos. CHECK exige texto recortado no vacío si hay valor. El backend requiere modelo para insertar vehículos nuevos y cerrar órdenes. Solo al cierre explícito se completa un modelo NULL con el dato ingresado; un modelo conocido no se sobrescribe. El modelo de cada orden queda también en draft_data. Los borradores antiguos y sus mutaciones pendientes sin model siguen aceptados como OPEN sin reescribir las claves de idempotencia. Para convertir la columna a NOT NULL en el futuro, completar los modelos desconocidos con información verificada y crear otra migración después de comprobar que no quedan NULL; nunca inventar un backfill.
-
-Verificación: `pnpm check`, `pnpm --filter @j5/backend db:verify` y `pnpm test:sql` (fixtures rollback-only). Resultados y límites en docs/verification.md.
+QA 011: Customers conserva nombre/teléfono/email actuales al cerrar válidamente; cédula permanece inmutable y draft_data conserva snapshots de contacto por orden. Seleccionar vehículo carga su dueño actual completo. Cambiar cliente conservando vehículo inicia un modo local; únicamente ADMIN confirma el cambio de dueño. El aviso inferior de campos faltantes es local y derivado del intento de cierre y validaciones actuales.

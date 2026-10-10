@@ -1,0 +1,4437 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "carsxe-docs",
+      "url": "https://docs.carsxe.com/api-reference/year-make-model/year-make-model-options",
+      "kind": "api_documentation",
+      "consulted_on": "2026-10-09",
+      "note": "dimension=models, una unidad por request; sin consulta de años, trims ni variantes."
+    },
+    {
+      "id": "aivema",
+      "url": "https://aivemacr.com/wp-content/uploads/2026/07/Bancos-Informe-de-mercado-automotriz-costarricense-Diciembre-2025.pdf",
+      "kind": "market_presence",
+      "consulted_on": "2026-10-09",
+      "note": "Informe por marca utilizado solo para validar cobertura; sin reproducir cifras, tablas ni ranking. No establece ventas por modelo."
+    },
+    {
+      "id": "toyota-cr",
+      "url": "https://www.toyotacr.com/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "suzuki-cr",
+      "url": "https://www.suzuki.cr/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "nissan-cr",
+      "url": "https://www.nissancr.com/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "mitsubishi-cr",
+      "url": "https://veinsamotors.com/wp-content/uploads/2025/01/Reglamento-Mitsubishi-Desafia-el-Terreno-2025-1.pdf",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Promoción histórica local 2025, evidencia de comercialización; no confirma disponibilidad actual."
+    },
+    {
+      "id": "isuzu-cr",
+      "url": "https://isuzucr.com/calculadora",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "kia-cr",
+      "url": "https://www.kia.com/cr/main.html",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "vw-cr",
+      "url": "https://www.volkswagen.cr/es/modelos.html",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "renault-cr",
+      "url": "https://renaultcr.com/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Se excluyen anuncios de Niagara/Boreal sin confirmar comercialización."
+    },
+    {
+      "id": "peugeot-cr",
+      "url": "https://www.peugeot.co.cr/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Solo menú local; se ignoran ofertas genéricas europeas en euros del mismo sitio."
+    },
+    {
+      "id": "citroen-cr",
+      "url": "https://www.citroencr.com/index.html",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "kgm-cr",
+      "url": "https://veinsamotors.com/wp-content/uploads/2025/09/Reglamento-Reglamento-Promocion-paga-hasta-2026.pdf",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Documento local histórico 2025; Torres EVX se agrupa bajo Torres por política sin motorizaciones."
+    },
+    {
+      "id": "kgm-actyon",
+      "url": "https://veinsamotors.com/blog/veinsa-motors-reconocido-lider-en-el-sector-automotriz-de-costa-rica",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "byd-cr",
+      "url": "https://bydautocr.com/precios-nuevos/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "geely-cr",
+      "url": "https://www.geely.cr/?s=2",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Listado local indexado; el lector web entrega cuerpo dinámico vacío, contrastado con CRAutos/Encuentra24."
+    },
+    {
+      "id": "changan-cr",
+      "url": "https://www.changan.cr/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "NEW/PLUS/MAX/REEV se registran como nombres observados y se agrupan al modelo base; Deepal/Avatr separadas."
+    },
+    {
+      "id": "deepal-cr",
+      "url": "https://www.changan.cr/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Comercializados en portal Changan, se conserva marca Deepal separada."
+    },
+    {
+      "id": "avatr-cr",
+      "url": "https://www.changan.cr/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Comercializados en portal Changan, se conserva marca Avatr separada."
+    },
+    {
+      "id": "dongfeng-cr",
+      "url": "https://dongfengcr.com/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Denominación local DFM/Dongfeng; EV/e-DRIVE/Pro/Tiger tratados como versiones, no modelos adicionales; Voyah no se fusiona."
+    },
+    {
+      "id": "chery-cr",
+      "url": "https://www.cherycr.com/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Pro/Pro Max se agrupan por familia numérica; se conservan nombres observados en aliases. iCAUR no se fusiona con Chery."
+    },
+    {
+      "id": "jac-cr",
+      "url": "https://www.jac.cr/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Portal de comerciales: solo utilitarios livianos/van; no se añaden camiones medianos/pesados."
+    },
+    {
+      "id": "mg-combustion",
+      "url": "https://www.mg.cr/combustion",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "mg-electric",
+      "url": "https://www.mg.cr/electricos",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "greatwall-cr",
+      "url": "https://ambacar.cr/modelos-disponibles/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Great Wall/GWM equivalencia operativa; Haval permanece marca separada."
+    },
+    {
+      "id": "haval-cr",
+      "url": "https://ambacar.cr/modelos-disponibles/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Jolion Pro/FL agrupados bajo Jolion; no confundir familia corporativa con marca."
+    },
+    {
+      "id": "dfsk-cr",
+      "url": "https://ambacar.cr/categoria/autos/dfsk/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Catálogo local distingue DFSK de Seres; no fusionar con Dongfeng."
+    },
+    {
+      "id": "seres-cr",
+      "url": "https://ambacar.cr/modelos-disponibles/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "swm-cr",
+      "url": "https://ambacar.cr/modelos-disponibles/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "baic-cr",
+      "url": "https://baicmotor.cr/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "BJ41e/BJ60e agrupados por modelo base sin motorización; X35 Turbo se reduce a X35."
+    },
+    {
+      "id": "foton-g7",
+      "url": "https://fotoncr.com/foton-presenta-su-nuevo-pickup-tunland-g7-4x4-moderno-y-potente-para-cualquier-camino-desde-33-99/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Lanzamiento local histórico con Cori Motors; no inferir distribución actual de toda la gama."
+    },
+    {
+      "id": "foton-v9",
+      "url": "https://www.fotoncr.com/wp-content/uploads/2024/10/FICHA-TUNLAND-V9.pdf",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "foton-v7",
+      "url": "https://dev.fotoncr.com/tunland-v7/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Página en subdominio dev: evidencia provisional, revisar disponibilidad; se conserva fuente claramente identificada."
+    },
+    {
+      "id": "jetour-cr",
+      "url": "https://jetour-cr.net/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Página local de Quality Motors, sin asumir continuidad de antiguos distribuidores."
+    },
+    {
+      "id": "gac-cr",
+      "url": "https://gac.cr/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "GS4 MAX/M6 PRO se agrupan por base; Aion Y Plus se guarda bajo Aion."
+    },
+    {
+      "id": "aion-y",
+      "url": "https://gac.cr/aion/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "aion-v",
+      "url": "https://aioncostarica.com/v/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "maxus-cr",
+      "url": "https://maxus.cr/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "maxus-history",
+      "url": "https://maxus.cr/quienes-somos",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Historia local de comercialización, no garantía de inventario nuevo actual."
+    },
+    {
+      "id": "maxus-ev",
+      "url": "https://maxus.cr/electromovilidad",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Nombre comercial propio, conservar; relación con V90/Deliver 9 requiere revisar antes de fusionar."
+    },
+    {
+      "id": "jmc-cr",
+      "url": "https://jmc.cr/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Grand Avenue Pro se agrupa bajo Grand Avenue; se excluyen camiones y buses de esta revisión de livianos."
+    },
+    {
+      "id": "omoda-cr",
+      "url": "https://www.omodajaecoo.cr/vehiculos",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "jaecoo-cr",
+      "url": "https://www.omodajaecoo.cr/vehiculos",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "EJ5 eléctrico se agrupa con J5 por política de base; no fusionar Omoda con Jaecoo."
+    },
+    {
+      "id": "kaiyi-cr",
+      "url": "https://kaiyicostarica.com/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Denominaciones locales; no se equipara X3 de usados con KYX3 sin confirmar generaciones."
+    },
+    {
+      "id": "neta-cr",
+      "url": "https://www.netaauto.co.cr/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "zeekr-cr",
+      "url": "https://www.zeekrlife.com/es-cr/",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Modelos publicados en catálogo local; no es ranking de ventas."
+    },
+    {
+      "id": "riddara-cr",
+      "url": "https://veinsamotors.com/blog/riddara-abre-sus-puertas-en-costa-rica",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Evidencia histórica local; se conserva marca separada de Geely."
+    },
+    {
+      "id": "xpeng-history",
+      "url": "https://www.larepublica.net/noticia/grupo-purdy-primer-distribuidor-oficial-de-xpeng-en-america-con-modelos-electricos-desde-39900-y-74900",
+      "kind": "local_press",
+      "consulted_on": "2026-10-09",
+      "note": "Noticia local histórica; G3i/G9 lanzados, P7 anunciado para portafolio, revisar disponibilidad."
+    },
+    {
+      "id": "xpeng-g6",
+      "url": "https://xpengcr.nyc3.cdn.digitaloceanspaces.com/documents/xpeng_G6.pdf",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Ficha local XPENG/Grupo Purdy."
+    },
+    {
+      "id": "crautos-aion",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 1 páginas revisadas, 1 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-baic",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 1 páginas revisadas, 14 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-byd",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 4 páginas revisadas, 49 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-changan",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 5 páginas revisadas, 62 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-chery",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 4 páginas revisadas, 51 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-citron",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 4 páginas revisadas, 52 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-daihatsu",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 6 páginas revisadas, 83 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-dongfeng",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 3 páginas revisadas, 33 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-foton",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 1 páginas revisadas, 2 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-geely",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 6 páginas revisadas, 85 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-greatwall",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 2 páginas revisadas, 20 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-haval",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 2 páginas revisadas, 16 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-hyundai",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 2 páginas revisadas, 1666 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-jac",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 3 páginas revisadas, 41 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-jaecoo",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 1 páginas revisadas, 4 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-jetour",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 1 páginas revisadas, 11 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-jmc",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 1 páginas revisadas, 9 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-kaiyi",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 1 páginas revisadas, 6 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-kia",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 2 páginas revisadas, 626 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-landrover",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 2 páginas revisadas, 276 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-maxus",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 2 páginas revisadas, 27 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-mg",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 4 páginas revisadas, 48 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-mitsubishi",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 2 páginas revisadas, 542 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-neta",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 1 páginas revisadas, 5 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-nissan",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 2 páginas revisadas, 1144 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-omoda",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 1 páginas revisadas, 5 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-peugeot",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 4 páginas revisadas, 47 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-renault",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 5 páginas revisadas, 71 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-kgm",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 3 páginas revisadas, 43 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-suzuki",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 2 páginas revisadas, 856 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-toyota",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 2 páginas revisadas, 1977 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-vgv",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 1 páginas revisadas, 7 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "crautos-zeekr",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Consulta POST por marca; 1 páginas revisadas, 2 anuncios observados. Filtros, URLs individuales y etiquetas en market_observations.json. No es ranking."
+    },
+    {
+      "id": "e24-toyota",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/toyota/fortuner",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-suzuki",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/suzuki/jimny",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-byd",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/byd",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-geely",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/geely",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-changan",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/changan",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-dongfeng",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/dongfeng",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-chery",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/chery",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-jac",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/jac",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-mg",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/mg",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-greatwall",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/great-wall",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-haval",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/haval",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-jetour",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/jetour",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-dfsk",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/dfsk",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-seres",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/dfsk",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-jmc",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/jmc",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-maxus",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/maxus",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-citron",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/citroen",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios locales contrastados; nombres reducidos a modelo base. No se usan etiquetas del portal como ranking de ventas."
+    },
+    {
+      "id": "e24-hilux",
+      "url": "https://www.encuentra24.com/costa-rica-es/autos-usados/toyota/hilux",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios de mercado local."
+    },
+    {
+      "id": "crautos-featured",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncios en portada: Hilux/Fortuner; respaldo adicional a búsquedas por marca."
+    },
+    {
+      "id": "crautos-jimny",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Anuncio en portada: Jimny; contrastado con distribuidor y Encuentra24."
+    },
+    {
+      "id": "crautos-isuzu",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Portada muestra DMAX/MUX; forma oficial D-Max/MU-X."
+    },
+    {
+      "id": "crautos-creta",
+      "url": "https://www.crautos.com/autosusados/",
+      "kind": "used_market",
+      "consulted_on": "2026-10-09",
+      "note": "Portada: Creta Elegant reducido a Creta."
+    },
+    {
+      "id": "hyundai-stargazer",
+      "url": "https://www.grupoq.com/cr/historias/hyundai-grupoq-stargazer-costarica",
+      "kind": "local_distributor",
+      "consulted_on": "2026-10-09",
+      "note": "Lanzamiento local de Grupo Q."
+    }
+  ],
+  "evidence": [
+    {
+      "make": "Toyota",
+      "model": "Agya",
+      "source_id": "toyota-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Toyota",
+      "model": "Avanza",
+      "source_id": "toyota-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Toyota",
+      "model": "Raize",
+      "source_id": "toyota-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Toyota",
+      "model": "Rush",
+      "source_id": "toyota-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Toyota",
+      "model": "Fortuner",
+      "source_id": "toyota-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Toyota",
+      "model": "Hilux",
+      "source_id": "toyota-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Toyota",
+      "model": "Land Cruiser Prado",
+      "source_id": "toyota-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Toyota",
+      "model": "Hiace",
+      "source_id": "toyota-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Toyota",
+      "model": "Majesty",
+      "source_id": "toyota-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Jimny",
+      "source_id": "suzuki-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Dzire",
+      "source_id": "suzuki-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Across",
+      "source_id": "suzuki-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Fronx",
+      "source_id": "suzuki-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Celerio",
+      "source_id": "suzuki-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Suzuki",
+      "model": "S-Presso",
+      "source_id": "suzuki-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Suzuki",
+      "model": "APV",
+      "source_id": "suzuki-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Alto",
+      "source_id": "suzuki-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Eeco",
+      "source_id": "suzuki-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Suzuki",
+      "model": "e Vitara",
+      "source_id": "suzuki-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Baleno",
+      "source_id": "suzuki-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Suzuki",
+      "model": "S-Cross",
+      "source_id": "suzuki-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Nissan",
+      "model": "Urvan",
+      "source_id": "nissan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Nissan",
+      "model": "Qashqai",
+      "source_id": "nissan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Nissan",
+      "model": "Magnite",
+      "source_id": "nissan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Nissan",
+      "model": "X-Trail",
+      "source_id": "nissan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Nissan",
+      "model": "Kait",
+      "source_id": "nissan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Nissan",
+      "model": "Kicks Play",
+      "source_id": "nissan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Mitsubishi",
+      "model": "ASX",
+      "source_id": "mitsubishi-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Mitsubishi",
+      "model": "L200",
+      "source_id": "mitsubishi-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Mitsubishi",
+      "model": "Xpander Cross",
+      "source_id": "mitsubishi-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Isuzu",
+      "model": "D-Max",
+      "source_id": "isuzu-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Isuzu",
+      "model": "MU-X",
+      "source_id": "isuzu-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Kia",
+      "model": "Tasman",
+      "source_id": "kia-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Kia",
+      "model": "EV3",
+      "source_id": "kia-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Kia",
+      "model": "EV5",
+      "source_id": "kia-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Kia",
+      "model": "K3",
+      "source_id": "kia-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Kia",
+      "model": "Soluto",
+      "source_id": "kia-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Kia",
+      "model": "Sonet",
+      "source_id": "kia-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Kia",
+      "model": "K2500",
+      "source_id": "kia-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Kia",
+      "model": "Picanto",
+      "source_id": "kia-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Volkswagen",
+      "model": "Amarok",
+      "source_id": "vw-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Volkswagen",
+      "model": "T-Cross",
+      "source_id": "vw-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Volkswagen",
+      "model": "Nivus",
+      "source_id": "vw-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Renault",
+      "model": "Arkana",
+      "source_id": "renault-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Renault",
+      "model": "Kardian",
+      "source_id": "renault-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Renault",
+      "model": "Kwid",
+      "source_id": "renault-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Renault",
+      "model": "Oroch",
+      "source_id": "renault-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Renault",
+      "model": "Stepway",
+      "source_id": "renault-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Renault",
+      "model": "Duster",
+      "source_id": "renault-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Renault",
+      "model": "Koleos",
+      "source_id": "renault-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Renault",
+      "model": "Master",
+      "source_id": "renault-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Renault",
+      "model": "Express",
+      "source_id": "renault-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Peugeot",
+      "model": "2008",
+      "source_id": "peugeot-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Peugeot",
+      "model": "3008",
+      "source_id": "peugeot-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Peugeot",
+      "model": "5008",
+      "source_id": "peugeot-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Peugeot",
+      "model": "Rifter",
+      "source_id": "peugeot-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Peugeot",
+      "model": "Landtrek",
+      "source_id": "peugeot-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Citroën",
+      "model": "C3",
+      "source_id": "citroen-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Citroën",
+      "model": "C3 Aircross",
+      "source_id": "citroen-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Citroën",
+      "model": "C5 Aircross",
+      "source_id": "citroen-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Citroën",
+      "model": "Berlingo",
+      "source_id": "citroen-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Citroën",
+      "model": "Jumpy",
+      "source_id": "citroen-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Citroën",
+      "model": "Jumper",
+      "source_id": "citroen-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Citroën",
+      "model": "C4 Cactus",
+      "source_id": "citroen-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Citroën",
+      "model": "Basalt",
+      "source_id": "citroen-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "KGM",
+      "model": "Torres",
+      "source_id": "kgm-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "KGM",
+      "model": "Rexton",
+      "source_id": "kgm-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "KGM",
+      "model": "Tivoli",
+      "source_id": "kgm-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "KGM",
+      "model": "Actyon",
+      "source_id": "kgm-actyon",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "BYD",
+      "model": "S1 Pro",
+      "source_id": "byd-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "BYD",
+      "model": "Sealion 7",
+      "source_id": "byd-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "BYD",
+      "model": "Seagull",
+      "source_id": "byd-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "BYD",
+      "model": "Song Plus",
+      "source_id": "byd-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "BYD",
+      "model": "Yuan Plus",
+      "source_id": "byd-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "BYD",
+      "model": "Dolphin",
+      "source_id": "byd-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "BYD",
+      "model": "Shark",
+      "source_id": "byd-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Geely",
+      "model": "Starray",
+      "source_id": "geely-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Geely",
+      "model": "Okavango",
+      "source_id": "geely-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Geely",
+      "model": "EX5",
+      "source_id": "geely-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Geely",
+      "model": "Coolray",
+      "source_id": "geely-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Geely",
+      "model": "Coolray Neo",
+      "source_id": "geely-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Changan",
+      "model": "Alsvin",
+      "source_id": "changan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Changan",
+      "model": "CS15",
+      "source_id": "changan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Changan",
+      "model": "CS35",
+      "source_id": "changan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Changan",
+      "model": "CS55",
+      "source_id": "changan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Changan",
+      "model": "CS75",
+      "source_id": "changan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Changan",
+      "model": "UNI-T",
+      "source_id": "changan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Changan",
+      "model": "Hunter",
+      "source_id": "changan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Changan",
+      "model": "Honor S",
+      "source_id": "changan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Changan",
+      "model": "Lumin",
+      "source_id": "changan-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Deepal",
+      "model": "S05",
+      "source_id": "deepal-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Deepal",
+      "model": "S07",
+      "source_id": "deepal-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Avatr",
+      "model": "07",
+      "source_id": "avatr-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Avatr",
+      "model": "11",
+      "source_id": "avatr-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Nammi 01",
+      "source_id": "dongfeng-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Nammi 06",
+      "source_id": "dongfeng-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Friday",
+      "source_id": "dongfeng-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Rich 6",
+      "source_id": "dongfeng-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Rich 7",
+      "source_id": "dongfeng-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Z9",
+      "source_id": "dongfeng-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Mage",
+      "source_id": "dongfeng-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Chery",
+      "model": "Himla",
+      "source_id": "chery-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Chery",
+      "model": "Q",
+      "source_id": "chery-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 2",
+      "source_id": "chery-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 4",
+      "source_id": "chery-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 7",
+      "source_id": "chery-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 8",
+      "source_id": "chery-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 9",
+      "source_id": "chery-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "JAC",
+      "model": "X200",
+      "source_id": "jac-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "JAC",
+      "model": "M3",
+      "source_id": "jac-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "MG",
+      "model": "ZS",
+      "source_id": "mg-combustion",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "MG",
+      "model": "RX5",
+      "source_id": "mg-combustion",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "MG",
+      "model": "ONE",
+      "source_id": "mg-combustion",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "MG",
+      "model": "HS",
+      "source_id": "mg-combustion",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "MG",
+      "model": "RX8",
+      "source_id": "mg-combustion",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "MG",
+      "model": "RX9",
+      "source_id": "mg-combustion",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "MG",
+      "model": "MG 4",
+      "source_id": "mg-electric",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "MG",
+      "model": "Marvel R",
+      "source_id": "mg-electric",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Great Wall",
+      "model": "Poer",
+      "source_id": "greatwall-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Great Wall",
+      "model": "Wingle 7",
+      "source_id": "greatwall-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Haval",
+      "model": "H6",
+      "source_id": "haval-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Haval",
+      "model": "H7",
+      "source_id": "haval-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Haval",
+      "model": "H9",
+      "source_id": "haval-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Haval",
+      "model": "Jolion",
+      "source_id": "haval-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "DFSK",
+      "model": "E5",
+      "source_id": "dfsk-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "DFSK",
+      "model": "Glory 500",
+      "source_id": "dfsk-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "DFSK",
+      "model": "Glory 560",
+      "source_id": "dfsk-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "DFSK",
+      "model": "Glory 580",
+      "source_id": "dfsk-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "DFSK",
+      "model": "C31",
+      "source_id": "dfsk-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "DFSK",
+      "model": "C32",
+      "source_id": "dfsk-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "DFSK",
+      "model": "C35",
+      "source_id": "dfsk-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "DFSK",
+      "model": "C37",
+      "source_id": "dfsk-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Seres",
+      "model": "5",
+      "source_id": "seres-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "SWM",
+      "model": "G01",
+      "source_id": "swm-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "BAIC",
+      "model": "BJ30",
+      "source_id": "baic-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "BAIC",
+      "model": "BJ40",
+      "source_id": "baic-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "BAIC",
+      "model": "BJ41",
+      "source_id": "baic-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "BAIC",
+      "model": "BJ60",
+      "source_id": "baic-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "BAIC",
+      "model": "X55",
+      "source_id": "baic-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "BAIC",
+      "model": "X35",
+      "source_id": "baic-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Foton",
+      "model": "Tunland G7",
+      "source_id": "foton-g7",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Foton",
+      "model": "Tunland V9",
+      "source_id": "foton-v9",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Foton",
+      "model": "Tunland V7",
+      "source_id": "foton-v7",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Jetour",
+      "model": "T1",
+      "source_id": "jetour-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Jetour",
+      "model": "T2",
+      "source_id": "jetour-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Jetour",
+      "model": "Dashing",
+      "source_id": "jetour-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Jetour",
+      "model": "X70",
+      "source_id": "jetour-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Jetour",
+      "model": "X50",
+      "source_id": "jetour-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "GAC",
+      "model": "GS8",
+      "source_id": "gac-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "GAC",
+      "model": "GS4",
+      "source_id": "gac-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "GAC",
+      "model": "GS3",
+      "source_id": "gac-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "GAC",
+      "model": "Emzoom",
+      "source_id": "gac-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "GAC",
+      "model": "Emkoo",
+      "source_id": "gac-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "GAC",
+      "model": "M6",
+      "source_id": "gac-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Aion",
+      "model": "Y Plus",
+      "source_id": "aion-y",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Aion",
+      "model": "V",
+      "source_id": "aion-v",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Maxus",
+      "model": "D90",
+      "source_id": "maxus-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Maxus",
+      "model": "V90",
+      "source_id": "maxus-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Maxus",
+      "model": "D60",
+      "source_id": "maxus-history",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Maxus",
+      "model": "EV30",
+      "source_id": "maxus-history",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Maxus",
+      "model": "EG50",
+      "source_id": "maxus-history",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Maxus",
+      "model": "Euniq 6",
+      "source_id": "maxus-history",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Maxus",
+      "model": "T90",
+      "source_id": "maxus-history",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Maxus",
+      "model": "T60",
+      "source_id": "maxus-history",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Maxus",
+      "model": "V80",
+      "source_id": "maxus-history",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Maxus",
+      "model": "eDeliver 9",
+      "source_id": "maxus-ev",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "JMC",
+      "model": "Grand Avenue",
+      "source_id": "jmc-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "JMC",
+      "model": "Vigus",
+      "source_id": "jmc-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "JMC",
+      "model": "Touring Van",
+      "source_id": "jmc-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Omoda",
+      "model": "C5",
+      "source_id": "omoda-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Omoda",
+      "model": "E5",
+      "source_id": "omoda-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Omoda",
+      "model": "C7",
+      "source_id": "omoda-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Jaecoo",
+      "model": "J5",
+      "source_id": "jaecoo-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Jaecoo",
+      "model": "J7",
+      "source_id": "jaecoo-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Jaecoo",
+      "model": "J8",
+      "source_id": "jaecoo-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Kaiyi",
+      "model": "KYX7",
+      "source_id": "kaiyi-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Kaiyi",
+      "model": "KYX3",
+      "source_id": "kaiyi-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Kaiyi",
+      "model": "e-qute 04",
+      "source_id": "kaiyi-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Neta",
+      "model": "X",
+      "source_id": "neta-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Zeekr",
+      "model": "X",
+      "source_id": "zeekr-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Zeekr",
+      "model": "001",
+      "source_id": "zeekr-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Zeekr",
+      "model": "7X",
+      "source_id": "zeekr-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Zeekr",
+      "model": "009",
+      "source_id": "zeekr-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Riddara",
+      "model": "RD6",
+      "source_id": "riddara-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "XPeng",
+      "model": "G3i",
+      "source_id": "xpeng-history",
+      "evidence_type": "local_press"
+    },
+    {
+      "make": "XPeng",
+      "model": "G9",
+      "source_id": "xpeng-history",
+      "evidence_type": "local_press"
+    },
+    {
+      "make": "XPeng",
+      "model": "G6",
+      "source_id": "xpeng-g6",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "BYD",
+      "model": "F0",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6283610",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=70666523",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=36692497",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=71756431",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=33166528",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8590985",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22626167",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=85485182",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67787107",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4956058"
+      ]
+    },
+    {
+      "make": "BYD",
+      "model": "F3",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=29156923",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=21466290",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=57318689",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=99241810",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=28823763",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=88769679",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=71448641",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5848906",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=80196677"
+      ]
+    },
+    {
+      "make": "BYD",
+      "model": "Han",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9112147",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=41267911",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89223491"
+      ]
+    },
+    {
+      "make": "BYD",
+      "model": "S1",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=83751593",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19013323",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47078139",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3451997"
+      ]
+    },
+    {
+      "make": "BYD",
+      "model": "S1 Pro",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19013323",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47078139",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3451997"
+      ]
+    },
+    {
+      "make": "BYD",
+      "model": "S6",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4515040",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=20256830",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=25190972",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=65328354",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5702013"
+      ]
+    },
+    {
+      "make": "BYD",
+      "model": "Song",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8297432",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=97902439",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2684245"
+      ]
+    },
+    {
+      "make": "BYD",
+      "model": "Song Plus",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=97902439",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2684245"
+      ]
+    },
+    {
+      "make": "BYD",
+      "model": "Tang",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66552811",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8357534",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=62622682"
+      ]
+    },
+    {
+      "make": "BYD",
+      "model": "Yuan Pro",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9802858",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5218707"
+      ]
+    },
+    {
+      "make": "BYD",
+      "model": "Yuan Plus",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9943458",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=96808064"
+      ]
+    },
+    {
+      "make": "BYD",
+      "model": "Seagull",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=59167119",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=31454882"
+      ]
+    },
+    {
+      "make": "BYD",
+      "model": "Seal",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1306861"
+      ]
+    },
+    {
+      "make": "BYD",
+      "model": "Sealion 7",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2817435"
+      ]
+    },
+    {
+      "make": "BYD",
+      "model": "Dolphin",
+      "source_id": "crautos-byd",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=17716764"
+      ]
+    },
+    {
+      "make": "Changan",
+      "model": "Benni",
+      "source_id": "crautos-changan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=72008872"
+      ]
+    },
+    {
+      "make": "Changan",
+      "model": "CS15",
+      "source_id": "crautos-changan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6134504",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=88831587",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9488755",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=80211846",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1457952",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7119275",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9311090",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=48152019",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79100787",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8939249",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2229742"
+      ]
+    },
+    {
+      "make": "Changan",
+      "model": "CS35",
+      "source_id": "crautos-changan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=88392472",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=80026276",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=30045632",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=29408990",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8715434",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10110841",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55332923",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=87171094",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2487709",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7464352",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=14584245",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1655091",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=16085386",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6470995",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=11032995",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82885474",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=91121284"
+      ]
+    },
+    {
+      "make": "Changan",
+      "model": "CS55",
+      "source_id": "crautos-changan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3344862",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=38621996",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7210160",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9002175",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1183649",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1754724",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6890738",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2878266",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4721019",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4049908"
+      ]
+    },
+    {
+      "make": "Changan",
+      "model": "CS75",
+      "source_id": "crautos-changan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9521772"
+      ]
+    },
+    {
+      "make": "Changan",
+      "model": "Hunter",
+      "source_id": "crautos-changan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=29806834",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=53617536",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6002365"
+      ]
+    },
+    {
+      "make": "Changan",
+      "model": "Q20",
+      "source_id": "crautos-changan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10631722"
+      ]
+    },
+    {
+      "make": "Changan",
+      "model": "Star 3",
+      "source_id": "crautos-changan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89051987",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12482435",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=52308674"
+      ]
+    },
+    {
+      "make": "Changan",
+      "model": "Star 9",
+      "source_id": "crautos-changan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5735674"
+      ]
+    },
+    {
+      "make": "Changan",
+      "model": "UNI-T",
+      "source_id": "crautos-changan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19031818",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22386501",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19104561",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3207028",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8798435",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=37698204",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8432327"
+      ]
+    },
+    {
+      "make": "Changan",
+      "model": "UNI-K",
+      "source_id": "crautos-changan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7962211"
+      ]
+    },
+    {
+      "make": "Changan",
+      "model": "X7",
+      "source_id": "crautos-changan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=91355888",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=37768407",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7311319"
+      ]
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 2",
+      "source_id": "crautos-chery",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5163108",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5898137",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=85429115",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4962167",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82446568",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=85254301",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79999902",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5596306",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2711876",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4735989",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=45048775",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=87158806",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4749784",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=27261958",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47241003",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9050141",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8238963",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3908024",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=51919264",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=83052449",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=96557741"
+      ]
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 4",
+      "source_id": "crautos-chery",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=36069182",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=29118609",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=63102308",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=58077524",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=34136904",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8929151",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1718236",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10909936",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67540550",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=96878917",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=23205060",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6557357",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24974972",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8351936",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5217592",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1958512",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=76433940",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10480005"
+      ]
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 7",
+      "source_id": "crautos-chery",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=53801004",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1581183",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=96664801",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13675085",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26051207",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19542479"
+      ]
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 8",
+      "source_id": "crautos-chery",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3415537",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=99571217",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=31827952"
+      ]
+    },
+    {
+      "make": "Chery",
+      "model": "eQ7",
+      "source_id": "crautos-chery",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8072201",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=80222888",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47197254"
+      ]
+    },
+    {
+      "make": "Citroën",
+      "model": "C1",
+      "source_id": "crautos-citron",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19384099"
+      ]
+    },
+    {
+      "make": "Citroën",
+      "model": "C2",
+      "source_id": "crautos-citron",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=58648441"
+      ]
+    },
+    {
+      "make": "Citroën",
+      "model": "C3",
+      "source_id": "crautos-citron",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67779699",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=33426159",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=50551195",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=23187770",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=99474716",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=34152794",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=33780099",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=91580337",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=17665498",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2099108",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6309433",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6067352",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55446974",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6463174",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=84403922",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2004910",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=62374043"
+      ]
+    },
+    {
+      "make": "Citroën",
+      "model": "C4",
+      "source_id": "crautos-citron",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=97824525",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=40818137"
+      ]
+    },
+    {
+      "make": "Citroën",
+      "model": "C-Élysée",
+      "source_id": "crautos-citron",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1073181",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93503959",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=28842627",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=50528885",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4926849",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7699265",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=98373160",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=43072231",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=59770159",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=95563737",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2558620",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=30729302",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=15875412",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22223093",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=50126207",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=70881129"
+      ]
+    },
+    {
+      "make": "Citroën",
+      "model": "Nemo",
+      "source_id": "crautos-citron",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13631777"
+      ]
+    },
+    {
+      "make": "Citroën",
+      "model": "Xsara",
+      "source_id": "crautos-citron",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=54313708"
+      ]
+    },
+    {
+      "make": "Citroën",
+      "model": "DS4",
+      "source_id": "crautos-citron",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=28805955"
+      ]
+    },
+    {
+      "make": "Citroën",
+      "model": "C3 Aircross",
+      "source_id": "crautos-citron",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=62374043"
+      ]
+    },
+    {
+      "make": "Citroën",
+      "model": "C4 Cactus",
+      "source_id": "crautos-citron",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=40818137"
+      ]
+    },
+    {
+      "make": "Citroën",
+      "model": "C5 Aircross",
+      "source_id": "crautos-citron",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8492178"
+      ]
+    },
+    {
+      "make": "Citroën",
+      "model": "Berlingo",
+      "source_id": "crautos-citron",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26830732",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=39183083",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=34830856",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=50139393",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9725650",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12204459",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10690544",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=16759762",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=32363564"
+      ]
+    },
+    {
+      "make": "Citroën",
+      "model": "Jumpy",
+      "source_id": "crautos-citron",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=21099271"
+      ]
+    },
+    {
+      "make": "Citroën",
+      "model": "Jumper",
+      "source_id": "crautos-citron",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12220035"
+      ]
+    },
+    {
+      "make": "Daihatsu",
+      "model": "Charade",
+      "source_id": "crautos-daihatsu",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=63359879"
+      ]
+    },
+    {
+      "make": "Daihatsu",
+      "model": "Cuore",
+      "source_id": "crautos-daihatsu",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=90604801",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=94657337"
+      ]
+    },
+    {
+      "make": "Daihatsu",
+      "model": "Delta",
+      "source_id": "crautos-daihatsu",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=44559201",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=64483469",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=44048942",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=15558698"
+      ]
+    },
+    {
+      "make": "Daihatsu",
+      "model": "Rocky",
+      "source_id": "crautos-daihatsu",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=60954158",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13388565",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66588219"
+      ]
+    },
+    {
+      "make": "Daihatsu",
+      "model": "Sirion",
+      "source_id": "crautos-daihatsu",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=96750674",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=17893054",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=16322658",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=14408210",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=54575451",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66439465"
+      ]
+    },
+    {
+      "make": "Daihatsu",
+      "model": "Terios",
+      "source_id": "crautos-daihatsu",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=21052827",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=53526117",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92499541",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73947990",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89455925",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82757870",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22198046",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73098593",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12899601",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=57332811",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22281282",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89928167",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=37891847",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=61206116",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=62735034",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=65673201",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7918352",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2446471",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=76841780",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=60895230",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82616716",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6587659",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=98060702",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=59045146",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92722163",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=83060385",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=56836908",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8313565",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=60183858",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10798302",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=74812588",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=86585284",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=88392596",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=78341856",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73079403",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24734417",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13458457",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=97077472",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=46250229",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=31889688",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=94106917",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=53077090",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=27784109",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=27034551",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2091561",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3322027",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89277678",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=95884490",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=50637398",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1813985",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=14707382",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=21643271",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47789096",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93070008",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=18572215",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=95815133",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=54155360",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=58432721",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=37164248",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22556253",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8841774",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93965597",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9086492",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=58409341",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=23769749",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=78473515",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55352016"
+      ]
+    },
+    {
+      "make": "Dongfeng",
+      "model": "EX1",
+      "source_id": "crautos-dongfeng",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6212695",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7228936"
+      ]
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Joyear SX6",
+      "source_id": "crautos-dongfeng",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7325688"
+      ]
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Nammi 01",
+      "source_id": "crautos-dongfeng",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=98751297"
+      ]
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Nano Box",
+      "source_id": "crautos-dongfeng",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=16728345"
+      ]
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Rich",
+      "source_id": "crautos-dongfeng",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=58524446"
+      ]
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Rich 6",
+      "source_id": "crautos-dongfeng",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=68796920",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7577118",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55962109"
+      ]
+    },
+    {
+      "make": "Dongfeng",
+      "model": "SX5",
+      "source_id": "crautos-dongfeng",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=48021958",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9732741"
+      ]
+    },
+    {
+      "make": "Dongfeng",
+      "model": "T5 EVO",
+      "source_id": "crautos-dongfeng",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66303878"
+      ]
+    },
+    {
+      "make": "Dongfeng",
+      "model": "T5L",
+      "source_id": "crautos-dongfeng",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9585489"
+      ]
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Friday",
+      "source_id": "crautos-dongfeng",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=51729942"
+      ]
+    },
+    {
+      "make": "Foton",
+      "model": "Tunland V9",
+      "source_id": "crautos-foton",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=88644418"
+      ]
+    },
+    {
+      "make": "Foton",
+      "model": "View CS2",
+      "source_id": "crautos-foton",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89030727"
+      ]
+    },
+    {
+      "make": "Geely",
+      "model": "GC5",
+      "source_id": "crautos-geely",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=80590330"
+      ]
+    },
+    {
+      "make": "Geely",
+      "model": "GC6",
+      "source_id": "crautos-geely",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=40803231",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=77956833",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=75470096",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=43995235"
+      ]
+    },
+    {
+      "make": "Geely",
+      "model": "GX2",
+      "source_id": "crautos-geely",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=38260293"
+      ]
+    },
+    {
+      "make": "Geely",
+      "model": "GX3",
+      "source_id": "crautos-geely",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=30974119",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=96709782",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1032002",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82538701",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=16886810",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=16994046",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=75826876",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12570163",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=36315101",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=77389281",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2807332",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1262006",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=68034458",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=56109952",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=72674079",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=95776512",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=30051431",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13478742",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82216960",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=84183437",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=48363402",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=15177972",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7683555",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79573490",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19889524",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2842597",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6994549",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6946635",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7500395",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10157704",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=88653570",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2300241",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79162795",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5593790",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9106575",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=53680906"
+      ]
+    },
+    {
+      "make": "Geely",
+      "model": "Coolray",
+      "source_id": "crautos-geely",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=42376961",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=11996258",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7902390",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8957528",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92311299",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=27704031",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=69797852",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10471350",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=94304012",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47712872",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=70746326",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=60837992",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=43065715"
+      ]
+    },
+    {
+      "make": "Geely",
+      "model": "Azkarra",
+      "source_id": "crautos-geely",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5615282",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8363063",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4340759",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12505926",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2672409"
+      ]
+    },
+    {
+      "make": "Geely",
+      "model": "EX5",
+      "source_id": "crautos-geely",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=14082431",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=38414937"
+      ]
+    },
+    {
+      "make": "Geely",
+      "model": "Geome",
+      "source_id": "crautos-geely",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=39298693",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=11048583"
+      ]
+    },
+    {
+      "make": "Geely",
+      "model": "Geometry C",
+      "source_id": "crautos-geely",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4199329",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=98904945",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=15611773"
+      ]
+    },
+    {
+      "make": "Geely",
+      "model": "Geometry E",
+      "source_id": "crautos-geely",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10728592",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=81839419",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2387081",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2725583",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66013268",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66698160",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2203293",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1296716"
+      ]
+    },
+    {
+      "make": "Geely",
+      "model": "Okavango",
+      "source_id": "crautos-geely",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4811481",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8656443",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9058916",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=91632051",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1088697",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1158770",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=37610631"
+      ]
+    },
+    {
+      "make": "Geely",
+      "model": "Starray",
+      "source_id": "crautos-geely",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55789498",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=91551174",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6337163"
+      ]
+    },
+    {
+      "make": "Great Wall",
+      "model": "C30",
+      "source_id": "crautos-greatwall",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7867370",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=71738064",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19386401"
+      ]
+    },
+    {
+      "make": "Great Wall",
+      "model": "M4",
+      "source_id": "crautos-greatwall",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=39272478",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=21825345",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12043638",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=32013850",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=36838380"
+      ]
+    },
+    {
+      "make": "Great Wall",
+      "model": "M2",
+      "source_id": "crautos-greatwall",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=97368095"
+      ]
+    },
+    {
+      "make": "Great Wall",
+      "model": "Hover",
+      "source_id": "crautos-greatwall",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=57963340"
+      ]
+    },
+    {
+      "make": "Great Wall",
+      "model": "Poer",
+      "source_id": "crautos-greatwall",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82290925",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2580054",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4615595",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=16793719",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1464895",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93039099"
+      ]
+    },
+    {
+      "make": "Great Wall",
+      "model": "Wingle 5",
+      "source_id": "crautos-greatwall",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4134050"
+      ]
+    },
+    {
+      "make": "Great Wall",
+      "model": "Wingle 7",
+      "source_id": "crautos-greatwall",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2030601",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5885176"
+      ]
+    },
+    {
+      "make": "Haval",
+      "model": "H6",
+      "source_id": "crautos-haval",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=98657746",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=65987880",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1529568",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24016212",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2868915",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1638857",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9143801",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=44962298",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=36715753",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=39531482"
+      ]
+    },
+    {
+      "make": "Haval",
+      "model": "H9",
+      "source_id": "crautos-haval",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6288135"
+      ]
+    },
+    {
+      "make": "Haval",
+      "model": "Jolion",
+      "source_id": "crautos-haval",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=63180746",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4009415",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7131586"
+      ]
+    },
+    {
+      "make": "Hyundai",
+      "model": "Galloper",
+      "source_id": "crautos-hyundai",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24282700",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92513471",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13516638",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67355290",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=71092233",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22821239",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=90318473",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=90800556",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=64191533",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=30052565",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1810647",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=91892704"
+      ]
+    },
+    {
+      "make": "Hyundai",
+      "model": "Starex",
+      "source_id": "crautos-hyundai",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67630972",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=80196816",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=65537905"
+      ]
+    },
+    {
+      "make": "Hyundai",
+      "model": "Verna",
+      "source_id": "crautos-hyundai",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=59393490"
+      ]
+    },
+    {
+      "make": "JAC",
+      "model": "JS1",
+      "source_id": "crautos-jac",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6492303",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=11660474",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7879628",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6463717",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4196023",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9942902",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8912325"
+      ]
+    },
+    {
+      "make": "JAC",
+      "model": "JS2",
+      "source_id": "crautos-jac",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=50382058",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7866117",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3299187",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9201900"
+      ]
+    },
+    {
+      "make": "JAC",
+      "model": "JS3",
+      "source_id": "crautos-jac",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2739931",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4264034",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4832079"
+      ]
+    },
+    {
+      "make": "JAC",
+      "model": "JS4",
+      "source_id": "crautos-jac",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3263516",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5536054",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67233961",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=61872729",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2539086",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=41817810",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=38643386"
+      ]
+    },
+    {
+      "make": "JAC",
+      "model": "JS5",
+      "source_id": "crautos-jac",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5572751"
+      ]
+    },
+    {
+      "make": "JAC",
+      "model": "JS8",
+      "source_id": "crautos-jac",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=27126219",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=69315070"
+      ]
+    },
+    {
+      "make": "JAC",
+      "model": "J2",
+      "source_id": "crautos-jac",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=61389083"
+      ]
+    },
+    {
+      "make": "JAC",
+      "model": "J3",
+      "source_id": "crautos-jac",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=23750918"
+      ]
+    },
+    {
+      "make": "JAC",
+      "model": "Refine",
+      "source_id": "crautos-jac",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24723116",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4916601"
+      ]
+    },
+    {
+      "make": "JAC",
+      "model": "M3",
+      "source_id": "crautos-jac",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4916601"
+      ]
+    },
+    {
+      "make": "JAC",
+      "model": "S2",
+      "source_id": "crautos-jac",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5841984",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13323434",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=83856066"
+      ]
+    },
+    {
+      "make": "JAC",
+      "model": "T6",
+      "source_id": "crautos-jac",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=87376038",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=57268076",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=98303587"
+      ]
+    },
+    {
+      "make": "JAC",
+      "model": "T9",
+      "source_id": "crautos-jac",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5574468"
+      ]
+    },
+    {
+      "make": "Jetour",
+      "model": "Dashing",
+      "source_id": "crautos-jetour",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3346641",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9373690"
+      ]
+    },
+    {
+      "make": "Jetour",
+      "model": "T1",
+      "source_id": "crautos-jetour",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8225294"
+      ]
+    },
+    {
+      "make": "Jetour",
+      "model": "X50",
+      "source_id": "crautos-jetour",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1976531"
+      ]
+    },
+    {
+      "make": "Jetour",
+      "model": "X70",
+      "source_id": "crautos-jetour",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=61613275",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24442421",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=20556674",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3918555",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3622893",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4153932",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6324203"
+      ]
+    },
+    {
+      "make": "Kaiyi",
+      "model": "X3",
+      "source_id": "crautos-kaiyi",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8314784",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6072506",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7862923",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3501052",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7130975",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1160637"
+      ]
+    },
+    {
+      "make": "Kia",
+      "model": "Bongo",
+      "source_id": "crautos-kia",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=63364830",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2797258",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1465383"
+      ]
+    },
+    {
+      "make": "Kia",
+      "model": "Carens",
+      "source_id": "crautos-kia",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=48024131"
+      ]
+    },
+    {
+      "make": "Kia",
+      "model": "Cerato",
+      "source_id": "crautos-kia",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10365940"
+      ]
+    },
+    {
+      "make": "Kia",
+      "model": "Joice",
+      "source_id": "crautos-kia",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=69174194"
+      ]
+    },
+    {
+      "make": "Kia",
+      "model": "K2700",
+      "source_id": "crautos-kia",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82170129",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5057263"
+      ]
+    },
+    {
+      "make": "Kia",
+      "model": "Opirus",
+      "source_id": "crautos-kia",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66319452"
+      ]
+    },
+    {
+      "make": "Kia",
+      "model": "Picanto",
+      "source_id": "crautos-kia",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26147292"
+      ]
+    },
+    {
+      "make": "Maxus",
+      "model": "D60",
+      "source_id": "crautos-maxus",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5715818",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3933966",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3083342",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9419803",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2741117",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4848811",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4655084"
+      ]
+    },
+    {
+      "make": "Maxus",
+      "model": "D90",
+      "source_id": "crautos-maxus",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8061197",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1617633"
+      ]
+    },
+    {
+      "make": "Maxus",
+      "model": "Euniq 6",
+      "source_id": "crautos-maxus",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=84253624"
+      ]
+    },
+    {
+      "make": "Maxus",
+      "model": "V90",
+      "source_id": "crautos-maxus",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=97463505"
+      ]
+    },
+    {
+      "make": "Maxus",
+      "model": "T60",
+      "source_id": "crautos-maxus",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1904526",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=57921874",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=74493471",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=59033761",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79955791",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2260274",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2425495",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55302376",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3250246",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=94924971",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12972515"
+      ]
+    },
+    {
+      "make": "Maxus",
+      "model": "T90",
+      "source_id": "crautos-maxus",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4765896",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6748451"
+      ]
+    },
+    {
+      "make": "MG",
+      "model": "MG 3",
+      "source_id": "crautos-mg",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24372098",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4745200"
+      ]
+    },
+    {
+      "make": "MG",
+      "model": "MG 5",
+      "source_id": "crautos-mg",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1229007",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=78391335"
+      ]
+    },
+    {
+      "make": "MG",
+      "model": "GS",
+      "source_id": "crautos-mg",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6244176",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26449932"
+      ]
+    },
+    {
+      "make": "MG",
+      "model": "GT",
+      "source_id": "crautos-mg",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5217208"
+      ]
+    },
+    {
+      "make": "MG",
+      "model": "HS",
+      "source_id": "crautos-mg",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8237729",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=34229538",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5114779",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4942982",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93968632",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=42178415"
+      ]
+    },
+    {
+      "make": "MG",
+      "model": "Marvel R",
+      "source_id": "crautos-mg",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6635457",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3441999",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6650438",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4052713",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7969580"
+      ]
+    },
+    {
+      "make": "MG",
+      "model": "RX5",
+      "source_id": "crautos-mg",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=33028120",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1274449",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2084424",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8141280",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22584572",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=59409374"
+      ]
+    },
+    {
+      "make": "MG",
+      "model": "RX8",
+      "source_id": "crautos-mg",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=88422935",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=25031709",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2396978",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=72782934",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=99139766",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2820920",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5355729",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5381411"
+      ]
+    },
+    {
+      "make": "MG",
+      "model": "ZS",
+      "source_id": "crautos-mg",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2584859",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7081222",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5188014",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8799146",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5617015",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=18732374",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7283094",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4392291",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=61587423",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4767247",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3715600",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=69709976",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55257831"
+      ]
+    },
+    {
+      "make": "MG",
+      "model": "MG 4",
+      "source_id": "crautos-mg",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8175549"
+      ]
+    },
+    {
+      "make": "MG",
+      "model": "ONE",
+      "source_id": "crautos-mg",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=12748465",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4870880"
+      ]
+    },
+    {
+      "make": "Neta",
+      "model": "U",
+      "source_id": "crautos-neta",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7316803"
+      ]
+    },
+    {
+      "make": "Neta",
+      "model": "V",
+      "source_id": "crautos-neta",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=76374973",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=42492487",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=42493149",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92712566"
+      ]
+    },
+    {
+      "make": "Nissan",
+      "model": "Civilian",
+      "source_id": "crautos-nissan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=39348408"
+      ]
+    },
+    {
+      "make": "Nissan",
+      "model": "D21",
+      "source_id": "crautos-nissan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=68947525",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24461212",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=57355936",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1965820",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=94899909",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26277582"
+      ]
+    },
+    {
+      "make": "Nissan",
+      "model": "Vanette",
+      "source_id": "crautos-nissan",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=25975025"
+      ]
+    },
+    {
+      "make": "Peugeot",
+      "model": "206",
+      "source_id": "crautos-peugeot",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47476373",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93939155",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92038961",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=72677710",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=78772416",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=68384658",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=84579680",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=27580219"
+      ]
+    },
+    {
+      "make": "Peugeot",
+      "model": "208",
+      "source_id": "crautos-peugeot",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92757631",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=41890243"
+      ]
+    },
+    {
+      "make": "Peugeot",
+      "model": "301",
+      "source_id": "crautos-peugeot",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=95645481"
+      ]
+    },
+    {
+      "make": "Peugeot",
+      "model": "307",
+      "source_id": "crautos-peugeot",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=78575489"
+      ]
+    },
+    {
+      "make": "Peugeot",
+      "model": "308",
+      "source_id": "crautos-peugeot",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8012400",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=40957820"
+      ]
+    },
+    {
+      "make": "Peugeot",
+      "model": "Partner",
+      "source_id": "crautos-peugeot",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67980359"
+      ]
+    },
+    {
+      "make": "Peugeot",
+      "model": "2008",
+      "source_id": "crautos-peugeot",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3178213",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2489100",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89392203",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6958952",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73102648",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=74101839",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5895734",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=53645106",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=32615594",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9358659",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=82904748",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=61502061",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=20027424",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6314162"
+      ]
+    },
+    {
+      "make": "Peugeot",
+      "model": "3008",
+      "source_id": "crautos-peugeot",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=90799763",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7653274",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=15238794",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=13705183",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=43965837",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1663079",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=58361605",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=46191050",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6624665",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7799373",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=92823221",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=99163831",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2431804"
+      ]
+    },
+    {
+      "make": "Peugeot",
+      "model": "5008",
+      "source_id": "crautos-peugeot",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26343138"
+      ]
+    },
+    {
+      "make": "Peugeot",
+      "model": "Rifter",
+      "source_id": "crautos-peugeot",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9366092"
+      ]
+    },
+    {
+      "make": "Peugeot",
+      "model": "Landtrek",
+      "source_id": "crautos-peugeot",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=76546386"
+      ]
+    },
+    {
+      "make": "Renault",
+      "model": "Captur",
+      "source_id": "crautos-renault",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2325902",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=41016408",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=14242454",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=90804116"
+      ]
+    },
+    {
+      "make": "Renault",
+      "model": "Fluence",
+      "source_id": "crautos-renault",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=27679321",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=67524027",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=52643602",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8537385"
+      ]
+    },
+    {
+      "make": "Renault",
+      "model": "Megane",
+      "source_id": "crautos-renault",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=22577047",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=55992628",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=29764221",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=63995283"
+      ]
+    },
+    {
+      "make": "Renault",
+      "model": "Scenic",
+      "source_id": "crautos-renault",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=49110636"
+      ]
+    },
+    {
+      "make": "Renault",
+      "model": "Alaskan",
+      "source_id": "crautos-renault",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9528972",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79301844"
+      ]
+    },
+    {
+      "make": "Renault",
+      "model": "Dokker",
+      "source_id": "crautos-renault",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=48557813"
+      ]
+    },
+    {
+      "make": "Renault",
+      "model": "Sandero",
+      "source_id": "crautos-renault",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=95788884",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93837530",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=70867026",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4063737",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=39275158"
+      ]
+    },
+    {
+      "make": "Renault",
+      "model": "Stepway",
+      "source_id": "crautos-renault",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9905446"
+      ]
+    },
+    {
+      "make": "Renault",
+      "model": "Koleos",
+      "source_id": "crautos-renault",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6159774",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7007289",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=78211774",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=86074284",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=35318107",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=37190221",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8246837",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73505333",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9641213",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7202528",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5553276",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79054426",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1438164",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3232940",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6142549",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=35697724",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=33766025",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5802611",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3023150",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7949056",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6427940",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1029136",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1496079",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3246100",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=51688864",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=2810801",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3670484",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9379938"
+      ]
+    },
+    {
+      "make": "Renault",
+      "model": "Duster",
+      "source_id": "crautos-renault",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=25925148",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4863656",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9353539",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=23229785",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=98665535",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=62177820",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7528164",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=11160955",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7548229",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=99180019",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=52290463",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79881428",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=71766182",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=76320602"
+      ]
+    },
+    {
+      "make": "Renault",
+      "model": "Express",
+      "source_id": "crautos-renault",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=51363535",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=50631803"
+      ]
+    },
+    {
+      "make": "Renault",
+      "model": "Kwid",
+      "source_id": "crautos-renault",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=24393404"
+      ]
+    },
+    {
+      "make": "Renault",
+      "model": "Oroch",
+      "source_id": "crautos-renault",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7459745",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79789624",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3618278"
+      ]
+    },
+    {
+      "make": "KGM",
+      "model": "Actyon Sports",
+      "source_id": "crautos-kgm",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=70438912"
+      ]
+    },
+    {
+      "make": "KGM",
+      "model": "Korando",
+      "source_id": "crautos-kgm",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=18784215",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=84479044",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=39771331",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=25626046",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=90985375",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=14738612",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=76875009"
+      ]
+    },
+    {
+      "make": "KGM",
+      "model": "Rexton",
+      "source_id": "crautos-kgm",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=64532682",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1091323",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=63659691",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=42107277",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9040111",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9852233",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=7637550",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=93347488",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=62760092",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=28293558",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3603993",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=5880641"
+      ]
+    },
+    {
+      "make": "KGM",
+      "model": "Tivoli",
+      "source_id": "crautos-kgm",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=21264585",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=79001967",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3007070",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=83984577",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=96687904",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8592210",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6590946",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=56862043",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=91857326",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=10288128",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73284198",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73011419",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47496695",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=66743713",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=47201306",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=85985275",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=31552486",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=89250530",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=73667599",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=86395670",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=72412339"
+      ]
+    },
+    {
+      "make": "KGM",
+      "model": "Torres",
+      "source_id": "crautos-kgm",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=19869379",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=9138960"
+      ]
+    },
+    {
+      "make": "KGM",
+      "model": "Rexton Sports",
+      "source_id": "crautos-kgm",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3603993"
+      ]
+    },
+    {
+      "make": "Toyota",
+      "model": "Starlet",
+      "source_id": "crautos-toyota",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=14184871"
+      ]
+    },
+    {
+      "make": "Toyota",
+      "model": "Model F",
+      "source_id": "crautos-toyota",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=77678990"
+      ]
+    },
+    {
+      "make": "Toyota",
+      "model": "1000",
+      "source_id": "crautos-toyota",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=77512825",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=28248978",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=54646975"
+      ]
+    },
+    {
+      "make": "VGV",
+      "model": "Bolden S6",
+      "source_id": "crautos-vgv",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8035877",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=4690653",
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=6792574"
+      ]
+    },
+    {
+      "make": "VGV",
+      "model": "Bolden S7",
+      "source_id": "crautos-vgv",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=8517683"
+      ]
+    },
+    {
+      "make": "VGV",
+      "model": "U70",
+      "source_id": "crautos-vgv",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1603323"
+      ]
+    },
+    {
+      "make": "VGV",
+      "model": "U70B",
+      "source_id": "crautos-vgv",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=3043656"
+      ]
+    },
+    {
+      "make": "VGV",
+      "model": "VX7",
+      "source_id": "crautos-vgv",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=1075170"
+      ]
+    },
+    {
+      "make": "Zeekr",
+      "model": "007",
+      "source_id": "crautos-zeekr",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26127984"
+      ]
+    },
+    {
+      "make": "Zeekr",
+      "model": "X",
+      "source_id": "crautos-zeekr",
+      "evidence_type": "used_market",
+      "listing_urls": [
+        "https://www.crautos.com/autosusados/cardetail.cfm?c=26420804"
+      ]
+    },
+    {
+      "make": "Toyota",
+      "model": "Fortuner",
+      "source_id": "e24-toyota",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Jimny",
+      "source_id": "e24-suzuki",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "BYD",
+      "model": "S1 Pro",
+      "source_id": "e24-byd",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "BYD",
+      "model": "S6",
+      "source_id": "e24-byd",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "BYD",
+      "model": "F0",
+      "source_id": "e24-byd",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "BYD",
+      "model": "Song Plus",
+      "source_id": "e24-byd",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "BYD",
+      "model": "Seal",
+      "source_id": "e24-byd",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "BYD",
+      "model": "Dolphin",
+      "source_id": "e24-byd",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "BYD",
+      "model": "Tang",
+      "source_id": "e24-byd",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Geely",
+      "model": "Okavango",
+      "source_id": "e24-geely",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Geely",
+      "model": "Geometry E",
+      "source_id": "e24-geely",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Geely",
+      "model": "GX3",
+      "source_id": "e24-geely",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Geely",
+      "model": "Coolray",
+      "source_id": "e24-geely",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Geely",
+      "model": "GC6",
+      "source_id": "e24-geely",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Geely",
+      "model": "Azkarra",
+      "source_id": "e24-geely",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Geely",
+      "model": "Emgrand EX7",
+      "source_id": "e24-geely",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Changan",
+      "model": "CS15",
+      "source_id": "e24-changan",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Changan",
+      "model": "CS55",
+      "source_id": "e24-changan",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Changan",
+      "model": "CS75",
+      "source_id": "e24-changan",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Changan",
+      "model": "Star 9",
+      "source_id": "e24-changan",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Changan",
+      "model": "UNI-T",
+      "source_id": "e24-changan",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Dongfeng",
+      "model": "Rich 6",
+      "source_id": "e24-dongfeng",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 2",
+      "source_id": "e24-chery",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Chery",
+      "model": "Tiggo 4",
+      "source_id": "e24-chery",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Chery",
+      "model": "eQ7",
+      "source_id": "e24-chery",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "JAC",
+      "model": "Refine",
+      "source_id": "e24-jac",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "JAC",
+      "model": "JS1",
+      "source_id": "e24-jac",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "JAC",
+      "model": "JS4",
+      "source_id": "e24-jac",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "JAC",
+      "model": "T8",
+      "source_id": "e24-jac",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "MG",
+      "model": "RX5",
+      "source_id": "e24-mg",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "MG",
+      "model": "ZS",
+      "source_id": "e24-mg",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "MG",
+      "model": "RX8",
+      "source_id": "e24-mg",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "MG",
+      "model": "GS",
+      "source_id": "e24-mg",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "MG",
+      "model": "Marvel R",
+      "source_id": "e24-mg",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Great Wall",
+      "model": "Poer",
+      "source_id": "e24-greatwall",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Great Wall",
+      "model": "C20R",
+      "source_id": "e24-greatwall",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Haval",
+      "model": "H6",
+      "source_id": "e24-haval",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Haval",
+      "model": "H9",
+      "source_id": "e24-haval",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Haval",
+      "model": "Jolion",
+      "source_id": "e24-haval",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Jetour",
+      "model": "X70",
+      "source_id": "e24-jetour",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Jetour",
+      "model": "Dashing",
+      "source_id": "e24-jetour",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Jetour",
+      "model": "T1",
+      "source_id": "e24-jetour",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "DFSK",
+      "model": "Glory 580",
+      "source_id": "e24-dfsk",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "DFSK",
+      "model": "C31",
+      "source_id": "e24-dfsk",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Seres",
+      "model": "3",
+      "source_id": "e24-seres",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "JMC",
+      "model": "Vigus",
+      "source_id": "e24-jmc",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "JMC",
+      "model": "Grand Avenue",
+      "source_id": "e24-jmc",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Maxus",
+      "model": "D60",
+      "source_id": "e24-maxus",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Maxus",
+      "model": "T60",
+      "source_id": "e24-maxus",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Maxus",
+      "model": "Euniq 6",
+      "source_id": "e24-maxus",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Citroën",
+      "model": "C3",
+      "source_id": "e24-citron",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Citroën",
+      "model": "C3 Aircross",
+      "source_id": "e24-citron",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Citroën",
+      "model": "C-Élysée",
+      "source_id": "e24-citron",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Citroën",
+      "model": "C5",
+      "source_id": "e24-citron",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Citroën",
+      "model": "C5 Aircross",
+      "source_id": "e24-citron",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Citroën",
+      "model": "DS4",
+      "source_id": "e24-citron",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Toyota",
+      "model": "Hilux",
+      "source_id": "e24-hilux",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Toyota",
+      "model": "Hilux",
+      "source_id": "crautos-featured",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Toyota",
+      "model": "Fortuner",
+      "source_id": "crautos-featured",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Suzuki",
+      "model": "Jimny",
+      "source_id": "crautos-jimny",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Isuzu",
+      "model": "D-Max",
+      "source_id": "crautos-isuzu",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Isuzu",
+      "model": "MU-X",
+      "source_id": "crautos-isuzu",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Hyundai",
+      "model": "Creta",
+      "source_id": "crautos-creta",
+      "evidence_type": "used_market"
+    },
+    {
+      "make": "Hyundai",
+      "model": "Stargazer",
+      "source_id": "hyundai-stargazer",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Volkswagen",
+      "model": "Saveiro",
+      "source_id": "vw-cr",
+      "evidence_type": "local_distributor"
+    },
+    {
+      "make": "Volkswagen",
+      "model": "Tera",
+      "source_id": "vw-cr",
+      "evidence_type": "local_distributor"
+    }
+  ]
+}

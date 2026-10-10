@@ -1,0 +1,3274 @@
+{
+  "schema_version": 1,
+  "prior_requests_estimate": 2,
+  "requests": [
+    {
+      "make": "Toyota",
+      "query_make": "Toyota",
+      "fetched_at": "2026-10-10T02:19:17.554Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Toyota"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "4Runner",
+        "86",
+        "Avalon",
+        "Avalon Hybrid",
+        "C-HR",
+        "Camry",
+        "Camry Hybrid",
+        "Camry Solara",
+        "Celica",
+        "Corolla",
+        "Corolla Cross",
+        "Corolla Cross Hybrid",
+        "Corolla Hatchback",
+        "Corolla Hybrid",
+        "Corolla iM",
+        "Cressida",
+        "Crown",
+        "Crown Signia",
+        "ECHO",
+        "FJ Cruiser",
+        "GR Corolla",
+        "GR Supra",
+        "GR86",
+        "Grand Highlander",
+        "Grand Highlander Hybrid",
+        "Highlander",
+        "Highlander Hybrid",
+        "Land Cruiser",
+        "MR2",
+        "MR2 Spyder",
+        "Matrix",
+        "Mirai",
+        "Paseo",
+        "Pickup",
+        "Previa",
+        "Prius",
+        "Prius Plug-In Hybrid",
+        "Prius Plug-in",
+        "Prius Prime",
+        "Prius c",
+        "Prius v",
+        "RAV4",
+        "RAV4 EV",
+        "RAV4 Hybrid",
+        "RAV4 Plug-In Hybrid",
+        "RAV4 Prime",
+        "Sequoia",
+        "Sienna",
+        "Supra",
+        "T100",
+        "Tacoma",
+        "Tercel",
+        "Tundra",
+        "Venza",
+        "Yaris",
+        "Yaris Hatchback",
+        "Yaris iA",
+        "bZ",
+        "bZ Woodland",
+        "bZ4X"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Toyota"
+        },
+        "models": [
+          "4Runner",
+          "86",
+          "Avalon",
+          "Avalon Hybrid",
+          "C-HR",
+          "Camry",
+          "Camry Hybrid",
+          "Camry Solara",
+          "Celica",
+          "Corolla",
+          "Corolla Cross",
+          "Corolla Cross Hybrid",
+          "Corolla Hatchback",
+          "Corolla Hybrid",
+          "Corolla iM",
+          "Cressida",
+          "Crown",
+          "Crown Signia",
+          "ECHO",
+          "FJ Cruiser",
+          "GR Corolla",
+          "GR Supra",
+          "GR86",
+          "Grand Highlander",
+          "Grand Highlander Hybrid",
+          "Highlander",
+          "Highlander Hybrid",
+          "Land Cruiser",
+          "MR2",
+          "MR2 Spyder",
+          "Matrix",
+          "Mirai",
+          "Paseo",
+          "Pickup",
+          "Previa",
+          "Prius",
+          "Prius Plug-In Hybrid",
+          "Prius Plug-in",
+          "Prius Prime",
+          "Prius c",
+          "Prius v",
+          "RAV4",
+          "RAV4 EV",
+          "RAV4 Hybrid",
+          "RAV4 Plug-In Hybrid",
+          "RAV4 Prime",
+          "Sequoia",
+          "Sienna",
+          "Supra",
+          "T100",
+          "Tacoma",
+          "Tercel",
+          "Tundra",
+          "Venza",
+          "Yaris",
+          "Yaris Hatchback",
+          "Yaris iA",
+          "bZ",
+          "bZ Woodland",
+          "bZ4X"
+        ]
+      }
+    },
+    {
+      "make": "Nissan",
+      "query_make": "Nissan",
+      "fetched_at": "2026-10-10T02:19:46.356Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Nissan"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "200SX",
+        "240SX",
+        "300ZX",
+        "350Z",
+        "370Z",
+        "ARIYA",
+        "Altima",
+        "Altima Hybrid",
+        "Armada",
+        "Axxess",
+        "Cube",
+        "Frontier",
+        "GT-R",
+        "Juke",
+        "Kicks",
+        "LEAF",
+        "Maxima",
+        "Murano",
+        "Murano CrossCabriolet",
+        "NV",
+        "NV Cargo",
+        "NV Passenger",
+        "NV200",
+        "NX",
+        "Pathfinder",
+        "Pulsar",
+        "Quest",
+        "Rogue",
+        "Rogue Plug-In Hybrid",
+        "Rogue Select",
+        "Rogue Sport",
+        "Sentra",
+        "Stanza",
+        "Titan",
+        "Titan XD",
+        "Truck",
+        "Van",
+        "Versa",
+        "Versa Note",
+        "Xterra",
+        "Z"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Nissan"
+        },
+        "models": [
+          "200SX",
+          "240SX",
+          "300ZX",
+          "350Z",
+          "370Z",
+          "ARIYA",
+          "Altima",
+          "Altima Hybrid",
+          "Armada",
+          "Axxess",
+          "Cube",
+          "Frontier",
+          "GT-R",
+          "Juke",
+          "Kicks",
+          "LEAF",
+          "Maxima",
+          "Murano",
+          "Murano CrossCabriolet",
+          "NV",
+          "NV Cargo",
+          "NV Passenger",
+          "NV200",
+          "NX",
+          "Pathfinder",
+          "Pulsar",
+          "Quest",
+          "Rogue",
+          "Rogue Plug-In Hybrid",
+          "Rogue Select",
+          "Rogue Sport",
+          "Sentra",
+          "Stanza",
+          "Titan",
+          "Titan XD",
+          "Truck",
+          "Van",
+          "Versa",
+          "Versa Note",
+          "Xterra",
+          "Z"
+        ]
+      }
+    },
+    {
+      "make": "Suzuki",
+      "query_make": "Suzuki",
+      "fetched_at": "2026-10-10T02:19:47.923Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Suzuki"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "Aerio",
+        "Equator",
+        "Esteem",
+        "Forenza",
+        "Grand Vitara",
+        "Kizashi",
+        "Reno",
+        "SX4",
+        "Samurai",
+        "Sidekick",
+        "Swift",
+        "Verona",
+        "Vitara",
+        "X-90",
+        "XL-7",
+        "XL7"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Suzuki"
+        },
+        "models": [
+          "Aerio",
+          "Equator",
+          "Esteem",
+          "Forenza",
+          "Grand Vitara",
+          "Kizashi",
+          "Reno",
+          "SX4",
+          "Samurai",
+          "Sidekick",
+          "Swift",
+          "Verona",
+          "Vitara",
+          "X-90",
+          "XL-7",
+          "XL7"
+        ]
+      }
+    },
+    {
+      "make": "Mitsubishi",
+      "query_make": "Mitsubishi",
+      "fetched_at": "2026-10-10T02:19:48.789Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Mitsubishi"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "3000GT",
+        "Diamante",
+        "Eclipse",
+        "Eclipse Cross",
+        "Eclipse Spyder",
+        "Endeavor",
+        "Expo",
+        "Galant",
+        "Lancer",
+        "Lancer Evolution",
+        "Lancer Sportback",
+        "Mighty Max Pickup",
+        "Mirage",
+        "Mirage G4",
+        "Montero",
+        "Montero Sport",
+        "Outlander",
+        "Outlander PHEV",
+        "Outlander Sport",
+        "Precis",
+        "Raider",
+        "Sigma",
+        "Vanwagon",
+        "i-MiEV"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Mitsubishi"
+        },
+        "models": [
+          "3000GT",
+          "Diamante",
+          "Eclipse",
+          "Eclipse Cross",
+          "Eclipse Spyder",
+          "Endeavor",
+          "Expo",
+          "Galant",
+          "Lancer",
+          "Lancer Evolution",
+          "Lancer Sportback",
+          "Mighty Max Pickup",
+          "Mirage",
+          "Mirage G4",
+          "Montero",
+          "Montero Sport",
+          "Outlander",
+          "Outlander PHEV",
+          "Outlander Sport",
+          "Precis",
+          "Raider",
+          "Sigma",
+          "Vanwagon",
+          "i-MiEV"
+        ]
+      }
+    },
+    {
+      "make": "Hyundai",
+      "query_make": "Hyundai",
+      "fetched_at": "2026-10-10T02:19:49.441Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Hyundai"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "Accent",
+        "Azera",
+        "Elantra",
+        "Elantra Coupe",
+        "Elantra GT",
+        "Elantra Hybrid",
+        "Elantra N",
+        "Elantra Touring",
+        "Entourage",
+        "Equus",
+        "Excel",
+        "Genesis",
+        "Genesis Coupe",
+        "IONIQ 5",
+        "IONIQ 5 N",
+        "IONIQ 6",
+        "IONIQ 9",
+        "Ioniq Electric",
+        "Ioniq Hybrid",
+        "Ioniq Plug-In Hybrid",
+        "Kona",
+        "Kona Electric",
+        "NEXO",
+        "Palisade",
+        "Santa Cruz",
+        "Santa Fe",
+        "Santa Fe Hybrid",
+        "Santa Fe Plug-In Hybrid",
+        "Santa Fe Sport",
+        "Santa Fe XL",
+        "Scoupe",
+        "Sonata",
+        "Sonata Hybrid",
+        "Sonata Plug-in Hybrid",
+        "Tiburon",
+        "Tucson",
+        "Tucson Plug-In Hybrid",
+        "Veloster",
+        "Venue",
+        "Veracruz",
+        "XG300",
+        "XG350"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Hyundai"
+        },
+        "models": [
+          "Accent",
+          "Azera",
+          "Elantra",
+          "Elantra Coupe",
+          "Elantra GT",
+          "Elantra Hybrid",
+          "Elantra N",
+          "Elantra Touring",
+          "Entourage",
+          "Equus",
+          "Excel",
+          "Genesis",
+          "Genesis Coupe",
+          "IONIQ 5",
+          "IONIQ 5 N",
+          "IONIQ 6",
+          "IONIQ 9",
+          "Ioniq Electric",
+          "Ioniq Hybrid",
+          "Ioniq Plug-In Hybrid",
+          "Kona",
+          "Kona Electric",
+          "NEXO",
+          "Palisade",
+          "Santa Cruz",
+          "Santa Fe",
+          "Santa Fe Hybrid",
+          "Santa Fe Plug-In Hybrid",
+          "Santa Fe Sport",
+          "Santa Fe XL",
+          "Scoupe",
+          "Sonata",
+          "Sonata Hybrid",
+          "Sonata Plug-in Hybrid",
+          "Tiburon",
+          "Tucson",
+          "Tucson Plug-In Hybrid",
+          "Veloster",
+          "Venue",
+          "Veracruz",
+          "XG300",
+          "XG350"
+        ]
+      }
+    },
+    {
+      "make": "Kia",
+      "query_make": "Kia",
+      "fetched_at": "2026-10-10T02:19:50.109Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Kia"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "Amanti",
+        "Borrego",
+        "Cadenza",
+        "Carnival",
+        "EV6",
+        "EV9",
+        "Forte",
+        "K4",
+        "K5",
+        "K900",
+        "Niro",
+        "Niro EV",
+        "Niro Plug-In Hybrid",
+        "Optima",
+        "Optima Hybrid",
+        "Optima Plug-In Hybrid",
+        "Rio",
+        "Rondo",
+        "Sedona",
+        "Seltos",
+        "Sephia",
+        "Sorento",
+        "Sorento Hybrid",
+        "Sorento Plug-In Hybrid",
+        "Soul",
+        "Soul EV",
+        "Spectra",
+        "Sportage",
+        "Sportage Hybrid",
+        "Sportage Plug-In Hybrid",
+        "Stinger",
+        "Telluride",
+        "Telluride Hybrid"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Kia"
+        },
+        "models": [
+          "Amanti",
+          "Borrego",
+          "Cadenza",
+          "Carnival",
+          "EV6",
+          "EV9",
+          "Forte",
+          "K4",
+          "K5",
+          "K900",
+          "Niro",
+          "Niro EV",
+          "Niro Plug-In Hybrid",
+          "Optima",
+          "Optima Hybrid",
+          "Optima Plug-In Hybrid",
+          "Rio",
+          "Rondo",
+          "Sedona",
+          "Seltos",
+          "Sephia",
+          "Sorento",
+          "Sorento Hybrid",
+          "Sorento Plug-In Hybrid",
+          "Soul",
+          "Soul EV",
+          "Spectra",
+          "Sportage",
+          "Sportage Hybrid",
+          "Sportage Plug-In Hybrid",
+          "Stinger",
+          "Telluride",
+          "Telluride Hybrid"
+        ]
+      }
+    },
+    {
+      "make": "Honda",
+      "query_make": "Honda",
+      "fetched_at": "2026-10-10T02:19:50.770Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Honda"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "Accord",
+        "Accord Crosstour",
+        "Accord Hybrid",
+        "Accord Plug-In Hybrid",
+        "CR-V",
+        "CR-V Hybrid",
+        "CR-V e:FCEV",
+        "CR-Z",
+        "Civic",
+        "Civic CRX",
+        "Civic del Sol",
+        "Clarity",
+        "Crosstour",
+        "Element",
+        "Fit",
+        "Fit EV",
+        "HR-V",
+        "Insight",
+        "Odyssey",
+        "Passport",
+        "Pilot",
+        "Prelude",
+        "Prologue",
+        "Ridgeline",
+        "S2000"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Honda"
+        },
+        "models": [
+          "Accord",
+          "Accord Crosstour",
+          "Accord Hybrid",
+          "Accord Plug-In Hybrid",
+          "CR-V",
+          "CR-V Hybrid",
+          "CR-V e:FCEV",
+          "CR-Z",
+          "Civic",
+          "Civic CRX",
+          "Civic del Sol",
+          "Clarity",
+          "Crosstour",
+          "Element",
+          "Fit",
+          "Fit EV",
+          "HR-V",
+          "Insight",
+          "Odyssey",
+          "Passport",
+          "Pilot",
+          "Prelude",
+          "Prologue",
+          "Ridgeline",
+          "S2000"
+        ]
+      }
+    },
+    {
+      "make": "Mazda",
+      "query_make": "Mazda",
+      "fetched_at": "2026-10-10T02:19:51.366Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Mazda"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "2",
+        "3",
+        "323",
+        "5",
+        "6",
+        "626",
+        "929",
+        "B-Series",
+        "B-Series Pickup",
+        "B-Series Truck",
+        "CX-3",
+        "CX-30",
+        "CX-5",
+        "CX-50",
+        "CX-7",
+        "CX-70",
+        "CX-9",
+        "CX-90",
+        "MPV",
+        "MX-3",
+        "MX-30",
+        "MX-5 Miata",
+        "MX-5 Miata RF",
+        "MX-6",
+        "Mazdaspeed 3",
+        "Mazdaspeed 6",
+        "Mazdaspeed MX-5 Miata",
+        "Mazdaspeed Protege",
+        "Millenia",
+        "Navajo",
+        "Protege",
+        "Protege5",
+        "RX-7",
+        "RX-8",
+        "Tribute",
+        "Tribute Hybrid",
+        "Truck"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Mazda"
+        },
+        "models": [
+          "2",
+          "3",
+          "323",
+          "5",
+          "6",
+          "626",
+          "929",
+          "B-Series",
+          "B-Series Pickup",
+          "B-Series Truck",
+          "CX-3",
+          "CX-30",
+          "CX-5",
+          "CX-50",
+          "CX-7",
+          "CX-70",
+          "CX-9",
+          "CX-90",
+          "MPV",
+          "MX-3",
+          "MX-30",
+          "MX-5 Miata",
+          "MX-5 Miata RF",
+          "MX-6",
+          "Mazdaspeed 3",
+          "Mazdaspeed 6",
+          "Mazdaspeed MX-5 Miata",
+          "Mazdaspeed Protege",
+          "Millenia",
+          "Navajo",
+          "Protege",
+          "Protege5",
+          "RX-7",
+          "RX-8",
+          "Tribute",
+          "Tribute Hybrid",
+          "Truck"
+        ]
+      }
+    },
+    {
+      "make": "Chevrolet",
+      "query_make": "Chevrolet",
+      "fetched_at": "2026-10-10T02:19:52.025Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Chevrolet"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "Astro",
+        "Astro Cargo",
+        "Avalanche",
+        "Aveo",
+        "Beretta",
+        "Black Diamond Avalanche",
+        "Blazer",
+        "Blazer EV",
+        "Bolt EUV",
+        "Bolt EV",
+        "C/K 1500 Series",
+        "C/K 2500 Series",
+        "C/K 3500 Series",
+        "Camaro",
+        "Caprice",
+        "Captiva Sport",
+        "Cavalier",
+        "Celebrity",
+        "Chevy Van",
+        "Chevy Van Classic",
+        "City Express",
+        "Classic",
+        "Cobalt",
+        "Colorado",
+        "Corsica",
+        "Corvette",
+        "Corvette Stingray",
+        "Cruze",
+        "Cruze Limited",
+        "Equinox",
+        "Equinox EV",
+        "Express",
+        "Express Cargo",
+        "HHR",
+        "Impala",
+        "Impala Limited",
+        "Lumina",
+        "Lumina Minivan",
+        "Malibu",
+        "Malibu Classic",
+        "Malibu Hybrid",
+        "Malibu Limited",
+        "Malibu Maxx",
+        "Metro",
+        "Monte Carlo",
+        "Prizm",
+        "R/V 3500 Series",
+        "S-10",
+        "S-10 Blazer",
+        "SS",
+        "SSR",
+        "Silverado 1500",
+        "Silverado 1500 Classic",
+        "Silverado 1500 Hybrid",
+        "Silverado 1500 LD",
+        "Silverado 1500 Limited",
+        "Silverado 1500HD",
+        "Silverado 1500HD Classic",
+        "Silverado 2500",
+        "Silverado 2500HD",
+        "Silverado 2500HD Classic",
+        "Silverado 3500",
+        "Silverado 3500 Classic",
+        "Silverado 3500HD",
+        "Silverado EV",
+        "Sonic",
+        "Spark",
+        "Spark EV",
+        "Sportvan",
+        "Suburban",
+        "Tahoe",
+        "Tahoe Hybrid",
+        "Tahoe Limited/Z71",
+        "Tracker",
+        "TrailBlazer EXT",
+        "Trailblazer",
+        "Traverse",
+        "Traverse Limited",
+        "Trax",
+        "Uplander",
+        "Venture",
+        "Volt"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Chevrolet"
+        },
+        "models": [
+          "Astro",
+          "Astro Cargo",
+          "Avalanche",
+          "Aveo",
+          "Beretta",
+          "Black Diamond Avalanche",
+          "Blazer",
+          "Blazer EV",
+          "Bolt EUV",
+          "Bolt EV",
+          "C/K 1500 Series",
+          "C/K 2500 Series",
+          "C/K 3500 Series",
+          "Camaro",
+          "Caprice",
+          "Captiva Sport",
+          "Cavalier",
+          "Celebrity",
+          "Chevy Van",
+          "Chevy Van Classic",
+          "City Express",
+          "Classic",
+          "Cobalt",
+          "Colorado",
+          "Corsica",
+          "Corvette",
+          "Corvette Stingray",
+          "Cruze",
+          "Cruze Limited",
+          "Equinox",
+          "Equinox EV",
+          "Express",
+          "Express Cargo",
+          "HHR",
+          "Impala",
+          "Impala Limited",
+          "Lumina",
+          "Lumina Minivan",
+          "Malibu",
+          "Malibu Classic",
+          "Malibu Hybrid",
+          "Malibu Limited",
+          "Malibu Maxx",
+          "Metro",
+          "Monte Carlo",
+          "Prizm",
+          "R/V 3500 Series",
+          "S-10",
+          "S-10 Blazer",
+          "SS",
+          "SSR",
+          "Silverado 1500",
+          "Silverado 1500 Classic",
+          "Silverado 1500 Hybrid",
+          "Silverado 1500 LD",
+          "Silverado 1500 Limited",
+          "Silverado 1500HD",
+          "Silverado 1500HD Classic",
+          "Silverado 2500",
+          "Silverado 2500HD",
+          "Silverado 2500HD Classic",
+          "Silverado 3500",
+          "Silverado 3500 Classic",
+          "Silverado 3500HD",
+          "Silverado EV",
+          "Sonic",
+          "Spark",
+          "Spark EV",
+          "Sportvan",
+          "Suburban",
+          "Tahoe",
+          "Tahoe Hybrid",
+          "Tahoe Limited/Z71",
+          "Tracker",
+          "TrailBlazer EXT",
+          "Trailblazer",
+          "Traverse",
+          "Traverse Limited",
+          "Trax",
+          "Uplander",
+          "Venture",
+          "Volt"
+        ]
+      }
+    },
+    {
+      "make": "Isuzu",
+      "query_make": "Isuzu",
+      "fetched_at": "2026-10-10T02:19:52.714Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Isuzu"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "Amigo",
+        "Ascender",
+        "Axiom",
+        "Hombre",
+        "Impulse",
+        "Oasis",
+        "Pickup",
+        "Rodeo",
+        "Rodeo Sport",
+        "Stylus",
+        "Trooper",
+        "VehiCROSS",
+        "i-Series"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Isuzu"
+        },
+        "models": [
+          "Amigo",
+          "Ascender",
+          "Axiom",
+          "Hombre",
+          "Impulse",
+          "Oasis",
+          "Pickup",
+          "Rodeo",
+          "Rodeo Sport",
+          "Stylus",
+          "Trooper",
+          "VehiCROSS",
+          "i-Series"
+        ]
+      }
+    },
+    {
+      "make": "Ford",
+      "query_make": "Ford",
+      "fetched_at": "2026-10-10T02:19:53.363Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Ford"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "Aerostar",
+        "Aspire",
+        "Bronco",
+        "Bronco II",
+        "Bronco Sport",
+        "C-Max Energi",
+        "C-Max Hybrid",
+        "Contour",
+        "Contour SVT",
+        "Crown Victoria",
+        "E-150",
+        "E-250",
+        "E-350",
+        "E-Series Van",
+        "E-Series Wagon",
+        "E-Transit Cargo Van",
+        "EcoSport",
+        "Econoline Cargo",
+        "Econoline Wagon",
+        "Edge",
+        "Escape",
+        "Escape Hybrid",
+        "Escape Plug-In Hybrid",
+        "Escort",
+        "Excursion",
+        "Expedition",
+        "Expedition EL",
+        "Explorer",
+        "Explorer Sport",
+        "Explorer Sport Trac",
+        "F-150",
+        "F-150 Heritage",
+        "F-150 Lightning",
+        "F-150 SVT Lightning",
+        "F-250",
+        "F-250 Super Duty",
+        "F-350",
+        "F-350 Super Duty",
+        "F-450 Super Duty",
+        "Festiva",
+        "Fiesta",
+        "Five Hundred",
+        "Flex",
+        "Focus",
+        "Focus RS",
+        "Focus ST",
+        "Freestar",
+        "Freestyle",
+        "Fusion",
+        "Fusion Energi",
+        "Fusion Hybrid",
+        "Fusion Plug-In Hybrid",
+        "GT",
+        "LTD Crown Victoria",
+        "Maverick",
+        "Mustang",
+        "Mustang Mach-E",
+        "Mustang SVT Cobra",
+        "Probe",
+        "Ranger",
+        "Shelby GT350",
+        "Shelby GT500",
+        "Taurus",
+        "Taurus X",
+        "Tempo",
+        "Thunderbird",
+        "Transit Cargo Van",
+        "Transit Connect",
+        "Transit Connect Cargo Van",
+        "Transit Connect Passenger Wagon",
+        "Transit Crew Van",
+        "Transit Passenger Van",
+        "Transit Van",
+        "Transit Wagon",
+        "Windstar",
+        "Windstar Cargo"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Ford"
+        },
+        "models": [
+          "Aerostar",
+          "Aspire",
+          "Bronco",
+          "Bronco II",
+          "Bronco Sport",
+          "C-Max Energi",
+          "C-Max Hybrid",
+          "Contour",
+          "Contour SVT",
+          "Crown Victoria",
+          "E-150",
+          "E-250",
+          "E-350",
+          "E-Series Van",
+          "E-Series Wagon",
+          "E-Transit Cargo Van",
+          "EcoSport",
+          "Econoline Cargo",
+          "Econoline Wagon",
+          "Edge",
+          "Escape",
+          "Escape Hybrid",
+          "Escape Plug-In Hybrid",
+          "Escort",
+          "Excursion",
+          "Expedition",
+          "Expedition EL",
+          "Explorer",
+          "Explorer Sport",
+          "Explorer Sport Trac",
+          "F-150",
+          "F-150 Heritage",
+          "F-150 Lightning",
+          "F-150 SVT Lightning",
+          "F-250",
+          "F-250 Super Duty",
+          "F-350",
+          "F-350 Super Duty",
+          "F-450 Super Duty",
+          "Festiva",
+          "Fiesta",
+          "Five Hundred",
+          "Flex",
+          "Focus",
+          "Focus RS",
+          "Focus ST",
+          "Freestar",
+          "Freestyle",
+          "Fusion",
+          "Fusion Energi",
+          "Fusion Hybrid",
+          "Fusion Plug-In Hybrid",
+          "GT",
+          "LTD Crown Victoria",
+          "Maverick",
+          "Mustang",
+          "Mustang Mach-E",
+          "Mustang SVT Cobra",
+          "Probe",
+          "Ranger",
+          "Shelby GT350",
+          "Shelby GT500",
+          "Taurus",
+          "Taurus X",
+          "Tempo",
+          "Thunderbird",
+          "Transit Cargo Van",
+          "Transit Connect",
+          "Transit Connect Cargo Van",
+          "Transit Connect Passenger Wagon",
+          "Transit Crew Van",
+          "Transit Passenger Van",
+          "Transit Van",
+          "Transit Wagon",
+          "Windstar",
+          "Windstar Cargo"
+        ]
+      }
+    },
+    {
+      "make": "Volkswagen",
+      "query_make": "Volkswagen",
+      "fetched_at": "2026-10-10T02:19:54.157Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Volkswagen"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "Arteon",
+        "Atlas",
+        "Atlas Cross Sport",
+        "Beetle",
+        "Beetle Convertible",
+        "CC",
+        "Cabrio",
+        "Cabriolet",
+        "Corrado",
+        "Eos",
+        "EuroVan",
+        "Fox",
+        "GLI",
+        "GTI",
+        "Golf",
+        "Golf Alltrack",
+        "Golf GTI",
+        "Golf R",
+        "Golf SportWagen",
+        "ID. Buzz",
+        "ID.4",
+        "Jetta",
+        "Jetta GLI",
+        "Jetta Hybrid",
+        "Jetta SportWagen",
+        "New Beetle",
+        "Passat",
+        "Phaeton",
+        "R32",
+        "Rabbit",
+        "Routan",
+        "Taos",
+        "Tiguan",
+        "Tiguan Limited",
+        "Touareg",
+        "Touareg 2",
+        "Vanagon",
+        "e-Golf"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Volkswagen"
+        },
+        "models": [
+          "Arteon",
+          "Atlas",
+          "Atlas Cross Sport",
+          "Beetle",
+          "Beetle Convertible",
+          "CC",
+          "Cabrio",
+          "Cabriolet",
+          "Corrado",
+          "Eos",
+          "EuroVan",
+          "Fox",
+          "GLI",
+          "GTI",
+          "Golf",
+          "Golf Alltrack",
+          "Golf GTI",
+          "Golf R",
+          "Golf SportWagen",
+          "ID. Buzz",
+          "ID.4",
+          "Jetta",
+          "Jetta GLI",
+          "Jetta Hybrid",
+          "Jetta SportWagen",
+          "New Beetle",
+          "Passat",
+          "Phaeton",
+          "R32",
+          "Rabbit",
+          "Routan",
+          "Taos",
+          "Tiguan",
+          "Tiguan Limited",
+          "Touareg",
+          "Touareg 2",
+          "Vanagon",
+          "e-Golf"
+        ]
+      }
+    },
+    {
+      "make": "Subaru",
+      "query_make": "Subaru",
+      "fetched_at": "2026-10-10T02:19:54.786Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Subaru"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "Ascent",
+        "B9 Tribeca",
+        "BRZ",
+        "Baja",
+        "Crosstrek",
+        "Forester",
+        "Impreza",
+        "Impreza WRX",
+        "Justy",
+        "Legacy",
+        "Loyale",
+        "Outback",
+        "STI S209",
+        "SVX",
+        "Solterra",
+        "Trailseeker",
+        "Tribeca",
+        "Uncharted",
+        "WRX",
+        "XT",
+        "XV Crosstrek"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Subaru"
+        },
+        "models": [
+          "Ascent",
+          "B9 Tribeca",
+          "BRZ",
+          "Baja",
+          "Crosstrek",
+          "Forester",
+          "Impreza",
+          "Impreza WRX",
+          "Justy",
+          "Legacy",
+          "Loyale",
+          "Outback",
+          "STI S209",
+          "SVX",
+          "Solterra",
+          "Trailseeker",
+          "Tribeca",
+          "Uncharted",
+          "WRX",
+          "XT",
+          "XV Crosstrek"
+        ]
+      }
+    },
+    {
+      "make": "Daihatsu",
+      "query_make": "Daihatsu",
+      "fetched_at": "2026-10-10T02:19:55.550Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Daihatsu"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Daihatsu"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Renault",
+      "query_make": "Renault",
+      "fetched_at": "2026-10-10T02:19:56.169Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Renault"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Renault"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Peugeot",
+      "query_make": "Peugeot",
+      "fetched_at": "2026-10-10T02:19:56.811Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Peugeot"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Peugeot"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Citroën",
+      "query_make": "Citroen",
+      "fetched_at": "2026-10-10T02:19:57.434Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Citroen"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Citroen"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "KGM",
+      "query_make": "SsangYong",
+      "fetched_at": "2026-10-10T02:19:58.117Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "SsangYong"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "SsangYong"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Jeep",
+      "query_make": "Jeep",
+      "fetched_at": "2026-10-10T02:19:58.734Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Jeep"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "Cherokee",
+        "Comanche",
+        "Commander",
+        "Compass",
+        "Gladiator",
+        "Grand Cherokee",
+        "Grand Cherokee 4xe",
+        "Grand Cherokee L",
+        "Grand Cherokee SRT",
+        "Grand Cherokee WK",
+        "Grand Wagoneer",
+        "Grand Wagoneer L",
+        "Liberty",
+        "Patriot",
+        "Recon",
+        "Renegade",
+        "Wagoneer",
+        "Wagoneer L",
+        "Wagoneer S",
+        "Wrangler",
+        "Wrangler 4xe",
+        "Wrangler JK"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Jeep"
+        },
+        "models": [
+          "Cherokee",
+          "Comanche",
+          "Commander",
+          "Compass",
+          "Gladiator",
+          "Grand Cherokee",
+          "Grand Cherokee 4xe",
+          "Grand Cherokee L",
+          "Grand Cherokee SRT",
+          "Grand Cherokee WK",
+          "Grand Wagoneer",
+          "Grand Wagoneer L",
+          "Liberty",
+          "Patriot",
+          "Recon",
+          "Renegade",
+          "Wagoneer",
+          "Wagoneer L",
+          "Wagoneer S",
+          "Wrangler",
+          "Wrangler 4xe",
+          "Wrangler JK"
+        ]
+      }
+    },
+    {
+      "make": "Dodge",
+      "query_make": "Dodge",
+      "fetched_at": "2026-10-10T02:19:59.333Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Dodge"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "Avenger",
+        "Caliber",
+        "Caravan",
+        "Challenger",
+        "Charger",
+        "Colt",
+        "Dakota",
+        "Dart",
+        "Daytona",
+        "Durango",
+        "Dynasty",
+        "Grand Caravan",
+        "Hornet",
+        "Intrepid",
+        "Journey",
+        "Magnum",
+        "Monaco",
+        "Neon",
+        "Nitro",
+        "Omni",
+        "RAM 150",
+        "RAM 250",
+        "RAM 350",
+        "Ram 50 Pickup",
+        "Ram Cargo",
+        "Ram Pickup 1500",
+        "Ram Pickup 2500",
+        "Ram Pickup 3500",
+        "Ram Van",
+        "Ram Wagon",
+        "Ramcharger",
+        "SRT Viper",
+        "Shadow",
+        "Spirit",
+        "Sprinter",
+        "Sprinter Cargo",
+        "Stealth",
+        "Stratus",
+        "Viper"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Dodge"
+        },
+        "models": [
+          "Avenger",
+          "Caliber",
+          "Caravan",
+          "Challenger",
+          "Charger",
+          "Colt",
+          "Dakota",
+          "Dart",
+          "Daytona",
+          "Durango",
+          "Dynasty",
+          "Grand Caravan",
+          "Hornet",
+          "Intrepid",
+          "Journey",
+          "Magnum",
+          "Monaco",
+          "Neon",
+          "Nitro",
+          "Omni",
+          "RAM 150",
+          "RAM 250",
+          "RAM 350",
+          "Ram 50 Pickup",
+          "Ram Cargo",
+          "Ram Pickup 1500",
+          "Ram Pickup 2500",
+          "Ram Pickup 3500",
+          "Ram Van",
+          "Ram Wagon",
+          "Ramcharger",
+          "SRT Viper",
+          "Shadow",
+          "Spirit",
+          "Sprinter",
+          "Sprinter Cargo",
+          "Stealth",
+          "Stratus",
+          "Viper"
+        ]
+      }
+    },
+    {
+      "make": "Fiat",
+      "query_make": "Fiat",
+      "fetched_at": "2026-10-10T02:19:59.958Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Fiat"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "124 Spider",
+        "500",
+        "500L",
+        "500X",
+        "500e"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Fiat"
+        },
+        "models": [
+          "124 Spider",
+          "500",
+          "500L",
+          "500X",
+          "500e"
+        ]
+      }
+    },
+    {
+      "make": "RAM",
+      "query_make": "RAM",
+      "fetched_at": "2026-10-10T02:20:00.594Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "RAM"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "1500",
+        "1500 Classic",
+        "2500",
+        "3500",
+        "C/V Cargo Van",
+        "C/V Tradesman",
+        "Dakota",
+        "ProMaster Cargo Van",
+        "ProMaster City",
+        "ProMaster EV Cargo Van",
+        "ProMaster EV Delivery Van",
+        "ProMaster EV Step Van",
+        "ProMaster Window Van"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "RAM"
+        },
+        "models": [
+          "1500",
+          "1500 Classic",
+          "2500",
+          "3500",
+          "C/V Cargo Van",
+          "C/V Tradesman",
+          "Dakota",
+          "ProMaster Cargo Van",
+          "ProMaster City",
+          "ProMaster EV Cargo Van",
+          "ProMaster EV Delivery Van",
+          "ProMaster EV Step Van",
+          "ProMaster Window Van"
+        ]
+      }
+    },
+    {
+      "make": "BMW",
+      "query_make": "BMW",
+      "fetched_at": "2026-10-10T02:20:01.209Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "BMW"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "1 Series",
+        "1 Series M",
+        "2 Series",
+        "2 Series Gran Coupe",
+        "3 Series",
+        "3 Series Gran Turismo",
+        "3 Series eDrive",
+        "4 Series",
+        "4 Series Gran Coupe",
+        "5 Series",
+        "5 Series Gran Turismo",
+        "6 Series",
+        "6 Series Gran Coupe",
+        "6 Series Gran Turismo",
+        "7 Series",
+        "8 Series",
+        "8 Series Gran Coupe",
+        "ALPINA B6 Gran Coupe",
+        "ALPINA B7",
+        "ALPINA B8 Gran Coupe",
+        "ALPINA XB7",
+        "ActiveHybrid 5",
+        "ActiveHybrid 7",
+        "ActiveHybrid X6",
+        "Alpina",
+        "M",
+        "M2",
+        "M2 CS",
+        "M3",
+        "M3 CS",
+        "M4",
+        "M4 CS",
+        "M4 CSL",
+        "M4 GTS",
+        "M5",
+        "M5 CS",
+        "M6",
+        "M6 Gran Coupe",
+        "M8",
+        "M8 Gran Coupe",
+        "X1",
+        "X2",
+        "X3",
+        "X3 M",
+        "X4",
+        "X4 M",
+        "X5",
+        "X5 M",
+        "X5 eDrive",
+        "X6",
+        "X6 M",
+        "X7",
+        "XM",
+        "XM Label",
+        "Z3",
+        "Z4",
+        "Z4 M",
+        "Z8",
+        "i3",
+        "i4",
+        "i5",
+        "i7",
+        "i8",
+        "iX"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "BMW"
+        },
+        "models": [
+          "1 Series",
+          "1 Series M",
+          "2 Series",
+          "2 Series Gran Coupe",
+          "3 Series",
+          "3 Series Gran Turismo",
+          "3 Series eDrive",
+          "4 Series",
+          "4 Series Gran Coupe",
+          "5 Series",
+          "5 Series Gran Turismo",
+          "6 Series",
+          "6 Series Gran Coupe",
+          "6 Series Gran Turismo",
+          "7 Series",
+          "8 Series",
+          "8 Series Gran Coupe",
+          "ALPINA B6 Gran Coupe",
+          "ALPINA B7",
+          "ALPINA B8 Gran Coupe",
+          "ALPINA XB7",
+          "ActiveHybrid 5",
+          "ActiveHybrid 7",
+          "ActiveHybrid X6",
+          "Alpina",
+          "M",
+          "M2",
+          "M2 CS",
+          "M3",
+          "M3 CS",
+          "M4",
+          "M4 CS",
+          "M4 CSL",
+          "M4 GTS",
+          "M5",
+          "M5 CS",
+          "M6",
+          "M6 Gran Coupe",
+          "M8",
+          "M8 Gran Coupe",
+          "X1",
+          "X2",
+          "X3",
+          "X3 M",
+          "X4",
+          "X4 M",
+          "X5",
+          "X5 M",
+          "X5 eDrive",
+          "X6",
+          "X6 M",
+          "X7",
+          "XM",
+          "XM Label",
+          "Z3",
+          "Z4",
+          "Z4 M",
+          "Z8",
+          "i3",
+          "i4",
+          "i5",
+          "i7",
+          "i8",
+          "iX"
+        ]
+      }
+    },
+    {
+      "make": "Audi",
+      "query_make": "Audi",
+      "fetched_at": "2026-10-10T02:20:01.796Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Audi"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "100",
+        "200",
+        "80",
+        "90",
+        "A3",
+        "A3 Sportback e-tron",
+        "A4",
+        "A4 allroad",
+        "A5",
+        "A6",
+        "A6 Sportback e-tron",
+        "A6 allroad",
+        "A7",
+        "A8",
+        "Cabriolet",
+        "Coupe",
+        "Q3",
+        "Q4 Sportback e-tron",
+        "Q4 e-tron",
+        "Q5",
+        "Q5 Sportback",
+        "Q6 Sportback e-tron",
+        "Q6 e-tron",
+        "Q7",
+        "Q8",
+        "Q8 Sportback e-tron",
+        "Q8 e-tron",
+        "R8",
+        "RS 3",
+        "RS 4",
+        "RS 5",
+        "RS 6",
+        "RS 7",
+        "RS Q8",
+        "RS e-tron GT",
+        "S e-tron GT",
+        "S3",
+        "S4",
+        "S5",
+        "S6",
+        "S6 Sportback e-tron",
+        "S7",
+        "S8",
+        "SQ5",
+        "SQ5 Sportback",
+        "SQ6 Sportback e-tron",
+        "SQ6 e-tron",
+        "SQ7",
+        "SQ8",
+        "SQ8 Sportback e-tron",
+        "SQ8 e-tron",
+        "TT",
+        "TT RS",
+        "TTS",
+        "V8",
+        "allroad",
+        "allroad quattro",
+        "e-tron",
+        "e-tron GT",
+        "e-tron S",
+        "e-tron S Sportback",
+        "e-tron Sportback"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Audi"
+        },
+        "models": [
+          "100",
+          "200",
+          "80",
+          "90",
+          "A3",
+          "A3 Sportback e-tron",
+          "A4",
+          "A4 allroad",
+          "A5",
+          "A6",
+          "A6 Sportback e-tron",
+          "A6 allroad",
+          "A7",
+          "A8",
+          "Cabriolet",
+          "Coupe",
+          "Q3",
+          "Q4 Sportback e-tron",
+          "Q4 e-tron",
+          "Q5",
+          "Q5 Sportback",
+          "Q6 Sportback e-tron",
+          "Q6 e-tron",
+          "Q7",
+          "Q8",
+          "Q8 Sportback e-tron",
+          "Q8 e-tron",
+          "R8",
+          "RS 3",
+          "RS 4",
+          "RS 5",
+          "RS 6",
+          "RS 7",
+          "RS Q8",
+          "RS e-tron GT",
+          "S e-tron GT",
+          "S3",
+          "S4",
+          "S5",
+          "S6",
+          "S6 Sportback e-tron",
+          "S7",
+          "S8",
+          "SQ5",
+          "SQ5 Sportback",
+          "SQ6 Sportback e-tron",
+          "SQ6 e-tron",
+          "SQ7",
+          "SQ8",
+          "SQ8 Sportback e-tron",
+          "SQ8 e-tron",
+          "TT",
+          "TT RS",
+          "TTS",
+          "V8",
+          "allroad",
+          "allroad quattro",
+          "e-tron",
+          "e-tron GT",
+          "e-tron S",
+          "e-tron S Sportback",
+          "e-tron Sportback"
+        ]
+      }
+    },
+    {
+      "make": "Mercedes-Benz",
+      "query_make": "Mercedes-Benz",
+      "fetched_at": "2026-10-10T02:20:02.396Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Mercedes-Benz"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "190-Class",
+        "300-Class",
+        "350-Class",
+        "400-Class",
+        "420-Class",
+        "500-Class",
+        "560-Class",
+        "600-Class",
+        "A-Class",
+        "AMG GT",
+        "B-Class Electric Drive",
+        "C-Class",
+        "C36 AMG",
+        "C43 AMG",
+        "CL-Class",
+        "CLA",
+        "CLA-Class",
+        "CLE",
+        "CLK-Class",
+        "CLS-Class",
+        "E-Class",
+        "E55 AMG",
+        "EQB",
+        "EQE",
+        "EQE SUV",
+        "EQS",
+        "EQS SUV",
+        "G-Class",
+        "GL-Class",
+        "GLA",
+        "GLA-Class",
+        "GLB",
+        "GLB-Class",
+        "GLC",
+        "GLC Coupe",
+        "GLC-Class",
+        "GLC-Class Coupe",
+        "GLE",
+        "GLE Coupe",
+        "GLE-Class",
+        "GLE-Class Coupe",
+        "GLK-Class",
+        "GLS",
+        "GLS-Class",
+        "M-Class",
+        "ML55 AMG",
+        "Maybach",
+        "Maybach EQS SUV",
+        "Maybach GLS",
+        "Metris",
+        "R-Class",
+        "S-Class",
+        "SL",
+        "SL-Class",
+        "SLC-Class",
+        "SLK-Class",
+        "SLR McLaren",
+        "SLS AMG",
+        "SLS AMG GT",
+        "SLS AMG GT Final Edition",
+        "Sprinter",
+        "Sprinter Worker",
+        "eSprinter"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Mercedes-Benz"
+        },
+        "models": [
+          "190-Class",
+          "300-Class",
+          "350-Class",
+          "400-Class",
+          "420-Class",
+          "500-Class",
+          "560-Class",
+          "600-Class",
+          "A-Class",
+          "AMG GT",
+          "B-Class Electric Drive",
+          "C-Class",
+          "C36 AMG",
+          "C43 AMG",
+          "CL-Class",
+          "CLA",
+          "CLA-Class",
+          "CLE",
+          "CLK-Class",
+          "CLS-Class",
+          "E-Class",
+          "E55 AMG",
+          "EQB",
+          "EQE",
+          "EQE SUV",
+          "EQS",
+          "EQS SUV",
+          "G-Class",
+          "GL-Class",
+          "GLA",
+          "GLA-Class",
+          "GLB",
+          "GLB-Class",
+          "GLC",
+          "GLC Coupe",
+          "GLC-Class",
+          "GLC-Class Coupe",
+          "GLE",
+          "GLE Coupe",
+          "GLE-Class",
+          "GLE-Class Coupe",
+          "GLK-Class",
+          "GLS",
+          "GLS-Class",
+          "M-Class",
+          "ML55 AMG",
+          "Maybach",
+          "Maybach EQS SUV",
+          "Maybach GLS",
+          "Metris",
+          "R-Class",
+          "S-Class",
+          "SL",
+          "SL-Class",
+          "SLC-Class",
+          "SLK-Class",
+          "SLR McLaren",
+          "SLS AMG",
+          "SLS AMG GT",
+          "SLS AMG GT Final Edition",
+          "Sprinter",
+          "Sprinter Worker",
+          "eSprinter"
+        ]
+      }
+    },
+    {
+      "make": "Lexus",
+      "query_make": "Lexus",
+      "fetched_at": "2026-10-10T02:20:03.100Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Lexus"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "CT 200h",
+        "ES",
+        "ES 250",
+        "ES 300",
+        "ES 300h",
+        "ES 330",
+        "ES 350",
+        "GS 200t",
+        "GS 300",
+        "GS 350",
+        "GS 400",
+        "GS 430",
+        "GS 450h",
+        "GS 460",
+        "GS F",
+        "GX",
+        "GX 460",
+        "GX 470",
+        "HS 250h",
+        "IS",
+        "IS 200t",
+        "IS 250",
+        "IS 250 C",
+        "IS 300",
+        "IS 350",
+        "IS 350 C",
+        "IS 500",
+        "IS F",
+        "LC",
+        "LC 500",
+        "LC 500 Convertible",
+        "LC 500h",
+        "LFA",
+        "LS",
+        "LS 400",
+        "LS 430",
+        "LS 460",
+        "LS 500",
+        "LS 500h",
+        "LS 600h L",
+        "LX",
+        "LX 450",
+        "LX 470",
+        "LX 570",
+        "LX 600",
+        "NX",
+        "NX 200t",
+        "NX 250",
+        "NX 300",
+        "NX 300h",
+        "NX 350",
+        "NX 350h",
+        "NX 450h+",
+        "RC",
+        "RC 200t",
+        "RC 300",
+        "RC 350",
+        "RC F",
+        "RX",
+        "RX 300",
+        "RX 330",
+        "RX 350",
+        "RX 350L",
+        "RX 350h",
+        "RX 400h",
+        "RX 450h",
+        "RX 450hL",
+        "RZ",
+        "RZ 450e",
+        "SC 300",
+        "SC 400",
+        "SC 430",
+        "TX",
+        "UX",
+        "UX 200",
+        "UX 250h"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Lexus"
+        },
+        "models": [
+          "CT 200h",
+          "ES",
+          "ES 250",
+          "ES 300",
+          "ES 300h",
+          "ES 330",
+          "ES 350",
+          "GS 200t",
+          "GS 300",
+          "GS 350",
+          "GS 400",
+          "GS 430",
+          "GS 450h",
+          "GS 460",
+          "GS F",
+          "GX",
+          "GX 460",
+          "GX 470",
+          "HS 250h",
+          "IS",
+          "IS 200t",
+          "IS 250",
+          "IS 250 C",
+          "IS 300",
+          "IS 350",
+          "IS 350 C",
+          "IS 500",
+          "IS F",
+          "LC",
+          "LC 500",
+          "LC 500 Convertible",
+          "LC 500h",
+          "LFA",
+          "LS",
+          "LS 400",
+          "LS 430",
+          "LS 460",
+          "LS 500",
+          "LS 500h",
+          "LS 600h L",
+          "LX",
+          "LX 450",
+          "LX 470",
+          "LX 570",
+          "LX 600",
+          "NX",
+          "NX 200t",
+          "NX 250",
+          "NX 300",
+          "NX 300h",
+          "NX 350",
+          "NX 350h",
+          "NX 450h+",
+          "RC",
+          "RC 200t",
+          "RC 300",
+          "RC 350",
+          "RC F",
+          "RX",
+          "RX 300",
+          "RX 330",
+          "RX 350",
+          "RX 350L",
+          "RX 350h",
+          "RX 400h",
+          "RX 450h",
+          "RX 450hL",
+          "RZ",
+          "RZ 450e",
+          "SC 300",
+          "SC 400",
+          "SC 430",
+          "TX",
+          "UX",
+          "UX 200",
+          "UX 250h"
+        ]
+      }
+    },
+    {
+      "make": "Volvo",
+      "query_make": "Volvo",
+      "fetched_at": "2026-10-10T02:20:03.868Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Volvo"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "240",
+        "740",
+        "760",
+        "780",
+        "850",
+        "940",
+        "960",
+        "C30",
+        "C40 Recharge",
+        "C70",
+        "Coupe",
+        "EX30",
+        "EX30 Cross Country",
+        "EX40",
+        "EX90",
+        "S40",
+        "S60",
+        "S60 Cross Country",
+        "S70",
+        "S80",
+        "S90",
+        "V40",
+        "V50",
+        "V60",
+        "V60 Cross Country",
+        "V70",
+        "V90",
+        "V90 Cross Country",
+        "XC",
+        "XC40",
+        "XC40 Recharge",
+        "XC60",
+        "XC70",
+        "XC90"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Volvo"
+        },
+        "models": [
+          "240",
+          "740",
+          "760",
+          "780",
+          "850",
+          "940",
+          "960",
+          "C30",
+          "C40 Recharge",
+          "C70",
+          "Coupe",
+          "EX30",
+          "EX30 Cross Country",
+          "EX40",
+          "EX90",
+          "S40",
+          "S60",
+          "S60 Cross Country",
+          "S70",
+          "S80",
+          "S90",
+          "V40",
+          "V50",
+          "V60",
+          "V60 Cross Country",
+          "V70",
+          "V90",
+          "V90 Cross Country",
+          "XC",
+          "XC40",
+          "XC40 Recharge",
+          "XC60",
+          "XC70",
+          "XC90"
+        ]
+      }
+    },
+    {
+      "make": "Geely",
+      "query_make": "Geely",
+      "fetched_at": "2026-10-10T02:20:04.459Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Geely"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Geely"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "BYD",
+      "query_make": "BYD",
+      "fetched_at": "2026-10-10T02:20:05.098Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "BYD"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "BYD"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Changan",
+      "query_make": "Changan",
+      "fetched_at": "2026-10-10T02:20:05.698Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Changan"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Changan"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "JAC",
+      "query_make": "JAC",
+      "fetched_at": "2026-10-10T02:20:07.231Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "JAC"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "JAC"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Chery",
+      "query_make": "Chery",
+      "fetched_at": "2026-10-10T02:20:08.667Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Chery"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Chery"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "MG",
+      "query_make": "MG",
+      "fetched_at": "2026-10-10T02:20:09.347Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "MG"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "MG"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Great Wall",
+      "query_make": "Great Wall",
+      "fetched_at": "2026-10-10T02:20:09.948Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Great Wall"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Great Wall"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Haval",
+      "query_make": "Haval",
+      "fetched_at": "2026-10-10T02:20:13.072Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Haval"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Haval"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "BAIC",
+      "query_make": "BAIC",
+      "fetched_at": "2026-10-10T02:20:14.608Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "BAIC"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "BAIC"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Foton",
+      "query_make": "Foton",
+      "fetched_at": "2026-10-10T02:20:15.968Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Foton"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Foton"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Dongfeng",
+      "query_make": "Dongfeng",
+      "fetched_at": "2026-10-10T02:20:17.278Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Dongfeng"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Dongfeng"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Jetour",
+      "query_make": "Jetour",
+      "fetched_at": "2026-10-10T02:20:18.696Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Jetour"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Jetour"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "GAC",
+      "query_make": "GAC",
+      "fetched_at": "2026-10-10T02:20:20.044Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "GAC"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "GAC"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "DFSK",
+      "query_make": "DFSK",
+      "fetched_at": "2026-10-10T02:20:20.688Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "DFSK"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "DFSK"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Maxus",
+      "query_make": "Maxus",
+      "fetched_at": "2026-10-10T02:20:22.210Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Maxus"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Maxus"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "JMC",
+      "query_make": "JMC",
+      "fetched_at": "2026-10-10T02:20:22.802Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "JMC"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "JMC"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "XPeng",
+      "query_make": "XPeng",
+      "fetched_at": "2026-10-10T02:23:10.179Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "XPeng"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "XPeng"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Omoda",
+      "query_make": "Omoda",
+      "fetched_at": "2026-10-10T02:23:11.108Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Omoda"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Omoda"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Jaecoo",
+      "query_make": "Jaecoo",
+      "fetched_at": "2026-10-10T02:23:12.795Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Jaecoo"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Jaecoo"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Kaiyi",
+      "query_make": "Kaiyi",
+      "fetched_at": "2026-10-10T02:23:14.184Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Kaiyi"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Kaiyi"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Aion",
+      "query_make": "Aion",
+      "fetched_at": "2026-10-10T02:23:15.546Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Aion"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Aion"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Zeekr",
+      "query_make": "Zeekr",
+      "fetched_at": "2026-10-10T02:23:16.930Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Zeekr"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Zeekr"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Neta",
+      "query_make": "Neta",
+      "fetched_at": "2026-10-10T02:23:17.505Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Neta"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Neta"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "VGV",
+      "query_make": "VGV",
+      "fetched_at": "2026-10-10T02:23:19.011Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "VGV"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "VGV"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Land Rover",
+      "query_make": "Land Rover",
+      "fetched_at": "2026-10-10T02:23:20.410Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Land Rover"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [
+        "Defender",
+        "Discovery",
+        "Discovery Series II",
+        "Discovery Sport",
+        "Freelander",
+        "LR2",
+        "LR3",
+        "LR4",
+        "Range Rover",
+        "Range Rover Evoque",
+        "Range Rover Sport",
+        "Range Rover Velar"
+      ],
+      "warnings": [],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Land Rover"
+        },
+        "models": [
+          "Defender",
+          "Discovery",
+          "Discovery Series II",
+          "Discovery Sport",
+          "Freelander",
+          "LR2",
+          "LR3",
+          "LR4",
+          "Range Rover",
+          "Range Rover Evoque",
+          "Range Rover Sport",
+          "Range Rover Velar"
+        ]
+      }
+    },
+    {
+      "make": "Deepal",
+      "query_make": "Deepal",
+      "fetched_at": "2026-10-10T02:23:21.034Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Deepal"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Deepal"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Avatr",
+      "query_make": "Avatr",
+      "fetched_at": "2026-10-10T02:23:22.529Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Avatr"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Avatr"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Seres",
+      "query_make": "Seres",
+      "fetched_at": "2026-10-10T02:23:24.099Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Seres"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Seres"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Riddara",
+      "query_make": "Riddara",
+      "fetched_at": "2026-10-10T02:23:26.107Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "Riddara"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "Riddara"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "SWM",
+      "query_make": "SWM",
+      "fetched_at": "2026-10-10T02:23:27.475Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "SWM"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "SWM"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "Great Wall",
+      "query_make": "GWM",
+      "fetched_at": "2026-10-10T02:23:54.103Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "GWM"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "GWM"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "KGM",
+      "query_make": "KGM",
+      "fetched_at": "2026-10-10T02:23:56.324Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "KGM"
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "KGM"
+        },
+        "models": []
+      }
+    },
+    {
+      "make": "MG",
+      "query_make": "M.G.",
+      "fetched_at": "2026-10-10T02:23:57.193Z",
+      "endpoint": "https://api.carsxe.com/v1/ymm-options",
+      "parameters": {
+        "dimension": "models",
+        "make": "M.G."
+      },
+      "http_status": 200,
+      "success": true,
+      "models": [],
+      "warnings": [
+        "No models returned"
+      ],
+      "response": {
+        "success": true,
+        "input": {
+          "dimension": "models",
+          "make": "M.G."
+        },
+        "models": []
+      }
+    }
+  ],
+  "runs": [
+    {
+      "started_at": "2026-10-10T02:19:17.553Z",
+      "requests_consumed": 1,
+      "finished_at": "2026-10-10T02:19:35.884Z"
+    },
+    {
+      "started_at": "2026-10-10T02:19:46.355Z",
+      "requests_consumed": 42,
+      "finished_at": "2026-10-10T02:20:24.406Z"
+    },
+    {
+      "started_at": "2026-10-10T02:23:10.178Z",
+      "requests_consumed": 14,
+      "finished_at": "2026-10-10T02:23:28.865Z"
+    },
+    {
+      "started_at": "2026-10-10T02:23:54.103Z",
+      "requests_consumed": 1,
+      "finished_at": "2026-10-10T02:23:56.239Z"
+    },
+    {
+      "started_at": "2026-10-10T02:23:56.323Z",
+      "requests_consumed": 1,
+      "finished_at": "2026-10-10T02:23:57.110Z"
+    },
+    {
+      "started_at": "2026-10-10T02:23:57.192Z",
+      "requests_consumed": 1,
+      "finished_at": "2026-10-10T02:23:58.749Z"
+    }
+  ]
+}

@@ -28,7 +28,7 @@ it('requires explicit credentials and sets verified TLS and bounded timeouts', (
 it('parameterizes attacker-controlled strings without placing them in SQL', async () => {
   const unit = new SqlUnit({} as never, new AbortController().signal);
   await unit.userByName("x'; DROP TABLE dbo.Users;--");
-  expect(driver.input).toHaveBeenCalledWith('username', "x'; DROP TABLE dbo.Users;--");
+  expect(driver.input).toHaveBeenCalledWith('username', "x'; drop table dbo.users;--");
   expect(driver.query.mock.calls[0]?.[0]).not.toContain('DROP');
 });
 it('cancels an in-flight driver request and removes its abort listener', async () => {

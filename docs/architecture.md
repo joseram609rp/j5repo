@@ -1,4 +1,4 @@
-# Phase 2.1: contratos y límites
+# Phase 3: contratos y límites
 
 ## Persistencia y transacciones
 
@@ -6,7 +6,7 @@ El runtime local y Azure Functions usan exclusivamente SqlRepository (mssql/Tedi
 
 Autorización, lectura del comprobante, mutación, auditoría y escritura del comprobante ocurren en la misma transacción. Las lecturas de sesión/usuario y los rangos de idempotencia usan UPDLOCK/HOLDLOCK. Desactivar o revocar no puede intercalarse entre autorización y escritura. Los deadlocks se reintentan como transacciones completas. Una respuesta perdida tras COMMIT se recupera con el comprobante de la misma clave.
 
-IdempotencyRequests tiene PK (user_id,idempotency_key). Fingerprint canónico de método, ruta, body y If-Match. El orden de las propiedades JSON no cambia el fingerprint. Para operaciones con contraseña, su igualdad se comprueba con bcrypt; nunca se persiste un SHA-256 rápido del password. El comprobante guarda status, body y headers relevantes (ETag y Cache-Control). La misma clave con otro payload devuelve 409; se consulta el replay antes de la versión. También se conservan errores de negocio 400/404/409/412/428 generados antes de mutar. Fallos de validación de estructura, autorización e infraestructura no crean comprobante. No se eliminan comprobantes mientras la cola offline carezca de retención máxima.
+IdempotencyRequests tiene PK (user_id,idempotency_key). Fingerprint canónico de método, ruta, body y If-Match. El orden de las propiedades JSON no cambia el fingerprint. Para operaciones con contraseña, su igualdad se comprueba con bcrypt; nunca se persiste un SHA-256 rápido del password. El comprobante guarda status, body y headers relevantes (ETag y Cache-Control). La misma clave con otro payload devuelve 409; se consulta el replay antes de la versión. También se conservan errores de negocio 400/404/409/412/428. saveOrder usa SAVE TRANSACTION y revierte su trabajo al savepoint ante HttpError, antes de devolver el error al handler que guarda el recibo. Un error SQL/driver revierte la transacción completa. Fallos de validación de estructura, autorización e infraestructura no crean comprobante. No se eliminan comprobantes mientras la cola offline carezca de retención máxima.
 
 Orders usa rowversion de SQL como hexadecimal opaco de 16 caracteres. El ETag lo envuelve en comillas. Si existe la orden, falta If-Match => 428; versión distinta => 412. El UPDATE también compara rowversion atómicamente. Una orden inexistente solo puede crearse sin If-Match. La UI y su cola guardan la versión como string.
 
@@ -24,9 +24,9 @@ Login tiene un límite local por proceso de 15 intentos por nombre cada 5 minuto
 
 ## Datos de órdenes
 
-El borrador conserva snapshots de nombre y placa y admite enlaces opcionales a Customers/Vehicles. Se crean clientes únicamente con datos completos válidos; se reutilizan por cédula única y vehículos por placa única. No se transfieren dueños implícitamente. Al enlazar un vehículo se toma su cliente actual si no había cliente explícito. Una vez asignado customer_id, queda histórico e inmutable por esta API aunque cambie Vehicles.owner_id. La orden tampoco cambia de vehículo una vez asignado.
+El borrador conserva snapshots de nombre y placa y admite enlaces opcionales a Customers/Vehicles. Se crean clientes únicamente con datos completos válidos; se reutilizan por cédula única y vehículos por placa única. No se transfieren dueños implícitamente. Al enlazar un vehículo se toma su cliente actual si no había cliente explícito. La migración 006 permite corregir selecciones de cliente/vehículo en OPEN. En CLOSED/VOID las referencias siguen protegidas; 008 permite cambiar mechanic_id solo en OPEN por ADMIN y con destino activo MECHANIC/ADMIN; CLOSED/VOID siguen inmutables. La API registra actor, orden y nuevo UUID en AuditLogs.action. Una transferencia explícita de dueño modifica Vehicles.owner_id y conserva Orders.customer_id de órdenes anteriores.
 
-Dinero DECIMAL(12,2). Cédula/teléfono como strings. Placa normalizada e indexada en Vehicles; kilometraje nullable durante borrador. El CHECK SQL impide CLOSED sin kilometraje, cliente y vehículo. La API permite close y operaciones admin explícitas reopen/void/admin-edit. Servicios son exactamente descripción + precio, sin cantidad/IVA/pagos. Total oficial SUM(OrderItems.price) en SQL, nunca un valor del frontend. Triggers mantienen el total al cambiar servicios y rechazan mutaciones de CLOSED/VOID y referencias históricas. El SQL principal es confiable; SESSION_CONTEXT identifica una operación admin autorizada por la API, no sustituye permisos de conexión. Admin-edit reabre temporalmente dentro de la misma transacción y restablece CLOSED al terminar; nada intermedio puede publicarse. Las interfaces completas de cierre/reapertura permanecen fuera de scope.
+Dinero DECIMAL(12,2). Cédula/teléfono como strings. Placa normalizada e indexada en Vehicles; kilometraje nullable durante borrador. El CHECK SQL impide CLOSED sin kilometraje, cliente y vehículo. La API permite close y operaciones admin explícitas reopen/void/admin-edit. Servicios son descripción, precio sin IVA y observación opcional. SQL calcula subtotal, IVA 13% redondeado por línea y total; pago y decisión de factura son obligatorios al cerrar, sin confiar en totales del frontend. Triggers mantienen el total al cambiar servicios y rechazan mutaciones de CLOSED/VOID y referencias históricas. El SQL principal es confiable; SESSION_CONTEXT identifica una operación admin autorizada por la API, no sustituye permisos de conexión. Admin-edit reabre temporalmente dentro de la misma transacción y restablece CLOSED al terminar; nada intermedio puede publicarse. La UI confirma cierre/reapertura, cancelación VOID y cambio de dueño ADMIN; admin-edit sigue disponible solo en backend.
 
 ## Fiabilidad
 
@@ -36,14 +36,30 @@ AbortSignal cancela el Request del driver. El servidor local propaga desconexió
 
 El navegador mantiene sus reintentos para GET o escrituras con Idempotency-Key. La cola conserva payload, clave y versión antes del envío; conflictos conservan cambios y paran la sincronización. Persistencia offline por usuario en IndexedDB. Las respuestas API y credenciales no entran al caché PWA. Usuarios reales usan UUID distintos del antiguo usuario local-demo.
 
-## Validación pendiente
+## Navegación y recuperación
 
-68 pruebas locales pasan. Migraciones aplicadas y metadata verificada en tallerj5 el 2026-10-04; 5 pruebas SQL rollback-only pasan. Health local conectado a Azure responde ok. No hay primer ADMIN, así que no se hizo login de usuario humano por navegador. COMMIT ambiguo y concurrencia entre procesos reales siguen fuera de la suite. No hay despliegue.
+App usa estado interno simple para dashboard/editor/open/history/users. Listas y búsquedas se obtienen de SQL con parámetros; páginas de 50 y cursor UUID ordenado por created_at/order_number. Consultar CLOSED no reemplaza el borrador activo. Cambiar a otra OPEN requiere resolver el guardado de la anterior. Al retomar, una copia pendiente se conserva y se reenvía con su payload/clave/version original; si está limpia, se consulta el estado remoto antes de editar. No se crea una orden al autenticarse.
+
+Autosave guarda metadata, revisiones y mutaciones pendientes en el mismo store IndexedDB v1. Un close/reopen/transfer-owner se persiste antes de enviar y bloquea ediciones hasta resolverlo. Guardar nuevas selecciones nunca transfiere dueños. El servidor valida identidad exacta antes de cerrar o transferir. Las correcciones del formulario son snapshots; los catálogos existentes no se sobrescriben silenciosamente.
+
+Usuarios ADMIN usa los endpoints existentes; el backend conserva autorización, último ADMIN, bcrypt y revocación. Los reportes quedan para Phase 4. Los conflictos de contenido tienen revisión por grupos, combinación explícita, copia de recuperación persistida y descarga; una versión remota nueva obliga a revisar nuevamente. Los tests SQL usan rollback; COMMIT ambiguo real y concurrencia entre procesos siguen pendientes. No hay despliegue.
 
 Referencias técnicas consultadas: [mssql](https://tediousjs.github.io/node-mssql/), [Tedious](https://tediousjs.github.io/tedious/api-connection.html), [bcryptjs](https://www.npmjs.com/package/bcryptjs).
 
 ## Schema y validación Phase 2.1
 
-created_at sigue siendo la fecha UTC de apertura; no se duplica con opened_at. closed_at marca el cierre; total_amount sustituye total. display_order_id es calculado y único (OT-YYYY-000001); una secuencia global sin reinicio anual evita carreras y admite más de seis dígitos. Los rollbacks pueden dejar huecos. Users.full_name y Customers.full_name son requeridos. Vehicles tiene marca, año, dueño actual y placa normalizada única. OrderItems solo guarda descripción y precio DECIMAL(12,2)>0.
+created_at sigue siendo la fecha UTC de apertura; no se duplica con opened_at. closed_at marca el cierre; total_amount sustituye total. display_order_id es calculado y único (OT-YYYY-000001); una secuencia global sin reinicio anual evita carreras y admite más de seis dígitos. Los rollbacks pueden dejar huecos. Users.full_name y Customers.full_name son requeridos. Vehicles tiene marca, año, dueño actual y placa normalizada única. OrderItems guarda descripción, precio DECIMAL(12,2)>0 y notes opcionales desde 009.
 
-backend/src/validation.ts se comparte con frontend: trim de nombres/marca/descripción; cédula 9 dígitos; teléfono 8; email opcional lowercase; placa uppercase sin espacios/guiones y patrón ABC123; año entero 1950 a año UTC actual+1; DB limita a 2200. Kilometraje entero 0..10000000 nullable en OPEN, obligatorio al cerrar. Precio hasta 9999999999.99 con dos decimales; la suma también debe caber. Borradores permiten campos vacíos pero no valores no vacíos inválidos. IndexedDB conserva inclusive ediciones incompletas; autosave espera valores válidos y no renueva sesión.
+backend/src/validation.ts se comparte con frontend: trim de nombres/marca/descripción; cédula 9 dígitos; teléfono 8; email opcional lowercase; placa uppercase sin espacios/guiones y patrón ABC123; año entero >=1950, sin máximo funcional; 007 retira el límite 2200 del CHECK SQL. Kilometraje entero 0..10000000 nullable en OPEN, obligatorio al cerrar. Precio hasta 9999999999.99 con dos decimales; la suma también debe caber. Borradores permiten campos vacíos pero no valores no vacíos inválidos. IndexedDB conserva inclusive ediciones incompletas; autosave espera valores válidos y no renueva sesión.
+
+Historial search-only: CLOSED sin q de al menos dos caracteres devuelve 400 HISTORY_SEARCH_REQUIRED antes de consultar el repositorio. Nombre parcial CI_AI mediante CHARINDEX parametrizado, cédula/placa exactas y número OT por prefijo con LEFT. Páginas de 50 con desempate por order_number. El frontend no carga CLOSED inicialmente.
+
+Notas y recomendaciones pueden estar vacías incluso en CLOSED. La migración 007 elimina únicamente CK_Orders_ClosedNotes y reemplaza CK_Vehicles_Year; conserva todos los guards de cierre, servicios, totales e historia.
+
+Nueva orden genera un UUID por acción explícita y nunca busca una OPEN para reutilizarla. IndexedDB usa [userId, orderId], conserva la cola/ETag/clave/revisión de cada orden y migra la clave legacy en una transacción. La lista OPEN incorpora copias locales pendientes para recuperación offline.
+
+## Catálogo y actualizaciones PWA
+
+Contrato GET version=1 con cantidades activas dinámicas; integridad 57/986 se exige al seed/verificación de instalación/cleanup, no a cada lectura runtime. IndexedDB separado, schema=2, conserva cache schema=1 como fallback y la refresca. TTL 7 días; online vuelve a invocar carga. Timeout HTTP 35s, cuatro intentos máximo y presupuesto 120s dejan completar retrySql de 28s; solo errores transitorios.
+
+Registro explícito de service worker con updatefound/statechange y botón de actualización. La app sincroniza el editor antes de activarlo y bloquea actualización con conflicto/acción pendiente. API y credenciales no entran al cache PWA. Drafts y recoveryCopies se conservan; conexiones IDB se cierran al completar cada operación.

@@ -1,0 +1,8519 @@
+{
+  "schema_version": 1,
+  "brands": [
+    {
+      "make": "Aion",
+      "models": [
+        {
+          "model": "V",
+          "raw_names": [],
+          "source_ids": [
+            "aion-v"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Y Plus",
+          "raw_names": [],
+          "source_ids": [
+            "aion-y"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Audi",
+      "models": [
+        {
+          "model": "100",
+          "raw_names": [
+            "100"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "200",
+          "raw_names": [
+            "200"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "80",
+          "raw_names": [
+            "80"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "90",
+          "raw_names": [
+            "90"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "A3",
+          "raw_names": [
+            "A3"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "A3 Sportback e-tron",
+          "raw_names": [
+            "A3 Sportback e-tron"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "A4",
+          "raw_names": [
+            "A4"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "A4 allroad",
+          "raw_names": [
+            "A4 allroad"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "A5",
+          "raw_names": [
+            "A5"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "A6",
+          "raw_names": [
+            "A6"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "A6 allroad",
+          "raw_names": [
+            "A6 allroad"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "A6 Sportback e-tron",
+          "raw_names": [
+            "A6 Sportback e-tron"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "A7",
+          "raw_names": [
+            "A7"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "A8",
+          "raw_names": [
+            "A8"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "allroad",
+          "raw_names": [
+            "allroad"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "allroad quattro",
+          "raw_names": [
+            "allroad quattro"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Cabriolet",
+          "raw_names": [
+            "Cabriolet"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Coupe",
+          "raw_names": [
+            "Coupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "e-tron",
+          "raw_names": [
+            "e-tron"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "e-tron GT",
+          "raw_names": [
+            "e-tron GT"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "e-tron S",
+          "raw_names": [
+            "e-tron S"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "e-tron S Sportback",
+          "raw_names": [
+            "e-tron S Sportback"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "e-tron Sportback",
+          "raw_names": [
+            "e-tron Sportback"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Q3",
+          "raw_names": [
+            "Q3"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Q4 e-tron",
+          "raw_names": [
+            "Q4 e-tron"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Q4 Sportback e-tron",
+          "raw_names": [
+            "Q4 Sportback e-tron"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Q5",
+          "raw_names": [
+            "Q5"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Q5 Sportback",
+          "raw_names": [
+            "Q5 Sportback"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Q6 e-tron",
+          "raw_names": [
+            "Q6 e-tron"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Q6 Sportback e-tron",
+          "raw_names": [
+            "Q6 Sportback e-tron"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Q7",
+          "raw_names": [
+            "Q7"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Q8",
+          "raw_names": [
+            "Q8"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Q8 e-tron",
+          "raw_names": [
+            "Q8 e-tron"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Q8 Sportback e-tron",
+          "raw_names": [
+            "Q8 Sportback e-tron"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "R8",
+          "raw_names": [
+            "R8"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RS 3",
+          "raw_names": [
+            "RS 3"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RS 4",
+          "raw_names": [
+            "RS 4"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RS 5",
+          "raw_names": [
+            "RS 5"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RS 6",
+          "raw_names": [
+            "RS 6"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RS 7",
+          "raw_names": [
+            "RS 7"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RS e-tron GT",
+          "raw_names": [
+            "RS e-tron GT"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RS Q8",
+          "raw_names": [
+            "RS Q8"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S e-tron GT",
+          "raw_names": [
+            "S e-tron GT"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S3",
+          "raw_names": [
+            "S3"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S4",
+          "raw_names": [
+            "S4"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S5",
+          "raw_names": [
+            "S5"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S6",
+          "raw_names": [
+            "S6"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S6 Sportback e-tron",
+          "raw_names": [
+            "S6 Sportback e-tron"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S7",
+          "raw_names": [
+            "S7"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S8",
+          "raw_names": [
+            "S8"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SQ5",
+          "raw_names": [
+            "SQ5"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SQ5 Sportback",
+          "raw_names": [
+            "SQ5 Sportback"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SQ6 e-tron",
+          "raw_names": [
+            "SQ6 e-tron"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SQ6 Sportback e-tron",
+          "raw_names": [
+            "SQ6 Sportback e-tron"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SQ7",
+          "raw_names": [
+            "SQ7"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SQ8",
+          "raw_names": [
+            "SQ8"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SQ8 e-tron",
+          "raw_names": [
+            "SQ8 e-tron"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SQ8 Sportback e-tron",
+          "raw_names": [
+            "SQ8 Sportback e-tron"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "TT",
+          "raw_names": [
+            "TT"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "TT RS",
+          "raw_names": [
+            "TT RS"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "TTS",
+          "raw_names": [
+            "TTS"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "V8",
+          "raw_names": [
+            "V8"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Avatr",
+      "models": [
+        {
+          "model": "07",
+          "raw_names": [],
+          "source_ids": [
+            "avatr-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "11",
+          "raw_names": [],
+          "source_ids": [
+            "avatr-cr"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "BAIC",
+      "models": [
+        {
+          "model": "BJ30",
+          "raw_names": [],
+          "source_ids": [
+            "baic-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "BJ40",
+          "raw_names": [],
+          "source_ids": [
+            "baic-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "BJ41",
+          "raw_names": [],
+          "source_ids": [
+            "baic-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "BJ60",
+          "raw_names": [],
+          "source_ids": [
+            "baic-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "X35",
+          "raw_names": [],
+          "source_ids": [
+            "baic-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "X55",
+          "raw_names": [],
+          "source_ids": [
+            "baic-cr"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "BMW",
+      "models": [
+        {
+          "model": "1 Series",
+          "raw_names": [
+            "1 Series"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "1 Series M",
+          "raw_names": [
+            "1 Series M"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "2 Series",
+          "raw_names": [
+            "2 Series"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "2 Series Gran Coupe",
+          "raw_names": [
+            "2 Series Gran Coupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "3 Series",
+          "raw_names": [
+            "3 Series",
+            "3 Series eDrive"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "3 Series Gran Turismo",
+          "raw_names": [
+            "3 Series Gran Turismo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "4 Series",
+          "raw_names": [
+            "4 Series"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "4 Series Gran Coupe",
+          "raw_names": [
+            "4 Series Gran Coupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "5 Series",
+          "raw_names": [
+            "5 Series",
+            "ActiveHybrid 5"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "5 Series Gran Turismo",
+          "raw_names": [
+            "5 Series Gran Turismo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "6 Series",
+          "raw_names": [
+            "6 Series"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "6 Series Gran Coupe",
+          "raw_names": [
+            "6 Series Gran Coupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "6 Series Gran Turismo",
+          "raw_names": [
+            "6 Series Gran Turismo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "7 Series",
+          "raw_names": [
+            "7 Series",
+            "ActiveHybrid 7"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "8 Series",
+          "raw_names": [
+            "8 Series"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "8 Series Gran Coupe",
+          "raw_names": [
+            "8 Series Gran Coupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Alpina",
+          "raw_names": [
+            "Alpina"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "ALPINA B6 Gran Coupe",
+          "raw_names": [
+            "ALPINA B6 Gran Coupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "ALPINA B7",
+          "raw_names": [
+            "ALPINA B7"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "ALPINA B8 Gran Coupe",
+          "raw_names": [
+            "ALPINA B8 Gran Coupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "ALPINA XB7",
+          "raw_names": [
+            "ALPINA XB7"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "i3",
+          "raw_names": [
+            "i3"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "i4",
+          "raw_names": [
+            "i4"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "i5",
+          "raw_names": [
+            "i5"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "i7",
+          "raw_names": [
+            "i7"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "i8",
+          "raw_names": [
+            "i8"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "iX",
+          "raw_names": [
+            "iX"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "M",
+          "raw_names": [
+            "M"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "M2",
+          "raw_names": [
+            "M2",
+            "M2 CS"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "M3",
+          "raw_names": [
+            "M3",
+            "M3 CS"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "M4",
+          "raw_names": [
+            "M4",
+            "M4 CS",
+            "M4 CSL",
+            "M4 GTS"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "M5",
+          "raw_names": [
+            "M5",
+            "M5 CS"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "M6",
+          "raw_names": [
+            "M6"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "M6 Gran Coupe",
+          "raw_names": [
+            "M6 Gran Coupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "M8",
+          "raw_names": [
+            "M8"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "M8 Gran Coupe",
+          "raw_names": [
+            "M8 Gran Coupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "X1",
+          "raw_names": [
+            "X1"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "X2",
+          "raw_names": [
+            "X2"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "X3",
+          "raw_names": [
+            "X3",
+            "X3 M"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "X4",
+          "raw_names": [
+            "X4",
+            "X4 M"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "X5",
+          "raw_names": [
+            "X5",
+            "X5 M",
+            "X5 eDrive"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "X6",
+          "raw_names": [
+            "ActiveHybrid X6",
+            "X6",
+            "X6 M"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "X7",
+          "raw_names": [
+            "X7"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "XM",
+          "raw_names": [
+            "XM",
+            "XM Label"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Z3",
+          "raw_names": [
+            "Z3"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Z4",
+          "raw_names": [
+            "Z4",
+            "Z4 M"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Z8",
+          "raw_names": [
+            "Z8"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "BYD",
+      "models": [
+        {
+          "model": "Dolphin",
+          "raw_names": [],
+          "source_ids": [
+            "byd-cr",
+            "crautos-byd",
+            "e24-byd"
+          ],
+          "manual": true
+        },
+        {
+          "model": "F0",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-byd",
+            "e24-byd"
+          ],
+          "manual": true
+        },
+        {
+          "model": "F3",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-byd"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Han",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-byd"
+          ],
+          "manual": true
+        },
+        {
+          "model": "S1",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-byd"
+          ],
+          "manual": true
+        },
+        {
+          "model": "S1 Pro",
+          "raw_names": [],
+          "source_ids": [
+            "byd-cr",
+            "crautos-byd",
+            "e24-byd"
+          ],
+          "manual": true
+        },
+        {
+          "model": "S6",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-byd",
+            "e24-byd"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Seagull",
+          "raw_names": [],
+          "source_ids": [
+            "byd-cr",
+            "crautos-byd"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Seal",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-byd",
+            "e24-byd"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Sealion 7",
+          "raw_names": [],
+          "source_ids": [
+            "byd-cr",
+            "crautos-byd"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Shark",
+          "raw_names": [],
+          "source_ids": [
+            "byd-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Song",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-byd"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Song Plus",
+          "raw_names": [],
+          "source_ids": [
+            "byd-cr",
+            "crautos-byd",
+            "e24-byd"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Tang",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-byd",
+            "e24-byd"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Yuan Plus",
+          "raw_names": [],
+          "source_ids": [
+            "byd-cr",
+            "crautos-byd"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Yuan Pro",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-byd"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Changan",
+      "models": [
+        {
+          "model": "Alsvin",
+          "raw_names": [],
+          "source_ids": [
+            "changan-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Benni",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-changan"
+          ],
+          "manual": true
+        },
+        {
+          "model": "CS15",
+          "raw_names": [],
+          "source_ids": [
+            "changan-cr",
+            "crautos-changan",
+            "e24-changan"
+          ],
+          "manual": true
+        },
+        {
+          "model": "CS35",
+          "raw_names": [],
+          "source_ids": [
+            "changan-cr",
+            "crautos-changan"
+          ],
+          "manual": true
+        },
+        {
+          "model": "CS55",
+          "raw_names": [],
+          "source_ids": [
+            "changan-cr",
+            "crautos-changan",
+            "e24-changan"
+          ],
+          "manual": true
+        },
+        {
+          "model": "CS75",
+          "raw_names": [],
+          "source_ids": [
+            "changan-cr",
+            "crautos-changan",
+            "e24-changan"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Honor S",
+          "raw_names": [],
+          "source_ids": [
+            "changan-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Hunter",
+          "raw_names": [],
+          "source_ids": [
+            "changan-cr",
+            "crautos-changan"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Lumin",
+          "raw_names": [],
+          "source_ids": [
+            "changan-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Q20",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-changan"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Star 3",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-changan"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Star 9",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-changan",
+            "e24-changan"
+          ],
+          "manual": true
+        },
+        {
+          "model": "UNI-K",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-changan"
+          ],
+          "manual": true
+        },
+        {
+          "model": "UNI-T",
+          "raw_names": [],
+          "source_ids": [
+            "changan-cr",
+            "crautos-changan",
+            "e24-changan"
+          ],
+          "manual": true
+        },
+        {
+          "model": "X7",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-changan"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Chery",
+      "models": [
+        {
+          "model": "eQ7",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-chery",
+            "e24-chery"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Himla",
+          "raw_names": [],
+          "source_ids": [
+            "chery-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Q",
+          "raw_names": [],
+          "source_ids": [
+            "chery-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Tiggo 2",
+          "raw_names": [],
+          "source_ids": [
+            "chery-cr",
+            "crautos-chery",
+            "e24-chery"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Tiggo 4",
+          "raw_names": [],
+          "source_ids": [
+            "chery-cr",
+            "crautos-chery",
+            "e24-chery"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Tiggo 7",
+          "raw_names": [],
+          "source_ids": [
+            "chery-cr",
+            "crautos-chery"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Tiggo 8",
+          "raw_names": [],
+          "source_ids": [
+            "chery-cr",
+            "crautos-chery"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Tiggo 9",
+          "raw_names": [],
+          "source_ids": [
+            "chery-cr"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Chevrolet",
+      "models": [
+        {
+          "model": "Astro",
+          "raw_names": [
+            "Astro",
+            "Astro Cargo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Avalanche",
+          "raw_names": [
+            "Avalanche",
+            "Black Diamond Avalanche"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Aveo",
+          "raw_names": [
+            "Aveo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Beretta",
+          "raw_names": [
+            "Beretta"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Blazer",
+          "raw_names": [
+            "Blazer",
+            "Blazer EV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Bolt",
+          "raw_names": [
+            "Bolt EV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Bolt EUV",
+          "raw_names": [
+            "Bolt EUV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "C/K 1500 Series",
+          "raw_names": [
+            "C/K 1500 Series"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "C/K 2500 Series",
+          "raw_names": [
+            "C/K 2500 Series"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "C/K 3500 Series",
+          "raw_names": [
+            "C/K 3500 Series"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Camaro",
+          "raw_names": [
+            "Camaro"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Caprice",
+          "raw_names": [
+            "Caprice"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Captiva",
+          "raw_names": [
+            "Captiva Sport"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Cavalier",
+          "raw_names": [
+            "Cavalier"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Celebrity",
+          "raw_names": [
+            "Celebrity"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Chevy Van",
+          "raw_names": [
+            "Chevy Van",
+            "Chevy Van Classic"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "City Express",
+          "raw_names": [
+            "City Express"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Classic",
+          "raw_names": [
+            "Classic"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Cobalt",
+          "raw_names": [
+            "Cobalt"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Colorado",
+          "raw_names": [
+            "Colorado"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Corsica",
+          "raw_names": [
+            "Corsica"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Corvette",
+          "raw_names": [
+            "Corvette",
+            "Corvette Stingray"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Cruze",
+          "raw_names": [
+            "Cruze",
+            "Cruze Limited"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Equinox",
+          "raw_names": [
+            "Equinox",
+            "Equinox EV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Express",
+          "raw_names": [
+            "Express",
+            "Express Cargo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "HHR",
+          "raw_names": [
+            "HHR"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Impala",
+          "raw_names": [
+            "Impala",
+            "Impala Limited"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Lumina",
+          "raw_names": [
+            "Lumina"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Lumina Minivan",
+          "raw_names": [
+            "Lumina Minivan"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Malibu",
+          "raw_names": [
+            "Malibu",
+            "Malibu Classic",
+            "Malibu Hybrid",
+            "Malibu Limited"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Malibu Maxx",
+          "raw_names": [
+            "Malibu Maxx"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Metro",
+          "raw_names": [
+            "Metro"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Monte Carlo",
+          "raw_names": [
+            "Monte Carlo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Prizm",
+          "raw_names": [
+            "Prizm"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "R/V 3500 Series",
+          "raw_names": [
+            "R/V 3500 Series"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S-10",
+          "raw_names": [
+            "S-10"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S-10 Blazer",
+          "raw_names": [
+            "S-10 Blazer"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Silverado",
+          "raw_names": [
+            "Silverado EV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Silverado 1500",
+          "raw_names": [
+            "Silverado 1500",
+            "Silverado 1500 Classic",
+            "Silverado 1500 Hybrid",
+            "Silverado 1500 LD",
+            "Silverado 1500 Limited"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Silverado 1500HD",
+          "raw_names": [
+            "Silverado 1500HD",
+            "Silverado 1500HD Classic"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Silverado 2500",
+          "raw_names": [
+            "Silverado 2500"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Silverado 2500HD",
+          "raw_names": [
+            "Silverado 2500HD",
+            "Silverado 2500HD Classic"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Silverado 3500",
+          "raw_names": [
+            "Silverado 3500",
+            "Silverado 3500 Classic"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Silverado 3500HD",
+          "raw_names": [
+            "Silverado 3500HD"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Sonic",
+          "raw_names": [
+            "Sonic"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Spark",
+          "raw_names": [
+            "Spark",
+            "Spark EV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Sportvan",
+          "raw_names": [
+            "Sportvan"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SS",
+          "raw_names": [
+            "SS"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SSR",
+          "raw_names": [
+            "SSR"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Suburban",
+          "raw_names": [
+            "Suburban"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Tahoe",
+          "raw_names": [
+            "Tahoe",
+            "Tahoe Hybrid",
+            "Tahoe Limited/Z71"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Tracker",
+          "raw_names": [
+            "Tracker"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Trailblazer",
+          "raw_names": [
+            "Trailblazer"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "TrailBlazer EXT",
+          "raw_names": [
+            "TrailBlazer EXT"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Traverse",
+          "raw_names": [
+            "Traverse",
+            "Traverse Limited"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Trax",
+          "raw_names": [
+            "Trax"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Uplander",
+          "raw_names": [
+            "Uplander"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Venture",
+          "raw_names": [
+            "Venture"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Volt",
+          "raw_names": [
+            "Volt"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Citroën",
+      "models": [
+        {
+          "model": "Basalt",
+          "raw_names": [],
+          "source_ids": [
+            "citroen-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Berlingo",
+          "raw_names": [],
+          "source_ids": [
+            "citroen-cr",
+            "crautos-citron"
+          ],
+          "manual": true
+        },
+        {
+          "model": "C-Élysée",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-citron",
+            "e24-citron"
+          ],
+          "manual": true
+        },
+        {
+          "model": "C1",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-citron"
+          ],
+          "manual": true
+        },
+        {
+          "model": "C2",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-citron"
+          ],
+          "manual": true
+        },
+        {
+          "model": "C3",
+          "raw_names": [],
+          "source_ids": [
+            "citroen-cr",
+            "crautos-citron",
+            "e24-citron"
+          ],
+          "manual": true
+        },
+        {
+          "model": "C3 Aircross",
+          "raw_names": [],
+          "source_ids": [
+            "citroen-cr",
+            "crautos-citron",
+            "e24-citron"
+          ],
+          "manual": true
+        },
+        {
+          "model": "C4",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-citron"
+          ],
+          "manual": true
+        },
+        {
+          "model": "C4 Cactus",
+          "raw_names": [],
+          "source_ids": [
+            "citroen-cr",
+            "crautos-citron"
+          ],
+          "manual": true
+        },
+        {
+          "model": "C5",
+          "raw_names": [],
+          "source_ids": [
+            "e24-citron"
+          ],
+          "manual": true
+        },
+        {
+          "model": "C5 Aircross",
+          "raw_names": [],
+          "source_ids": [
+            "citroen-cr",
+            "crautos-citron",
+            "e24-citron"
+          ],
+          "manual": true
+        },
+        {
+          "model": "DS4",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-citron",
+            "e24-citron"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Jumper",
+          "raw_names": [],
+          "source_ids": [
+            "citroen-cr",
+            "crautos-citron"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Jumpy",
+          "raw_names": [],
+          "source_ids": [
+            "citroen-cr",
+            "crautos-citron"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Nemo",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-citron"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Xsara",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-citron"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Daihatsu",
+      "models": [
+        {
+          "model": "Charade",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-daihatsu"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Cuore",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-daihatsu"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Delta",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-daihatsu"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Rocky",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-daihatsu"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Sirion",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-daihatsu"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Terios",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-daihatsu"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Deepal",
+      "models": [
+        {
+          "model": "S05",
+          "raw_names": [],
+          "source_ids": [
+            "deepal-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "S07",
+          "raw_names": [],
+          "source_ids": [
+            "deepal-cr"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "DFSK",
+      "models": [
+        {
+          "model": "C31",
+          "raw_names": [],
+          "source_ids": [
+            "dfsk-cr",
+            "e24-dfsk"
+          ],
+          "manual": true
+        },
+        {
+          "model": "C32",
+          "raw_names": [],
+          "source_ids": [
+            "dfsk-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "C35",
+          "raw_names": [],
+          "source_ids": [
+            "dfsk-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "C37",
+          "raw_names": [],
+          "source_ids": [
+            "dfsk-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "E5",
+          "raw_names": [],
+          "source_ids": [
+            "dfsk-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Glory 500",
+          "raw_names": [],
+          "source_ids": [
+            "dfsk-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Glory 560",
+          "raw_names": [],
+          "source_ids": [
+            "dfsk-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Glory 580",
+          "raw_names": [],
+          "source_ids": [
+            "dfsk-cr",
+            "e24-dfsk"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Dodge",
+      "models": [
+        {
+          "model": "Avenger",
+          "raw_names": [
+            "Avenger"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Caliber",
+          "raw_names": [
+            "Caliber"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Caravan",
+          "raw_names": [
+            "Caravan"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Challenger",
+          "raw_names": [
+            "Challenger"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Charger",
+          "raw_names": [
+            "Charger"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Colt",
+          "raw_names": [
+            "Colt"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Dakota",
+          "raw_names": [
+            "Dakota"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Dart",
+          "raw_names": [
+            "Dart"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Daytona",
+          "raw_names": [
+            "Daytona"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Durango",
+          "raw_names": [
+            "Durango"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Dynasty",
+          "raw_names": [
+            "Dynasty"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Grand Caravan",
+          "raw_names": [
+            "Grand Caravan"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Hornet",
+          "raw_names": [
+            "Hornet"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Intrepid",
+          "raw_names": [
+            "Intrepid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Journey",
+          "raw_names": [
+            "Journey"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Magnum",
+          "raw_names": [
+            "Magnum"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Monaco",
+          "raw_names": [
+            "Monaco"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Neon",
+          "raw_names": [
+            "Neon"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Nitro",
+          "raw_names": [
+            "Nitro"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Omni",
+          "raw_names": [
+            "Omni"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RAM 150",
+          "raw_names": [
+            "RAM 150"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RAM 250",
+          "raw_names": [
+            "RAM 250"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RAM 350",
+          "raw_names": [
+            "RAM 350"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Ram 50 Pickup",
+          "raw_names": [
+            "Ram 50 Pickup"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Ram Cargo",
+          "raw_names": [
+            "Ram Cargo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Ram Pickup 1500",
+          "raw_names": [
+            "Ram Pickup 1500"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Ram Pickup 2500",
+          "raw_names": [
+            "Ram Pickup 2500"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Ram Pickup 3500",
+          "raw_names": [
+            "Ram Pickup 3500"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Ram Van",
+          "raw_names": [
+            "Ram Van"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Ram Wagon",
+          "raw_names": [
+            "Ram Wagon"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Ramcharger",
+          "raw_names": [
+            "Ramcharger"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Shadow",
+          "raw_names": [
+            "Shadow"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Spirit",
+          "raw_names": [
+            "Spirit"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Sprinter",
+          "raw_names": [
+            "Sprinter"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Sprinter Cargo",
+          "raw_names": [
+            "Sprinter Cargo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SRT Viper",
+          "raw_names": [
+            "SRT Viper"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Stealth",
+          "raw_names": [
+            "Stealth"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Stratus",
+          "raw_names": [
+            "Stratus"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Viper",
+          "raw_names": [
+            "Viper"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Dongfeng",
+      "models": [
+        {
+          "model": "EX1",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-dongfeng"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Friday",
+          "raw_names": [],
+          "source_ids": [
+            "dongfeng-cr",
+            "crautos-dongfeng"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Joyear SX6",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-dongfeng"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Mage",
+          "raw_names": [],
+          "source_ids": [
+            "dongfeng-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Nammi 01",
+          "raw_names": [],
+          "source_ids": [
+            "dongfeng-cr",
+            "crautos-dongfeng"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Nammi 06",
+          "raw_names": [],
+          "source_ids": [
+            "dongfeng-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Nano Box",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-dongfeng"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Rich",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-dongfeng"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Rich 6",
+          "raw_names": [],
+          "source_ids": [
+            "dongfeng-cr",
+            "crautos-dongfeng",
+            "e24-dongfeng"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Rich 7",
+          "raw_names": [],
+          "source_ids": [
+            "dongfeng-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "SX5",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-dongfeng"
+          ],
+          "manual": true
+        },
+        {
+          "model": "T5 EVO",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-dongfeng"
+          ],
+          "manual": true
+        },
+        {
+          "model": "T5L",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-dongfeng"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Z9",
+          "raw_names": [],
+          "source_ids": [
+            "dongfeng-cr"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Fiat",
+      "models": [
+        {
+          "model": "124 Spider",
+          "raw_names": [
+            "124 Spider"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "500",
+          "raw_names": [
+            "500"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "500e",
+          "raw_names": [
+            "500e"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "500L",
+          "raw_names": [
+            "500L"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "500X",
+          "raw_names": [
+            "500X"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Ford",
+      "models": [
+        {
+          "model": "Aerostar",
+          "raw_names": [
+            "Aerostar"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Aspire",
+          "raw_names": [
+            "Aspire"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Bronco",
+          "raw_names": [
+            "Bronco"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Bronco II",
+          "raw_names": [
+            "Bronco II"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Bronco Sport",
+          "raw_names": [
+            "Bronco Sport"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "C-Max",
+          "raw_names": [
+            "C-Max Energi",
+            "C-Max Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Contour",
+          "raw_names": [
+            "Contour",
+            "Contour SVT"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Crown Victoria",
+          "raw_names": [
+            "Crown Victoria"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "E-150",
+          "raw_names": [
+            "E-150"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "E-250",
+          "raw_names": [
+            "E-250"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "E-350",
+          "raw_names": [
+            "E-350"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "E-Series",
+          "raw_names": [
+            "E-Series Van",
+            "E-Series Wagon"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Econoline",
+          "raw_names": [
+            "Econoline Cargo",
+            "Econoline Wagon"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "EcoSport",
+          "raw_names": [
+            "EcoSport"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Edge",
+          "raw_names": [
+            "Edge"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Escape",
+          "raw_names": [
+            "Escape",
+            "Escape Hybrid",
+            "Escape Plug-In Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Escort",
+          "raw_names": [
+            "Escort"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Excursion",
+          "raw_names": [
+            "Excursion"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Expedition",
+          "raw_names": [
+            "Expedition"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Expedition EL",
+          "raw_names": [
+            "Expedition EL"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Explorer",
+          "raw_names": [
+            "Explorer"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Explorer Sport",
+          "raw_names": [
+            "Explorer Sport"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Explorer Sport Trac",
+          "raw_names": [
+            "Explorer Sport Trac"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "F-150",
+          "raw_names": [
+            "F-150",
+            "F-150 Heritage",
+            "F-150 Lightning",
+            "F-150 SVT Lightning"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "F-250",
+          "raw_names": [
+            "F-250"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "F-250 Super Duty",
+          "raw_names": [
+            "F-250 Super Duty"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "F-350",
+          "raw_names": [
+            "F-350"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "F-350 Super Duty",
+          "raw_names": [
+            "F-350 Super Duty"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "F-450 Super Duty",
+          "raw_names": [
+            "F-450 Super Duty"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Festiva",
+          "raw_names": [
+            "Festiva"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Fiesta",
+          "raw_names": [
+            "Fiesta"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Five Hundred",
+          "raw_names": [
+            "Five Hundred"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Flex",
+          "raw_names": [
+            "Flex"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Focus",
+          "raw_names": [
+            "Focus",
+            "Focus RS",
+            "Focus ST"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Freestar",
+          "raw_names": [
+            "Freestar"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Freestyle",
+          "raw_names": [
+            "Freestyle"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Fusion",
+          "raw_names": [
+            "Fusion",
+            "Fusion Energi",
+            "Fusion Hybrid",
+            "Fusion Plug-In Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GT",
+          "raw_names": [
+            "GT"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "LTD Crown Victoria",
+          "raw_names": [
+            "LTD Crown Victoria"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Maverick",
+          "raw_names": [
+            "Maverick"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Mustang",
+          "raw_names": [
+            "Mustang",
+            "Mustang SVT Cobra",
+            "Shelby GT350",
+            "Shelby GT500"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Mustang Mach-E",
+          "raw_names": [
+            "Mustang Mach-E"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Probe",
+          "raw_names": [
+            "Probe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Ranger",
+          "raw_names": [
+            "Ranger"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Taurus",
+          "raw_names": [
+            "Taurus"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Taurus X",
+          "raw_names": [
+            "Taurus X"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Tempo",
+          "raw_names": [
+            "Tempo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Thunderbird",
+          "raw_names": [
+            "Thunderbird"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Transit",
+          "raw_names": [
+            "E-Transit Cargo Van",
+            "Transit Cargo Van",
+            "Transit Crew Van",
+            "Transit Passenger Van",
+            "Transit Van",
+            "Transit Wagon"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Transit Connect",
+          "raw_names": [
+            "Transit Connect",
+            "Transit Connect Cargo Van",
+            "Transit Connect Passenger Wagon"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Windstar",
+          "raw_names": [
+            "Windstar",
+            "Windstar Cargo"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Foton",
+      "models": [
+        {
+          "model": "Tunland G7",
+          "raw_names": [],
+          "source_ids": [
+            "foton-g7"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Tunland V7",
+          "raw_names": [],
+          "source_ids": [
+            "foton-v7"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Tunland V9",
+          "raw_names": [],
+          "source_ids": [
+            "foton-v9",
+            "crautos-foton"
+          ],
+          "manual": true
+        },
+        {
+          "model": "View CS2",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-foton"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "GAC",
+      "models": [
+        {
+          "model": "Emkoo",
+          "raw_names": [],
+          "source_ids": [
+            "gac-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Emzoom",
+          "raw_names": [],
+          "source_ids": [
+            "gac-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "GS3",
+          "raw_names": [],
+          "source_ids": [
+            "gac-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "GS4",
+          "raw_names": [],
+          "source_ids": [
+            "gac-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "GS8",
+          "raw_names": [],
+          "source_ids": [
+            "gac-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "M6",
+          "raw_names": [],
+          "source_ids": [
+            "gac-cr"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Geely",
+      "models": [
+        {
+          "model": "Azkarra",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-geely",
+            "e24-geely"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Coolray",
+          "raw_names": [],
+          "source_ids": [
+            "geely-cr",
+            "crautos-geely",
+            "e24-geely"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Coolray Neo",
+          "raw_names": [],
+          "source_ids": [
+            "geely-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Emgrand EX7",
+          "raw_names": [],
+          "source_ids": [
+            "e24-geely"
+          ],
+          "manual": true
+        },
+        {
+          "model": "EX5",
+          "raw_names": [],
+          "source_ids": [
+            "geely-cr",
+            "crautos-geely"
+          ],
+          "manual": true
+        },
+        {
+          "model": "GC5",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-geely"
+          ],
+          "manual": true
+        },
+        {
+          "model": "GC6",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-geely",
+            "e24-geely"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Geome",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-geely"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Geometry C",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-geely"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Geometry E",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-geely",
+            "e24-geely"
+          ],
+          "manual": true
+        },
+        {
+          "model": "GX2",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-geely"
+          ],
+          "manual": true
+        },
+        {
+          "model": "GX3",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-geely",
+            "e24-geely"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Okavango",
+          "raw_names": [],
+          "source_ids": [
+            "geely-cr",
+            "crautos-geely",
+            "e24-geely"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Starray",
+          "raw_names": [],
+          "source_ids": [
+            "geely-cr",
+            "crautos-geely"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Great Wall",
+      "models": [
+        {
+          "model": "C20R",
+          "raw_names": [],
+          "source_ids": [
+            "e24-greatwall"
+          ],
+          "manual": true
+        },
+        {
+          "model": "C30",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-greatwall"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Hover",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-greatwall"
+          ],
+          "manual": true
+        },
+        {
+          "model": "M2",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-greatwall"
+          ],
+          "manual": true
+        },
+        {
+          "model": "M4",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-greatwall"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Poer",
+          "raw_names": [],
+          "source_ids": [
+            "greatwall-cr",
+            "crautos-greatwall",
+            "e24-greatwall"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Wingle 5",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-greatwall"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Wingle 7",
+          "raw_names": [],
+          "source_ids": [
+            "greatwall-cr",
+            "crautos-greatwall"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Haval",
+      "models": [
+        {
+          "model": "H6",
+          "raw_names": [],
+          "source_ids": [
+            "haval-cr",
+            "crautos-haval",
+            "e24-haval"
+          ],
+          "manual": true
+        },
+        {
+          "model": "H7",
+          "raw_names": [],
+          "source_ids": [
+            "haval-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "H9",
+          "raw_names": [],
+          "source_ids": [
+            "haval-cr",
+            "crautos-haval",
+            "e24-haval"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Jolion",
+          "raw_names": [],
+          "source_ids": [
+            "haval-cr",
+            "crautos-haval",
+            "e24-haval"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Honda",
+      "models": [
+        {
+          "model": "Accord",
+          "raw_names": [
+            "Accord",
+            "Accord Hybrid",
+            "Accord Plug-In Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Accord Crosstour",
+          "raw_names": [
+            "Accord Crosstour"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Civic",
+          "raw_names": [
+            "Civic"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Civic CRX",
+          "raw_names": [
+            "Civic CRX"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Civic del Sol",
+          "raw_names": [
+            "Civic del Sol"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Clarity",
+          "raw_names": [
+            "Clarity"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CR-V",
+          "raw_names": [
+            "CR-V",
+            "CR-V Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CR-V e:FCEV",
+          "raw_names": [
+            "CR-V e:FCEV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CR-Z",
+          "raw_names": [
+            "CR-Z"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Crosstour",
+          "raw_names": [
+            "Crosstour"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Element",
+          "raw_names": [
+            "Element"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Fit",
+          "raw_names": [
+            "Fit",
+            "Fit EV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "HR-V",
+          "raw_names": [
+            "HR-V"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Insight",
+          "raw_names": [
+            "Insight"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Odyssey",
+          "raw_names": [
+            "Odyssey"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Passport",
+          "raw_names": [
+            "Passport"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Pilot",
+          "raw_names": [
+            "Pilot"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Prelude",
+          "raw_names": [
+            "Prelude"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Prologue",
+          "raw_names": [
+            "Prologue"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Ridgeline",
+          "raw_names": [
+            "Ridgeline"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S2000",
+          "raw_names": [
+            "S2000"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Hyundai",
+      "models": [
+        {
+          "model": "Accent",
+          "raw_names": [
+            "Accent"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Azera",
+          "raw_names": [
+            "Azera"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Creta",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-creta"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Elantra",
+          "raw_names": [
+            "Elantra",
+            "Elantra Hybrid",
+            "Elantra N"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Elantra Coupe",
+          "raw_names": [
+            "Elantra Coupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Elantra GT",
+          "raw_names": [
+            "Elantra GT"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Elantra Touring",
+          "raw_names": [
+            "Elantra Touring"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Entourage",
+          "raw_names": [
+            "Entourage"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Equus",
+          "raw_names": [
+            "Equus"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Excel",
+          "raw_names": [
+            "Excel"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Galloper",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-hyundai"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Genesis",
+          "raw_names": [
+            "Genesis"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Genesis Coupe",
+          "raw_names": [
+            "Genesis Coupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Ioniq",
+          "raw_names": [
+            "Ioniq Electric",
+            "Ioniq Hybrid",
+            "Ioniq Plug-In Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "IONIQ 5",
+          "raw_names": [
+            "IONIQ 5",
+            "IONIQ 5 N"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "IONIQ 6",
+          "raw_names": [
+            "IONIQ 6"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "IONIQ 9",
+          "raw_names": [
+            "IONIQ 9"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Kona",
+          "raw_names": [
+            "Kona",
+            "Kona Electric"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "NEXO",
+          "raw_names": [
+            "NEXO"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Palisade",
+          "raw_names": [
+            "Palisade"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Santa Cruz",
+          "raw_names": [
+            "Santa Cruz"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Santa Fe",
+          "raw_names": [
+            "Santa Fe",
+            "Santa Fe Hybrid",
+            "Santa Fe Plug-In Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Santa Fe Sport",
+          "raw_names": [
+            "Santa Fe Sport"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Santa Fe XL",
+          "raw_names": [
+            "Santa Fe XL"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Scoupe",
+          "raw_names": [
+            "Scoupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Sonata",
+          "raw_names": [
+            "Sonata",
+            "Sonata Hybrid",
+            "Sonata Plug-in Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Starex",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-hyundai"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Stargazer",
+          "raw_names": [],
+          "source_ids": [
+            "hyundai-stargazer"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Tiburon",
+          "raw_names": [
+            "Tiburon"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Tucson",
+          "raw_names": [
+            "Tucson",
+            "Tucson Plug-In Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Veloster",
+          "raw_names": [
+            "Veloster"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Venue",
+          "raw_names": [
+            "Venue"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Veracruz",
+          "raw_names": [
+            "Veracruz"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Verna",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-hyundai"
+          ],
+          "manual": true
+        },
+        {
+          "model": "XG300",
+          "raw_names": [
+            "XG300"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "XG350",
+          "raw_names": [
+            "XG350"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Isuzu",
+      "models": [
+        {
+          "model": "Amigo",
+          "raw_names": [
+            "Amigo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Ascender",
+          "raw_names": [
+            "Ascender"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Axiom",
+          "raw_names": [
+            "Axiom"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "D-Max",
+          "raw_names": [],
+          "source_ids": [
+            "isuzu-cr",
+            "crautos-isuzu"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Hombre",
+          "raw_names": [
+            "Hombre"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "i-Series",
+          "raw_names": [
+            "i-Series"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Impulse",
+          "raw_names": [
+            "Impulse"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "MU-X",
+          "raw_names": [],
+          "source_ids": [
+            "isuzu-cr",
+            "crautos-isuzu"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Oasis",
+          "raw_names": [
+            "Oasis"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Pickup",
+          "raw_names": [
+            "Pickup"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Rodeo",
+          "raw_names": [
+            "Rodeo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Rodeo Sport",
+          "raw_names": [
+            "Rodeo Sport"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Stylus",
+          "raw_names": [
+            "Stylus"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Trooper",
+          "raw_names": [
+            "Trooper"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "VehiCROSS",
+          "raw_names": [
+            "VehiCROSS"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "JAC",
+      "models": [
+        {
+          "model": "J2",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-jac"
+          ],
+          "manual": true
+        },
+        {
+          "model": "J3",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-jac"
+          ],
+          "manual": true
+        },
+        {
+          "model": "JS1",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-jac",
+            "e24-jac"
+          ],
+          "manual": true
+        },
+        {
+          "model": "JS2",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-jac"
+          ],
+          "manual": true
+        },
+        {
+          "model": "JS3",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-jac"
+          ],
+          "manual": true
+        },
+        {
+          "model": "JS4",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-jac",
+            "e24-jac"
+          ],
+          "manual": true
+        },
+        {
+          "model": "JS5",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-jac"
+          ],
+          "manual": true
+        },
+        {
+          "model": "JS8",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-jac"
+          ],
+          "manual": true
+        },
+        {
+          "model": "M3",
+          "raw_names": [],
+          "source_ids": [
+            "jac-cr",
+            "crautos-jac"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Refine",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-jac",
+            "e24-jac"
+          ],
+          "manual": true
+        },
+        {
+          "model": "S2",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-jac"
+          ],
+          "manual": true
+        },
+        {
+          "model": "T6",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-jac"
+          ],
+          "manual": true
+        },
+        {
+          "model": "T8",
+          "raw_names": [],
+          "source_ids": [
+            "e24-jac"
+          ],
+          "manual": true
+        },
+        {
+          "model": "T9",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-jac"
+          ],
+          "manual": true
+        },
+        {
+          "model": "X200",
+          "raw_names": [],
+          "source_ids": [
+            "jac-cr"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Jaecoo",
+      "models": [
+        {
+          "model": "J5",
+          "raw_names": [],
+          "source_ids": [
+            "jaecoo-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "J7",
+          "raw_names": [],
+          "source_ids": [
+            "jaecoo-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "J8",
+          "raw_names": [],
+          "source_ids": [
+            "jaecoo-cr"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Jeep",
+      "models": [
+        {
+          "model": "Cherokee",
+          "raw_names": [
+            "Cherokee"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Comanche",
+          "raw_names": [
+            "Comanche"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Commander",
+          "raw_names": [
+            "Commander"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Compass",
+          "raw_names": [
+            "Compass"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Gladiator",
+          "raw_names": [
+            "Gladiator"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Grand Cherokee",
+          "raw_names": [
+            "Grand Cherokee",
+            "Grand Cherokee 4xe",
+            "Grand Cherokee SRT",
+            "Grand Cherokee WK"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Grand Cherokee L",
+          "raw_names": [
+            "Grand Cherokee L"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Grand Wagoneer",
+          "raw_names": [
+            "Grand Wagoneer"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Grand Wagoneer L",
+          "raw_names": [
+            "Grand Wagoneer L"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Liberty",
+          "raw_names": [
+            "Liberty"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Patriot",
+          "raw_names": [
+            "Patriot"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Recon",
+          "raw_names": [
+            "Recon"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Renegade",
+          "raw_names": [
+            "Renegade"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Wagoneer",
+          "raw_names": [
+            "Wagoneer"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Wagoneer L",
+          "raw_names": [
+            "Wagoneer L"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Wagoneer S",
+          "raw_names": [
+            "Wagoneer S"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Wrangler",
+          "raw_names": [
+            "Wrangler",
+            "Wrangler 4xe",
+            "Wrangler JK"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Jetour",
+      "models": [
+        {
+          "model": "Dashing",
+          "raw_names": [],
+          "source_ids": [
+            "jetour-cr",
+            "crautos-jetour",
+            "e24-jetour"
+          ],
+          "manual": true
+        },
+        {
+          "model": "T1",
+          "raw_names": [],
+          "source_ids": [
+            "jetour-cr",
+            "crautos-jetour",
+            "e24-jetour"
+          ],
+          "manual": true
+        },
+        {
+          "model": "T2",
+          "raw_names": [],
+          "source_ids": [
+            "jetour-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "X50",
+          "raw_names": [],
+          "source_ids": [
+            "jetour-cr",
+            "crautos-jetour"
+          ],
+          "manual": true
+        },
+        {
+          "model": "X70",
+          "raw_names": [],
+          "source_ids": [
+            "jetour-cr",
+            "crautos-jetour",
+            "e24-jetour"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "JMC",
+      "models": [
+        {
+          "model": "Grand Avenue",
+          "raw_names": [],
+          "source_ids": [
+            "jmc-cr",
+            "e24-jmc"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Touring Van",
+          "raw_names": [],
+          "source_ids": [
+            "jmc-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Vigus",
+          "raw_names": [],
+          "source_ids": [
+            "jmc-cr",
+            "e24-jmc"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Kaiyi",
+      "models": [
+        {
+          "model": "e-qute 04",
+          "raw_names": [],
+          "source_ids": [
+            "kaiyi-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "KYX3",
+          "raw_names": [],
+          "source_ids": [
+            "kaiyi-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "KYX7",
+          "raw_names": [],
+          "source_ids": [
+            "kaiyi-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "X3",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-kaiyi"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "KGM",
+      "models": [
+        {
+          "model": "Actyon",
+          "raw_names": [],
+          "source_ids": [
+            "kgm-actyon"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Actyon Sports",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-kgm"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Korando",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-kgm"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Rexton",
+          "raw_names": [],
+          "source_ids": [
+            "kgm-cr",
+            "crautos-kgm"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Rexton Sports",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-kgm"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Tivoli",
+          "raw_names": [],
+          "source_ids": [
+            "kgm-cr",
+            "crautos-kgm"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Torres",
+          "raw_names": [],
+          "source_ids": [
+            "kgm-cr",
+            "crautos-kgm"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Kia",
+      "models": [
+        {
+          "model": "Amanti",
+          "raw_names": [
+            "Amanti"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Bongo",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-kia"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Borrego",
+          "raw_names": [
+            "Borrego"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Cadenza",
+          "raw_names": [
+            "Cadenza"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Carens",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-kia"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Carnival",
+          "raw_names": [
+            "Carnival"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Cerato",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-kia"
+          ],
+          "manual": true
+        },
+        {
+          "model": "EV3",
+          "raw_names": [],
+          "source_ids": [
+            "kia-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "EV5",
+          "raw_names": [],
+          "source_ids": [
+            "kia-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "EV6",
+          "raw_names": [
+            "EV6"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "EV9",
+          "raw_names": [
+            "EV9"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Forte",
+          "raw_names": [
+            "Forte"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Joice",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-kia"
+          ],
+          "manual": true
+        },
+        {
+          "model": "K2500",
+          "raw_names": [],
+          "source_ids": [
+            "kia-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "K2700",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-kia"
+          ],
+          "manual": true
+        },
+        {
+          "model": "K3",
+          "raw_names": [],
+          "source_ids": [
+            "kia-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "K4",
+          "raw_names": [
+            "K4"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "K5",
+          "raw_names": [
+            "K5"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "K900",
+          "raw_names": [
+            "K900"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Niro",
+          "raw_names": [
+            "Niro",
+            "Niro EV",
+            "Niro Plug-In Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Opirus",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-kia"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Optima",
+          "raw_names": [
+            "Optima",
+            "Optima Hybrid",
+            "Optima Plug-In Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Picanto",
+          "raw_names": [],
+          "source_ids": [
+            "kia-cr",
+            "crautos-kia"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Rio",
+          "raw_names": [
+            "Rio"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Rondo",
+          "raw_names": [
+            "Rondo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Sedona",
+          "raw_names": [
+            "Sedona"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Seltos",
+          "raw_names": [
+            "Seltos"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Sephia",
+          "raw_names": [
+            "Sephia"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Soluto",
+          "raw_names": [],
+          "source_ids": [
+            "kia-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Sonet",
+          "raw_names": [],
+          "source_ids": [
+            "kia-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Sorento",
+          "raw_names": [
+            "Sorento",
+            "Sorento Hybrid",
+            "Sorento Plug-In Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Soul",
+          "raw_names": [
+            "Soul",
+            "Soul EV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Spectra",
+          "raw_names": [
+            "Spectra"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Sportage",
+          "raw_names": [
+            "Sportage",
+            "Sportage Hybrid",
+            "Sportage Plug-In Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Stinger",
+          "raw_names": [
+            "Stinger"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Tasman",
+          "raw_names": [],
+          "source_ids": [
+            "kia-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Telluride",
+          "raw_names": [
+            "Telluride",
+            "Telluride Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Land Rover",
+      "models": [
+        {
+          "model": "Defender",
+          "raw_names": [
+            "Defender"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Discovery",
+          "raw_names": [
+            "Discovery"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Discovery Series II",
+          "raw_names": [
+            "Discovery Series II"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Discovery Sport",
+          "raw_names": [
+            "Discovery Sport"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Freelander",
+          "raw_names": [
+            "Freelander"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "LR2",
+          "raw_names": [
+            "LR2"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "LR3",
+          "raw_names": [
+            "LR3"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "LR4",
+          "raw_names": [
+            "LR4"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Range Rover",
+          "raw_names": [
+            "Range Rover"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Range Rover Evoque",
+          "raw_names": [
+            "Range Rover Evoque"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Range Rover Sport",
+          "raw_names": [
+            "Range Rover Sport"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Range Rover Velar",
+          "raw_names": [
+            "Range Rover Velar"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Lexus",
+      "models": [
+        {
+          "model": "CT",
+          "raw_names": [
+            "CT 200h"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "ES",
+          "raw_names": [
+            "ES",
+            "ES 250",
+            "ES 300",
+            "ES 300h",
+            "ES 330",
+            "ES 350"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GS",
+          "raw_names": [
+            "GS 200t",
+            "GS 300",
+            "GS 350",
+            "GS 400",
+            "GS 430",
+            "GS 450h",
+            "GS 460",
+            "GS F"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GX",
+          "raw_names": [
+            "GX",
+            "GX 460",
+            "GX 470"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "HS",
+          "raw_names": [
+            "HS 250h"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "IS",
+          "raw_names": [
+            "IS",
+            "IS 200t",
+            "IS 250",
+            "IS 250 C",
+            "IS 300",
+            "IS 350",
+            "IS 350 C",
+            "IS 500",
+            "IS F"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "LC",
+          "raw_names": [
+            "LC",
+            "LC 500",
+            "LC 500 Convertible",
+            "LC 500h"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "LFA",
+          "raw_names": [
+            "LFA"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "LS",
+          "raw_names": [
+            "LS",
+            "LS 400",
+            "LS 430",
+            "LS 460",
+            "LS 500",
+            "LS 500h",
+            "LS 600h L"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "LX",
+          "raw_names": [
+            "LX",
+            "LX 450",
+            "LX 470",
+            "LX 570",
+            "LX 600"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "NX",
+          "raw_names": [
+            "NX",
+            "NX 200t",
+            "NX 250",
+            "NX 300",
+            "NX 300h",
+            "NX 350",
+            "NX 350h",
+            "NX 450h+"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RC",
+          "raw_names": [
+            "RC",
+            "RC 200t",
+            "RC 300",
+            "RC 350",
+            "RC F"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RX",
+          "raw_names": [
+            "RX",
+            "RX 300",
+            "RX 330",
+            "RX 350",
+            "RX 350L",
+            "RX 350h",
+            "RX 400h",
+            "RX 450h",
+            "RX 450hL"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RZ",
+          "raw_names": [
+            "RZ",
+            "RZ 450e"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SC",
+          "raw_names": [
+            "SC 300",
+            "SC 400",
+            "SC 430"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "TX",
+          "raw_names": [
+            "TX"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "UX",
+          "raw_names": [
+            "UX",
+            "UX 200",
+            "UX 250h"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Maxus",
+      "models": [
+        {
+          "model": "D60",
+          "raw_names": [],
+          "source_ids": [
+            "maxus-history",
+            "crautos-maxus",
+            "e24-maxus"
+          ],
+          "manual": true
+        },
+        {
+          "model": "D90",
+          "raw_names": [],
+          "source_ids": [
+            "maxus-cr",
+            "crautos-maxus"
+          ],
+          "manual": true
+        },
+        {
+          "model": "eDeliver 9",
+          "raw_names": [],
+          "source_ids": [
+            "maxus-ev"
+          ],
+          "manual": true
+        },
+        {
+          "model": "EG50",
+          "raw_names": [],
+          "source_ids": [
+            "maxus-history"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Euniq 6",
+          "raw_names": [],
+          "source_ids": [
+            "maxus-history",
+            "crautos-maxus",
+            "e24-maxus"
+          ],
+          "manual": true
+        },
+        {
+          "model": "EV30",
+          "raw_names": [],
+          "source_ids": [
+            "maxus-history"
+          ],
+          "manual": true
+        },
+        {
+          "model": "T60",
+          "raw_names": [],
+          "source_ids": [
+            "maxus-history",
+            "crautos-maxus",
+            "e24-maxus"
+          ],
+          "manual": true
+        },
+        {
+          "model": "T90",
+          "raw_names": [],
+          "source_ids": [
+            "maxus-history",
+            "crautos-maxus"
+          ],
+          "manual": true
+        },
+        {
+          "model": "V80",
+          "raw_names": [],
+          "source_ids": [
+            "maxus-history"
+          ],
+          "manual": true
+        },
+        {
+          "model": "V90",
+          "raw_names": [],
+          "source_ids": [
+            "maxus-cr",
+            "crautos-maxus"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Mazda",
+      "models": [
+        {
+          "model": "2",
+          "raw_names": [
+            "2"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "3",
+          "raw_names": [
+            "3",
+            "Mazdaspeed 3"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "323",
+          "raw_names": [
+            "323"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "5",
+          "raw_names": [
+            "5"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "6",
+          "raw_names": [
+            "6",
+            "Mazdaspeed 6"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "626",
+          "raw_names": [
+            "626"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "929",
+          "raw_names": [
+            "929"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "B-Series",
+          "raw_names": [
+            "B-Series",
+            "B-Series Pickup",
+            "B-Series Truck"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CX-3",
+          "raw_names": [
+            "CX-3"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CX-30",
+          "raw_names": [
+            "CX-30"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CX-5",
+          "raw_names": [
+            "CX-5"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CX-50",
+          "raw_names": [
+            "CX-50"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CX-7",
+          "raw_names": [
+            "CX-7"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CX-70",
+          "raw_names": [
+            "CX-70"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CX-9",
+          "raw_names": [
+            "CX-9"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CX-90",
+          "raw_names": [
+            "CX-90"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Millenia",
+          "raw_names": [
+            "Millenia"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "MPV",
+          "raw_names": [
+            "MPV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "MX-3",
+          "raw_names": [
+            "MX-3"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "MX-30",
+          "raw_names": [
+            "MX-30"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "MX-5 Miata",
+          "raw_names": [
+            "MX-5 Miata",
+            "MX-5 Miata RF",
+            "Mazdaspeed MX-5 Miata"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "MX-6",
+          "raw_names": [
+            "MX-6"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Navajo",
+          "raw_names": [
+            "Navajo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Protege",
+          "raw_names": [
+            "Mazdaspeed Protege",
+            "Protege"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Protege5",
+          "raw_names": [
+            "Protege5"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RX-7",
+          "raw_names": [
+            "RX-7"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "RX-8",
+          "raw_names": [
+            "RX-8"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Tribute",
+          "raw_names": [
+            "Tribute",
+            "Tribute Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Truck",
+          "raw_names": [
+            "Truck"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Mercedes-Benz",
+      "models": [
+        {
+          "model": "190",
+          "raw_names": [
+            "190-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "300",
+          "raw_names": [
+            "300-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "350",
+          "raw_names": [
+            "350-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "400",
+          "raw_names": [
+            "400-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "420",
+          "raw_names": [
+            "420-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "500",
+          "raw_names": [
+            "500-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "560",
+          "raw_names": [
+            "560-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "600",
+          "raw_names": [
+            "600-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "A",
+          "raw_names": [
+            "A-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "AMG GT",
+          "raw_names": [
+            "AMG GT"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "B",
+          "raw_names": [
+            "B-Class Electric Drive"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "C",
+          "raw_names": [
+            "C-Class",
+            "C36 AMG",
+            "C43 AMG"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CL",
+          "raw_names": [
+            "CL-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CLA",
+          "raw_names": [
+            "CLA",
+            "CLA-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CLE",
+          "raw_names": [
+            "CLE"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CLK",
+          "raw_names": [
+            "CLK-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CLS",
+          "raw_names": [
+            "CLS-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "E",
+          "raw_names": [
+            "E-Class",
+            "E55 AMG"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "EQB",
+          "raw_names": [
+            "EQB"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "EQE",
+          "raw_names": [
+            "EQE"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "EQE SUV",
+          "raw_names": [
+            "EQE SUV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "EQS",
+          "raw_names": [
+            "EQS"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "EQS SUV",
+          "raw_names": [
+            "EQS SUV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "eSprinter",
+          "raw_names": [
+            "eSprinter"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "G",
+          "raw_names": [
+            "G-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GL",
+          "raw_names": [
+            "GL-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GLA",
+          "raw_names": [
+            "GLA",
+            "GLA-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GLB",
+          "raw_names": [
+            "GLB",
+            "GLB-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GLC",
+          "raw_names": [
+            "GLC",
+            "GLC-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GLC Coupe",
+          "raw_names": [
+            "GLC Coupe",
+            "GLC-Class Coupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GLE",
+          "raw_names": [
+            "GLE",
+            "GLE-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GLE Coupe",
+          "raw_names": [
+            "GLE Coupe",
+            "GLE-Class Coupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GLK",
+          "raw_names": [
+            "GLK-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GLS",
+          "raw_names": [
+            "GLS",
+            "GLS-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "M",
+          "raw_names": [
+            "M-Class",
+            "ML55 AMG"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Maybach",
+          "raw_names": [
+            "Maybach"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Maybach EQS SUV",
+          "raw_names": [
+            "Maybach EQS SUV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Maybach GLS",
+          "raw_names": [
+            "Maybach GLS"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Metris",
+          "raw_names": [
+            "Metris"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "R",
+          "raw_names": [
+            "R-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S",
+          "raw_names": [
+            "S-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SL",
+          "raw_names": [
+            "SL",
+            "SL-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SLC",
+          "raw_names": [
+            "SLC-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SLK",
+          "raw_names": [
+            "SLK-Class"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SLR McLaren",
+          "raw_names": [
+            "SLR McLaren"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SLS AMG",
+          "raw_names": [
+            "SLS AMG",
+            "SLS AMG GT",
+            "SLS AMG GT Final Edition"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Sprinter",
+          "raw_names": [
+            "Sprinter",
+            "Sprinter Worker"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "MG",
+      "models": [
+        {
+          "model": "GS",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-mg",
+            "e24-mg"
+          ],
+          "manual": true
+        },
+        {
+          "model": "GT",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-mg"
+          ],
+          "manual": true
+        },
+        {
+          "model": "HS",
+          "raw_names": [],
+          "source_ids": [
+            "mg-combustion",
+            "crautos-mg"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Marvel R",
+          "raw_names": [],
+          "source_ids": [
+            "mg-electric",
+            "crautos-mg",
+            "e24-mg"
+          ],
+          "manual": true
+        },
+        {
+          "model": "MG 3",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-mg"
+          ],
+          "manual": true
+        },
+        {
+          "model": "MG 4",
+          "raw_names": [],
+          "source_ids": [
+            "mg-electric",
+            "crautos-mg"
+          ],
+          "manual": true
+        },
+        {
+          "model": "MG 5",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-mg"
+          ],
+          "manual": true
+        },
+        {
+          "model": "ONE",
+          "raw_names": [],
+          "source_ids": [
+            "mg-combustion",
+            "crautos-mg"
+          ],
+          "manual": true
+        },
+        {
+          "model": "RX5",
+          "raw_names": [],
+          "source_ids": [
+            "mg-combustion",
+            "crautos-mg",
+            "e24-mg"
+          ],
+          "manual": true
+        },
+        {
+          "model": "RX8",
+          "raw_names": [],
+          "source_ids": [
+            "mg-combustion",
+            "crautos-mg",
+            "e24-mg"
+          ],
+          "manual": true
+        },
+        {
+          "model": "RX9",
+          "raw_names": [],
+          "source_ids": [
+            "mg-combustion"
+          ],
+          "manual": true
+        },
+        {
+          "model": "ZS",
+          "raw_names": [],
+          "source_ids": [
+            "mg-combustion",
+            "crautos-mg",
+            "e24-mg"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Mitsubishi",
+      "models": [
+        {
+          "model": "3000GT",
+          "raw_names": [
+            "3000GT"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "ASX",
+          "raw_names": [],
+          "source_ids": [
+            "mitsubishi-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Diamante",
+          "raw_names": [
+            "Diamante"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Eclipse",
+          "raw_names": [
+            "Eclipse"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Eclipse Cross",
+          "raw_names": [
+            "Eclipse Cross"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Eclipse Spyder",
+          "raw_names": [
+            "Eclipse Spyder"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Endeavor",
+          "raw_names": [
+            "Endeavor"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Expo",
+          "raw_names": [
+            "Expo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Galant",
+          "raw_names": [
+            "Galant"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "i-MiEV",
+          "raw_names": [
+            "i-MiEV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "L200",
+          "raw_names": [],
+          "source_ids": [
+            "mitsubishi-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Lancer",
+          "raw_names": [
+            "Lancer",
+            "Lancer Evolution"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Lancer Sportback",
+          "raw_names": [
+            "Lancer Sportback"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Mighty Max Pickup",
+          "raw_names": [
+            "Mighty Max Pickup"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Mirage",
+          "raw_names": [
+            "Mirage",
+            "Mirage G4"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Montero",
+          "raw_names": [
+            "Montero"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Montero Sport",
+          "raw_names": [
+            "Montero Sport"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Outlander",
+          "raw_names": [
+            "Outlander",
+            "Outlander PHEV"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Outlander Sport",
+          "raw_names": [
+            "Outlander Sport"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Precis",
+          "raw_names": [
+            "Precis"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Raider",
+          "raw_names": [
+            "Raider"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Sigma",
+          "raw_names": [
+            "Sigma"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Vanwagon",
+          "raw_names": [
+            "Vanwagon"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Xpander Cross",
+          "raw_names": [],
+          "source_ids": [
+            "mitsubishi-cr"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Neta",
+      "models": [
+        {
+          "model": "U",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-neta"
+          ],
+          "manual": true
+        },
+        {
+          "model": "V",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-neta"
+          ],
+          "manual": true
+        },
+        {
+          "model": "X",
+          "raw_names": [],
+          "source_ids": [
+            "neta-cr"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Nissan",
+      "models": [
+        {
+          "model": "200SX",
+          "raw_names": [
+            "200SX"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "240SX",
+          "raw_names": [
+            "240SX"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "300ZX",
+          "raw_names": [
+            "300ZX"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "350Z",
+          "raw_names": [
+            "350Z"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "370Z",
+          "raw_names": [
+            "370Z"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Altima",
+          "raw_names": [
+            "Altima",
+            "Altima Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "ARIYA",
+          "raw_names": [
+            "ARIYA"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Armada",
+          "raw_names": [
+            "Armada"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Axxess",
+          "raw_names": [
+            "Axxess"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Civilian",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-nissan"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Cube",
+          "raw_names": [
+            "Cube"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "D21",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-nissan"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Frontier",
+          "raw_names": [
+            "Frontier"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GT-R",
+          "raw_names": [
+            "GT-R"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Juke",
+          "raw_names": [
+            "Juke"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Kait",
+          "raw_names": [],
+          "source_ids": [
+            "nissan-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Kicks",
+          "raw_names": [
+            "Kicks"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Kicks Play",
+          "raw_names": [],
+          "source_ids": [
+            "nissan-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "LEAF",
+          "raw_names": [
+            "LEAF"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Magnite",
+          "raw_names": [],
+          "source_ids": [
+            "nissan-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Maxima",
+          "raw_names": [
+            "Maxima"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Murano",
+          "raw_names": [
+            "Murano"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Murano CrossCabriolet",
+          "raw_names": [
+            "Murano CrossCabriolet"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "NV",
+          "raw_names": [
+            "NV",
+            "NV Cargo",
+            "NV Passenger"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "NV200",
+          "raw_names": [
+            "NV200"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "NX",
+          "raw_names": [
+            "NX"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Pathfinder",
+          "raw_names": [
+            "Pathfinder"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Pulsar",
+          "raw_names": [
+            "Pulsar"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Qashqai",
+          "raw_names": [],
+          "source_ids": [
+            "nissan-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Quest",
+          "raw_names": [
+            "Quest"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Rogue",
+          "raw_names": [
+            "Rogue",
+            "Rogue Plug-In Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Rogue Select",
+          "raw_names": [
+            "Rogue Select"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Rogue Sport",
+          "raw_names": [
+            "Rogue Sport"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Sentra",
+          "raw_names": [
+            "Sentra"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Stanza",
+          "raw_names": [
+            "Stanza"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Titan",
+          "raw_names": [
+            "Titan"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Titan XD",
+          "raw_names": [
+            "Titan XD"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Truck",
+          "raw_names": [
+            "Truck"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Urvan",
+          "raw_names": [],
+          "source_ids": [
+            "nissan-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Van",
+          "raw_names": [
+            "Van"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Vanette",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-nissan"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Versa",
+          "raw_names": [
+            "Versa"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Versa Note",
+          "raw_names": [
+            "Versa Note"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "X-Trail",
+          "raw_names": [],
+          "source_ids": [
+            "nissan-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Xterra",
+          "raw_names": [
+            "Xterra"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Z",
+          "raw_names": [
+            "Z"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Omoda",
+      "models": [
+        {
+          "model": "C5",
+          "raw_names": [],
+          "source_ids": [
+            "omoda-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "C7",
+          "raw_names": [],
+          "source_ids": [
+            "omoda-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "E5",
+          "raw_names": [],
+          "source_ids": [
+            "omoda-cr"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Peugeot",
+      "models": [
+        {
+          "model": "2008",
+          "raw_names": [],
+          "source_ids": [
+            "peugeot-cr",
+            "crautos-peugeot"
+          ],
+          "manual": true
+        },
+        {
+          "model": "206",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-peugeot"
+          ],
+          "manual": true
+        },
+        {
+          "model": "208",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-peugeot"
+          ],
+          "manual": true
+        },
+        {
+          "model": "3008",
+          "raw_names": [],
+          "source_ids": [
+            "peugeot-cr",
+            "crautos-peugeot"
+          ],
+          "manual": true
+        },
+        {
+          "model": "301",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-peugeot"
+          ],
+          "manual": true
+        },
+        {
+          "model": "307",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-peugeot"
+          ],
+          "manual": true
+        },
+        {
+          "model": "308",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-peugeot"
+          ],
+          "manual": true
+        },
+        {
+          "model": "5008",
+          "raw_names": [],
+          "source_ids": [
+            "peugeot-cr",
+            "crautos-peugeot"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Landtrek",
+          "raw_names": [],
+          "source_ids": [
+            "peugeot-cr",
+            "crautos-peugeot"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Partner",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-peugeot"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Rifter",
+          "raw_names": [],
+          "source_ids": [
+            "peugeot-cr",
+            "crautos-peugeot"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "RAM",
+      "models": [
+        {
+          "model": "1500",
+          "raw_names": [
+            "1500",
+            "1500 Classic"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "2500",
+          "raw_names": [
+            "2500"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "3500",
+          "raw_names": [
+            "3500"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "C/V",
+          "raw_names": [
+            "C/V Cargo Van",
+            "C/V Tradesman"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Dakota",
+          "raw_names": [
+            "Dakota"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "ProMaster",
+          "raw_names": [
+            "ProMaster Cargo Van",
+            "ProMaster EV Cargo Van",
+            "ProMaster EV Delivery Van",
+            "ProMaster EV Step Van",
+            "ProMaster Window Van"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "ProMaster City",
+          "raw_names": [
+            "ProMaster City"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Renault",
+      "models": [
+        {
+          "model": "Alaskan",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-renault"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Arkana",
+          "raw_names": [],
+          "source_ids": [
+            "renault-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Captur",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-renault"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Dokker",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-renault"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Duster",
+          "raw_names": [],
+          "source_ids": [
+            "renault-cr",
+            "crautos-renault"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Express",
+          "raw_names": [],
+          "source_ids": [
+            "renault-cr",
+            "crautos-renault"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Fluence",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-renault"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Kardian",
+          "raw_names": [],
+          "source_ids": [
+            "renault-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Koleos",
+          "raw_names": [],
+          "source_ids": [
+            "renault-cr",
+            "crautos-renault"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Kwid",
+          "raw_names": [],
+          "source_ids": [
+            "renault-cr",
+            "crautos-renault"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Master",
+          "raw_names": [],
+          "source_ids": [
+            "renault-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Megane",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-renault"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Oroch",
+          "raw_names": [],
+          "source_ids": [
+            "renault-cr",
+            "crautos-renault"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Sandero",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-renault"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Scenic",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-renault"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Stepway",
+          "raw_names": [],
+          "source_ids": [
+            "renault-cr",
+            "crautos-renault"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Riddara",
+      "models": [
+        {
+          "model": "RD6",
+          "raw_names": [],
+          "source_ids": [
+            "riddara-cr"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Seres",
+      "models": [
+        {
+          "model": "3",
+          "raw_names": [],
+          "source_ids": [
+            "e24-seres"
+          ],
+          "manual": true
+        },
+        {
+          "model": "5",
+          "raw_names": [],
+          "source_ids": [
+            "seres-cr"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Subaru",
+      "models": [
+        {
+          "model": "Ascent",
+          "raw_names": [
+            "Ascent"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Baja",
+          "raw_names": [
+            "Baja"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "BRZ",
+          "raw_names": [
+            "BRZ"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Crosstrek",
+          "raw_names": [
+            "Crosstrek",
+            "XV Crosstrek"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Forester",
+          "raw_names": [
+            "Forester"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Impreza",
+          "raw_names": [
+            "Impreza"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Justy",
+          "raw_names": [
+            "Justy"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Legacy",
+          "raw_names": [
+            "Legacy"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Loyale",
+          "raw_names": [
+            "Loyale"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Outback",
+          "raw_names": [
+            "Outback"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Solterra",
+          "raw_names": [
+            "Solterra"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SVX",
+          "raw_names": [
+            "SVX"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Trailseeker",
+          "raw_names": [
+            "Trailseeker"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Tribeca",
+          "raw_names": [
+            "B9 Tribeca",
+            "Tribeca"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Uncharted",
+          "raw_names": [
+            "Uncharted"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "WRX",
+          "raw_names": [
+            "Impreza WRX",
+            "STI S209",
+            "WRX"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "XT",
+          "raw_names": [
+            "XT"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Suzuki",
+      "models": [
+        {
+          "model": "Across",
+          "raw_names": [],
+          "source_ids": [
+            "suzuki-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Aerio",
+          "raw_names": [
+            "Aerio"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Alto",
+          "raw_names": [],
+          "source_ids": [
+            "suzuki-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "APV",
+          "raw_names": [],
+          "source_ids": [
+            "suzuki-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Baleno",
+          "raw_names": [],
+          "source_ids": [
+            "suzuki-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Celerio",
+          "raw_names": [],
+          "source_ids": [
+            "suzuki-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Dzire",
+          "raw_names": [],
+          "source_ids": [
+            "suzuki-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "e Vitara",
+          "raw_names": [],
+          "source_ids": [
+            "suzuki-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Eeco",
+          "raw_names": [],
+          "source_ids": [
+            "suzuki-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Equator",
+          "raw_names": [
+            "Equator"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Esteem",
+          "raw_names": [
+            "Esteem"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Forenza",
+          "raw_names": [
+            "Forenza"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Fronx",
+          "raw_names": [],
+          "source_ids": [
+            "suzuki-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Grand Vitara",
+          "raw_names": [
+            "Grand Vitara"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Jimny",
+          "raw_names": [],
+          "source_ids": [
+            "suzuki-cr",
+            "e24-suzuki",
+            "crautos-jimny"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Kizashi",
+          "raw_names": [
+            "Kizashi"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Reno",
+          "raw_names": [
+            "Reno"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S-Cross",
+          "raw_names": [],
+          "source_ids": [
+            "suzuki-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "S-Presso",
+          "raw_names": [],
+          "source_ids": [
+            "suzuki-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Samurai",
+          "raw_names": [
+            "Samurai"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Sidekick",
+          "raw_names": [
+            "Sidekick"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Swift",
+          "raw_names": [
+            "Swift"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "SX4",
+          "raw_names": [
+            "SX4"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Verona",
+          "raw_names": [
+            "Verona"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Vitara",
+          "raw_names": [
+            "Vitara"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "X-90",
+          "raw_names": [
+            "X-90"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "XL7",
+          "raw_names": [
+            "XL-7",
+            "XL7"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "SWM",
+      "models": [
+        {
+          "model": "G01",
+          "raw_names": [],
+          "source_ids": [
+            "swm-cr"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Toyota",
+      "models": [
+        {
+          "model": "1000",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-toyota"
+          ],
+          "manual": true
+        },
+        {
+          "model": "4Runner",
+          "raw_names": [
+            "4Runner"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "86",
+          "raw_names": [
+            "86",
+            "GR86"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Agya",
+          "raw_names": [],
+          "source_ids": [
+            "toyota-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Avalon",
+          "raw_names": [
+            "Avalon",
+            "Avalon Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Avanza",
+          "raw_names": [],
+          "source_ids": [
+            "toyota-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "bZ",
+          "raw_names": [
+            "bZ"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "bZ Woodland",
+          "raw_names": [
+            "bZ Woodland"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "bZ4X",
+          "raw_names": [
+            "bZ4X"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "C-HR",
+          "raw_names": [
+            "C-HR"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Camry",
+          "raw_names": [
+            "Camry",
+            "Camry Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Camry Solara",
+          "raw_names": [
+            "Camry Solara"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Celica",
+          "raw_names": [
+            "Celica"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Corolla",
+          "raw_names": [
+            "Corolla",
+            "Corolla Hybrid",
+            "GR Corolla"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Corolla Cross",
+          "raw_names": [
+            "Corolla Cross",
+            "Corolla Cross Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Corolla Hatchback",
+          "raw_names": [
+            "Corolla Hatchback"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Corolla iM",
+          "raw_names": [
+            "Corolla iM"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Cressida",
+          "raw_names": [
+            "Cressida"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Crown",
+          "raw_names": [
+            "Crown"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Crown Signia",
+          "raw_names": [
+            "Crown Signia"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "ECHO",
+          "raw_names": [
+            "ECHO"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "FJ Cruiser",
+          "raw_names": [
+            "FJ Cruiser"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Fortuner",
+          "raw_names": [],
+          "source_ids": [
+            "toyota-cr",
+            "e24-toyota",
+            "crautos-featured"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Grand Highlander",
+          "raw_names": [
+            "Grand Highlander",
+            "Grand Highlander Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Hiace",
+          "raw_names": [],
+          "source_ids": [
+            "toyota-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Highlander",
+          "raw_names": [
+            "Highlander",
+            "Highlander Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Hilux",
+          "raw_names": [],
+          "source_ids": [
+            "toyota-cr",
+            "e24-hilux",
+            "crautos-featured"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Land Cruiser",
+          "raw_names": [
+            "Land Cruiser"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Land Cruiser Prado",
+          "raw_names": [],
+          "source_ids": [
+            "toyota-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Majesty",
+          "raw_names": [],
+          "source_ids": [
+            "toyota-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Matrix",
+          "raw_names": [
+            "Matrix"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Mirai",
+          "raw_names": [
+            "Mirai"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Model F",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-toyota"
+          ],
+          "manual": true
+        },
+        {
+          "model": "MR2",
+          "raw_names": [
+            "MR2"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "MR2 Spyder",
+          "raw_names": [
+            "MR2 Spyder"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Paseo",
+          "raw_names": [
+            "Paseo"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Pickup",
+          "raw_names": [
+            "Pickup"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Previa",
+          "raw_names": [
+            "Previa"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Prius",
+          "raw_names": [
+            "Prius",
+            "Prius Plug-In Hybrid",
+            "Prius Plug-in",
+            "Prius Prime"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Prius c",
+          "raw_names": [
+            "Prius c"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Prius v",
+          "raw_names": [
+            "Prius v"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Raize",
+          "raw_names": [],
+          "source_ids": [
+            "toyota-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "RAV4",
+          "raw_names": [
+            "RAV4",
+            "RAV4 EV",
+            "RAV4 Hybrid",
+            "RAV4 Plug-In Hybrid",
+            "RAV4 Prime"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Rush",
+          "raw_names": [],
+          "source_ids": [
+            "toyota-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Sequoia",
+          "raw_names": [
+            "Sequoia"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Sienna",
+          "raw_names": [
+            "Sienna"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Starlet",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-toyota"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Supra",
+          "raw_names": [
+            "GR Supra",
+            "Supra"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "T100",
+          "raw_names": [
+            "T100"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Tacoma",
+          "raw_names": [
+            "Tacoma"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Tercel",
+          "raw_names": [
+            "Tercel"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Tundra",
+          "raw_names": [
+            "Tundra"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Venza",
+          "raw_names": [
+            "Venza"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Yaris",
+          "raw_names": [
+            "Yaris"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Yaris Hatchback",
+          "raw_names": [
+            "Yaris Hatchback"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Yaris iA",
+          "raw_names": [
+            "Yaris iA"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "VGV",
+      "models": [
+        {
+          "model": "Bolden S6",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-vgv"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Bolden S7",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-vgv"
+          ],
+          "manual": true
+        },
+        {
+          "model": "U70",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-vgv"
+          ],
+          "manual": true
+        },
+        {
+          "model": "U70B",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-vgv"
+          ],
+          "manual": true
+        },
+        {
+          "model": "VX7",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-vgv"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Volkswagen",
+      "models": [
+        {
+          "model": "Amarok",
+          "raw_names": [],
+          "source_ids": [
+            "vw-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Arteon",
+          "raw_names": [
+            "Arteon"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Atlas",
+          "raw_names": [
+            "Atlas"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Atlas Cross Sport",
+          "raw_names": [
+            "Atlas Cross Sport"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Beetle",
+          "raw_names": [
+            "Beetle"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Beetle Convertible",
+          "raw_names": [
+            "Beetle Convertible"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Cabrio",
+          "raw_names": [
+            "Cabrio"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Cabriolet",
+          "raw_names": [
+            "Cabriolet"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "CC",
+          "raw_names": [
+            "CC"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Corrado",
+          "raw_names": [
+            "Corrado"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "e-Golf",
+          "raw_names": [
+            "e-Golf"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Eos",
+          "raw_names": [
+            "Eos"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "EuroVan",
+          "raw_names": [
+            "EuroVan"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Fox",
+          "raw_names": [
+            "Fox"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GLI",
+          "raw_names": [
+            "GLI"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Golf",
+          "raw_names": [
+            "Golf"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Golf Alltrack",
+          "raw_names": [
+            "Golf Alltrack"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Golf GTI",
+          "raw_names": [
+            "Golf GTI"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Golf R",
+          "raw_names": [
+            "Golf R"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Golf SportWagen",
+          "raw_names": [
+            "Golf SportWagen"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "GTI",
+          "raw_names": [
+            "GTI"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "ID. Buzz",
+          "raw_names": [
+            "ID. Buzz"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "ID.4",
+          "raw_names": [
+            "ID.4"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Jetta",
+          "raw_names": [
+            "Jetta",
+            "Jetta Hybrid"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Jetta GLI",
+          "raw_names": [
+            "Jetta GLI"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Jetta SportWagen",
+          "raw_names": [
+            "Jetta SportWagen"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "New Beetle",
+          "raw_names": [
+            "New Beetle"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Nivus",
+          "raw_names": [],
+          "source_ids": [
+            "vw-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Passat",
+          "raw_names": [
+            "Passat"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Phaeton",
+          "raw_names": [
+            "Phaeton"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "R32",
+          "raw_names": [
+            "R32"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Rabbit",
+          "raw_names": [
+            "Rabbit"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Routan",
+          "raw_names": [
+            "Routan"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Saveiro",
+          "raw_names": [],
+          "source_ids": [
+            "vw-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "T-Cross",
+          "raw_names": [],
+          "source_ids": [
+            "vw-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Taos",
+          "raw_names": [
+            "Taos"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Tera",
+          "raw_names": [],
+          "source_ids": [
+            "vw-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "Tiguan",
+          "raw_names": [
+            "Tiguan"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Tiguan Limited",
+          "raw_names": [
+            "Tiguan Limited"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Touareg",
+          "raw_names": [
+            "Touareg"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Touareg 2",
+          "raw_names": [
+            "Touareg 2"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Vanagon",
+          "raw_names": [
+            "Vanagon"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "Volvo",
+      "models": [
+        {
+          "model": "240",
+          "raw_names": [
+            "240"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "740",
+          "raw_names": [
+            "740"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "760",
+          "raw_names": [
+            "760"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "780",
+          "raw_names": [
+            "780"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "850",
+          "raw_names": [
+            "850"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "940",
+          "raw_names": [
+            "940"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "960",
+          "raw_names": [
+            "960"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "C30",
+          "raw_names": [
+            "C30"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "C40",
+          "raw_names": [
+            "C40 Recharge"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "C70",
+          "raw_names": [
+            "C70"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "Coupe",
+          "raw_names": [
+            "Coupe"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "EX30",
+          "raw_names": [
+            "EX30"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "EX30 Cross Country",
+          "raw_names": [
+            "EX30 Cross Country"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "EX40",
+          "raw_names": [
+            "EX40"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "EX90",
+          "raw_names": [
+            "EX90"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S40",
+          "raw_names": [
+            "S40"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S60",
+          "raw_names": [
+            "S60"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S60 Cross Country",
+          "raw_names": [
+            "S60 Cross Country"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S70",
+          "raw_names": [
+            "S70"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S80",
+          "raw_names": [
+            "S80"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "S90",
+          "raw_names": [
+            "S90"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "V40",
+          "raw_names": [
+            "V40"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "V50",
+          "raw_names": [
+            "V50"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "V60",
+          "raw_names": [
+            "V60"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "V60 Cross Country",
+          "raw_names": [
+            "V60 Cross Country"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "V70",
+          "raw_names": [
+            "V70"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "V90",
+          "raw_names": [
+            "V90"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "V90 Cross Country",
+          "raw_names": [
+            "V90 Cross Country"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "XC",
+          "raw_names": [
+            "XC"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "XC40",
+          "raw_names": [
+            "XC40",
+            "XC40 Recharge"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "XC60",
+          "raw_names": [
+            "XC60"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "XC70",
+          "raw_names": [
+            "XC70"
+          ],
+          "source_ids": [],
+          "manual": false
+        },
+        {
+          "model": "XC90",
+          "raw_names": [
+            "XC90"
+          ],
+          "source_ids": [],
+          "manual": false
+        }
+      ]
+    },
+    {
+      "make": "XPeng",
+      "models": [
+        {
+          "model": "G3i",
+          "raw_names": [],
+          "source_ids": [
+            "xpeng-history"
+          ],
+          "manual": true
+        },
+        {
+          "model": "G6",
+          "raw_names": [],
+          "source_ids": [
+            "xpeng-g6"
+          ],
+          "manual": true
+        },
+        {
+          "model": "G9",
+          "raw_names": [],
+          "source_ids": [
+            "xpeng-history"
+          ],
+          "manual": true
+        }
+      ]
+    },
+    {
+      "make": "Zeekr",
+      "models": [
+        {
+          "model": "001",
+          "raw_names": [],
+          "source_ids": [
+            "zeekr-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "007",
+          "raw_names": [],
+          "source_ids": [
+            "crautos-zeekr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "009",
+          "raw_names": [],
+          "source_ids": [
+            "zeekr-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "7X",
+          "raw_names": [],
+          "source_ids": [
+            "zeekr-cr"
+          ],
+          "manual": true
+        },
+        {
+          "model": "X",
+          "raw_names": [],
+          "source_ids": [
+            "zeekr-cr",
+            "crautos-zeekr"
+          ],
+          "manual": true
+        }
+      ]
+    }
+  ]
+}

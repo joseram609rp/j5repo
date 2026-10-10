@@ -1,0 +1,469 @@
+{
+  "schema_version": 1,
+  "requests_this_round": 60,
+  "prior_requests_estimate": 2,
+  "total_requests_estimate": 62,
+  "remaining_requests_estimate": 38,
+  "usage_verified": false,
+  "makes": 57,
+  "models": 986,
+  "manual_additions": 302,
+  "coverage": [
+    {
+      "make": "Aion",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 2,
+      "final_models": 2,
+      "requests": 1
+    },
+    {
+      "make": "Audi",
+      "carsxe_models": 62,
+      "carsxe_base_models": 62,
+      "manual_additions": 0,
+      "final_models": 62,
+      "requests": 1
+    },
+    {
+      "make": "Avatr",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 2,
+      "final_models": 2,
+      "requests": 1
+    },
+    {
+      "make": "BAIC",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 6,
+      "final_models": 6,
+      "requests": 1
+    },
+    {
+      "make": "BMW",
+      "carsxe_models": 64,
+      "carsxe_base_models": 47,
+      "manual_additions": 0,
+      "final_models": 47,
+      "requests": 1
+    },
+    {
+      "make": "BYD",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 16,
+      "final_models": 16,
+      "requests": 1
+    },
+    {
+      "make": "Changan",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 15,
+      "final_models": 15,
+      "requests": 1
+    },
+    {
+      "make": "Chery",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 8,
+      "final_models": 8,
+      "requests": 1
+    },
+    {
+      "make": "Chevrolet",
+      "carsxe_models": 82,
+      "carsxe_base_models": 59,
+      "manual_additions": 0,
+      "final_models": 59,
+      "requests": 1
+    },
+    {
+      "make": "Citroën",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 16,
+      "final_models": 16,
+      "requests": 1
+    },
+    {
+      "make": "Daihatsu",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 6,
+      "final_models": 6,
+      "requests": 1
+    },
+    {
+      "make": "Deepal",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 2,
+      "final_models": 2,
+      "requests": 1
+    },
+    {
+      "make": "DFSK",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 8,
+      "final_models": 8,
+      "requests": 1
+    },
+    {
+      "make": "Dodge",
+      "carsxe_models": 39,
+      "carsxe_base_models": 39,
+      "manual_additions": 0,
+      "final_models": 39,
+      "requests": 1
+    },
+    {
+      "make": "Dongfeng",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 14,
+      "final_models": 14,
+      "requests": 1
+    },
+    {
+      "make": "Fiat",
+      "carsxe_models": 5,
+      "carsxe_base_models": 5,
+      "manual_additions": 0,
+      "final_models": 5,
+      "requests": 1
+    },
+    {
+      "make": "Ford",
+      "carsxe_models": 76,
+      "carsxe_base_models": 51,
+      "manual_additions": 0,
+      "final_models": 51,
+      "requests": 1
+    },
+    {
+      "make": "Foton",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 4,
+      "final_models": 4,
+      "requests": 1
+    },
+    {
+      "make": "GAC",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 6,
+      "final_models": 6,
+      "requests": 1
+    },
+    {
+      "make": "Geely",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 14,
+      "final_models": 14,
+      "requests": 1
+    },
+    {
+      "make": "Great Wall",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 8,
+      "final_models": 8,
+      "requests": 2
+    },
+    {
+      "make": "Haval",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 4,
+      "final_models": 4,
+      "requests": 1
+    },
+    {
+      "make": "Honda",
+      "carsxe_models": 25,
+      "carsxe_base_models": 21,
+      "manual_additions": 0,
+      "final_models": 21,
+      "requests": 1
+    },
+    {
+      "make": "Hyundai",
+      "carsxe_models": 42,
+      "carsxe_base_models": 31,
+      "manual_additions": 5,
+      "final_models": 36,
+      "requests": 1
+    },
+    {
+      "make": "Isuzu",
+      "carsxe_models": 13,
+      "carsxe_base_models": 13,
+      "manual_additions": 2,
+      "final_models": 15,
+      "requests": 1
+    },
+    {
+      "make": "JAC",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 15,
+      "final_models": 15,
+      "requests": 1
+    },
+    {
+      "make": "Jaecoo",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 3,
+      "final_models": 3,
+      "requests": 1
+    },
+    {
+      "make": "Jeep",
+      "carsxe_models": 22,
+      "carsxe_base_models": 17,
+      "manual_additions": 0,
+      "final_models": 17,
+      "requests": 1
+    },
+    {
+      "make": "Jetour",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 5,
+      "final_models": 5,
+      "requests": 1
+    },
+    {
+      "make": "JMC",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 3,
+      "final_models": 3,
+      "requests": 1
+    },
+    {
+      "make": "Kaiyi",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 4,
+      "final_models": 4,
+      "requests": 1
+    },
+    {
+      "make": "KGM",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 7,
+      "final_models": 7,
+      "requests": 2
+    },
+    {
+      "make": "Kia",
+      "carsxe_models": 33,
+      "carsxe_base_models": 23,
+      "manual_additions": 14,
+      "final_models": 37,
+      "requests": 1
+    },
+    {
+      "make": "Land Rover",
+      "carsxe_models": 12,
+      "carsxe_base_models": 12,
+      "manual_additions": 0,
+      "final_models": 12,
+      "requests": 1
+    },
+    {
+      "make": "Lexus",
+      "carsxe_models": 76,
+      "carsxe_base_models": 17,
+      "manual_additions": 0,
+      "final_models": 17,
+      "requests": 1
+    },
+    {
+      "make": "Maxus",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 10,
+      "final_models": 10,
+      "requests": 1
+    },
+    {
+      "make": "Mazda",
+      "carsxe_models": 37,
+      "carsxe_base_models": 29,
+      "manual_additions": 0,
+      "final_models": 29,
+      "requests": 1
+    },
+    {
+      "make": "Mercedes-Benz",
+      "carsxe_models": 63,
+      "carsxe_base_models": 47,
+      "manual_additions": 0,
+      "final_models": 47,
+      "requests": 1
+    },
+    {
+      "make": "MG",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 12,
+      "final_models": 12,
+      "requests": 2
+    },
+    {
+      "make": "Mitsubishi",
+      "carsxe_models": 24,
+      "carsxe_base_models": 21,
+      "manual_additions": 3,
+      "final_models": 24,
+      "requests": 1
+    },
+    {
+      "make": "Neta",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 3,
+      "final_models": 3,
+      "requests": 1
+    },
+    {
+      "make": "Nissan",
+      "carsxe_models": 41,
+      "carsxe_base_models": 37,
+      "manual_additions": 9,
+      "final_models": 46,
+      "requests": 1
+    },
+    {
+      "make": "Omoda",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 3,
+      "final_models": 3,
+      "requests": 1
+    },
+    {
+      "make": "Peugeot",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 11,
+      "final_models": 11,
+      "requests": 1
+    },
+    {
+      "make": "RAM",
+      "carsxe_models": 13,
+      "carsxe_base_models": 7,
+      "manual_additions": 0,
+      "final_models": 7,
+      "requests": 1
+    },
+    {
+      "make": "Renault",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 16,
+      "final_models": 16,
+      "requests": 1
+    },
+    {
+      "make": "Riddara",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 1,
+      "final_models": 1,
+      "requests": 1
+    },
+    {
+      "make": "Seres",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 2,
+      "final_models": 2,
+      "requests": 1
+    },
+    {
+      "make": "Subaru",
+      "carsxe_models": 21,
+      "carsxe_base_models": 17,
+      "manual_additions": 0,
+      "final_models": 17,
+      "requests": 1
+    },
+    {
+      "make": "Suzuki",
+      "carsxe_models": 16,
+      "carsxe_base_models": 15,
+      "manual_additions": 12,
+      "final_models": 27,
+      "requests": 1
+    },
+    {
+      "make": "SWM",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 1,
+      "final_models": 1,
+      "requests": 1
+    },
+    {
+      "make": "Toyota",
+      "carsxe_models": 60,
+      "carsxe_base_models": 44,
+      "manual_additions": 12,
+      "final_models": 56,
+      "requests": 1
+    },
+    {
+      "make": "VGV",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 5,
+      "final_models": 5,
+      "requests": 1
+    },
+    {
+      "make": "Volkswagen",
+      "carsxe_models": 38,
+      "carsxe_base_models": 37,
+      "manual_additions": 5,
+      "final_models": 42,
+      "requests": 1
+    },
+    {
+      "make": "Volvo",
+      "carsxe_models": 34,
+      "carsxe_base_models": 33,
+      "manual_additions": 0,
+      "final_models": 33,
+      "requests": 1
+    },
+    {
+      "make": "XPeng",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 3,
+      "final_models": 3,
+      "requests": 1
+    },
+    {
+      "make": "Zeekr",
+      "carsxe_models": 0,
+      "carsxe_base_models": 0,
+      "manual_additions": 5,
+      "final_models": 5,
+      "requests": 1
+    }
+  ]
+}

@@ -9,7 +9,7 @@ const origin = 'http://localhost:5173';
 const password = 'Local-test-only-123!';
 const adminId = '11111111-1111-4111-8111-111111111111';
 const mechanicId = '22222222-2222-4222-8222-222222222222';
-const draft = { customerName: 'Fixture', plate: 'ABC123', mileage: null, notes: '', recommendations: '' };
+const draft = { customerName: 'Fixture', plate: 'ABC123', mileage: null, paymentMethod: 'CASH' as const, electronicInvoice: false, notes: '', recommendations: '' };
 let passwordHash: string;
 beforeAll(async () => { passwordHash = await hashPassword(password); });
 function setup(production = false) {
@@ -126,7 +126,7 @@ describe('persistent API contracts (transactional test double)', () => {
     expect(await replay.json()).toEqual(response);
     expect(replay.headers.get('etag')).toBe(etag);
     expect(repo.orders.size).toBe(1);
-    expect((await save(key, undefined, { ...draft, notes: 'changed' })).status).toBe(409);
+    expect((await save(key, undefined, { ...draft, paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'changed' })).status).toBe(409);
     expect((await save(key, etag)).status).toBe(409);
     expect((await save(key, undefined, draft, crypto.randomUUID())).status).toBe(409);
     expect((await save(crypto.randomUUID())).status).toBe(428);
@@ -197,12 +197,12 @@ describe('persistent API contracts (transactional test double)', () => {
     const {call,login}=setup();const mechanic=await login('mechanic');const admin=await login();const id=crypto.randomUUID();
     const save=(body:unknown,headers=mechanic.headers,version?:string)=>call('/orders/'+id,'PUT',body,{...headers,'idempotency-key':crypto.randomUUID(),...(version?{'if-match':'"'+version+'"'}:{})});
     const first=await save(draft);const initial=await first.json();
-    const complete={...draft,notes:'Frenos revisados',identification:'123456789',phone:'88888888',make:'Toyota',model:'Corolla',year:2020,mileage:0,items:[{description:'Frenos',price:100.1},{description:'Ajuste',price:0.2}],action:'close'};
+    const complete={...draft,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: 'Frenos revisados',identification:'123456789',phone:'88888888',make:'Toyota',model:'Corolla',year:2020,mileage:0,items:[{description:'Frenos',price:100.1},{description:'Ajuste',price:0.2}],action:'close'};
     expect((await save({...complete,items:[]},mechanic.headers,initial.version)).status).toBe(400);
     expect((await save({...complete,mileage:null},mechanic.headers,initial.version)).status).toBe(400);
-    for (const missing of [{notes:''},{notes:'   '},{notes:'\t\n'},{customerName:''},{customerName:'   '},{year:null},{model:''},{model:'   '}]) expect((await save({...complete,...missing},mechanic.headers,initial.version)).status).toBe(400);
+    for (const missing of [{customerName:''},{customerName:'   '},{year:null},{model:''},{model:'   '}]) expect((await save({...complete,...missing},mechanic.headers,initial.version)).status).toBe(400);
     expect((await save({...complete,totalAmount:1},mechanic.headers,initial.version)).status).toBe(400);
-    const closed=await (await save(complete,mechanic.headers,initial.version)).json();expect(closed.status).toBe('CLOSED');expect(closed.totalAmount).toBe(100.3);
+    const closed=await (await save(complete,mechanic.headers,initial.version)).json();expect(closed.status).toBe('CLOSED');expect(closed.totalAmount).toBe(113.34);
     expect((await save(draft,mechanic.headers,closed.version)).status).toBe(409);
     expect((await save({...complete,action:'reopen'},mechanic.headers,closed.version)).status).toBe(403);
     expect((await save({...complete,action:'reopen'},admin.headers,closed.version)).status).toBe(200);
@@ -227,4 +227,91 @@ it('password reset persists the new hash and rejects the previous password', asy
   expect((await call('/admin/users/' + mechanicId, 'PATCH', { password: changed }, { ...headers, 'idempotency-key': crypto.randomUUID() })).status).toBe(200);
   expect((await login('mechanic')).response.status).toBe(401);
   expect((await login('mechanic', changed)).response.status).toBe(200);
+});
+
+it('same mechanic creates multiple OPEN; ADMIN reassigns OPEN with ETag, replay and audit',async()=>{
+ const {repo,call,login}=setup();const mechanic=await login('mechanic'),admin=await login();
+ const save=(id:string,body:unknown,headers=mechanic.headers,version?:string,key=crypto.randomUUID())=>call('/orders/'+id,'PUT',body,{...headers,'idempotency-key':key,...(version?{'if-match':'"'+version+'"'}:{})});
+ const a=await (await save(crypto.randomUUID(),draft)).json();const b=await (await save(crypto.randomUUID(),draft)).json();
+ expect(a.id).not.toBe(b.id);expect(a.mechanicId).toBe(mechanicId);expect(b.mechanicId).toBe(mechanicId);expect(repo.orders.size).toBe(2);
+ expect((await save(a.id,{...draft,mechanicId:adminId},mechanic.headers,a.version)).status).toBe(403);
+ expect((await save(a.id,{...draft,mechanicId:crypto.randomUUID()},admin.headers,a.version)).status).toBe(400);
+ const key=crypto.randomUUID(), body={...draft,mechanicId:adminId};
+ const changed=await (await save(a.id,body,admin.headers,a.version,key)).json();
+ expect(changed.mechanicId).toBe(adminId);expect(changed.version).not.toBe(a.version);
+ expect(await (await save(a.id,body,admin.headers,a.version,key)).json()).toEqual(changed);
+ expect(repo.audits.filter(x=>x.action==='ORDER_MECHANIC_CHANGED')).toEqual([{actorId:adminId,action:'ORDER_MECHANIC_CHANGED',entityId:a.id}]);
+ expect((await save(a.id,draft,admin.headers,a.version)).status).toBe(412);
+ const closed=await (await save(a.id,{...draft,customerName:'Cliente',identification:'123456789',phone:'88888888',make:'Toyota',model:'Corolla',year:2035,mileage:0,items:[{description:'Frenos',price:1}],paymentMethod: 'CASH' as const, electronicInvoice: false, notes: '',action:'close'},admin.headers,changed.version)).json();
+ expect(closed.status).toBe('CLOSED');
+ for(const action of [undefined,'admin-edit','reopen']) expect((await save(a.id,{...closed.draft,mechanicId,action},admin.headers,closed.version)).status).toBe(409);
+});
+
+it('catalog requires authentication and GET never renews idle session',async()=>{
+ const {repo,call,login}=setup();
+ expect((await call('/vehicle-catalog')).status).toBe(401);
+ const {headers}=await login(); const before=[...repo.sessions.values()][0]!.lastActivity; repo.clock+=1000;
+ const response=await call('/vehicle-catalog','GET',undefined,headers);
+ expect(response.status).toBe(200); expect(response.headers.get('cache-control')).toBe('no-store');
+ expect(await response.json()).toEqual(await repo.vehicleCatalog());
+ expect([...repo.sessions.values()][0]!.lastActivity).toBe(before);
+});
+it('locks after five failures across API instances, rejects correct credentials while locked, expires and resets',async()=>{
+ const {repo,login}=setup();
+ for(let i=0;i<4;i++)expect((await login('mechanic','wrong')).response.status).toBe(401);
+ expect(repo.accounts.get(mechanicId)).toMatchObject({active:true,failedLoginAttempts:4,lockedUntil:null});
+ expect((await login('mechanic','wrong')).response.status).toBe(401);
+ expect(repo.accounts.get(mechanicId)!.lockedUntil).toBe(repo.clock+900000);
+ const other=createApi({repository:repo,origin});
+ const retry=()=>other(new Request(origin+'/api/auth/login',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify({username:'mechanic',password})}));
+ expect((await retry()).status).toBe(401);expect(repo.accounts.get(mechanicId)!.failedLoginAttempts).toBe(5);
+ repo.clock+=900000;expect((await retry()).status).toBe(200);
+ expect(repo.accounts.get(mechanicId)).toMatchObject({failedLoginAttempts:0,lockedUntil:null});
+});
+it('correct login before threshold resets consecutive failures; inactive stays blocked',async()=>{
+ const {repo,login}=setup();for(let i=0;i<4;i++)await login('mechanic','wrong');
+ expect((await login('mechanic')).response.status).toBe(200);expect(repo.accounts.get(mechanicId)!.failedLoginAttempts).toBe(0);
+ repo.accounts.get(mechanicId)!.active=false;repo.clock+=900000;expect((await login('mechanic')).response.status).toBe(401);
+});
+it.each([{unlock:true},{password:'Replacement-123!'},{active:true}])('ADMIN clears persistent lockout %j',async patch=>{
+ const {repo,login,call}=setup();const {headers}=await login();
+ Object.assign(repo.accounts.get(mechanicId)!,{failedLoginAttempts:5,lockedUntil:repo.clock+900000,...('active' in patch?{active:false}:{})});
+ const response=await call('/admin/users/'+mechanicId,'PATCH',patch,{...headers,'idempotency-key':crypto.randomUUID()});
+ expect(response.status).toBe(200);expect(repo.accounts.get(mechanicId)).toMatchObject({failedLoginAttempts:0,lockedUntil:null});
+});
+it('five concurrent failures serialize without lost increments; local limiter remains effective',async()=>{
+ const {repo,login}=setup();await Promise.all(Array.from({length:5},()=>login('mechanic','wrong')));
+ expect(repo.accounts.get(mechanicId)).toMatchObject({failedLoginAttempts:5,lockedUntil:repo.clock+900000});
+ for(let i=5;i<15;i++)expect((await login('mechanic','wrong')).response.status).toBe(401);
+ expect((await login('mechanic','wrong')).response.status).toBe(429);
+});
+it('username uniqueness ignores role and canonicalizes exact/case/trim; concurrent create yields one account',async()=>{
+ const {repo,login,call}=setup();const {headers}=await login();
+ const create=(username:string,role='MECHANIC')=>call('/admin/users','POST',{username,fullName:'Different name',password,role},{...headers,'idempotency-key':crypto.randomUUID()});
+ expect((await create('mechanic','ADMIN')).status).toBe(409);
+ expect(await (await create(' MECHANIC ','ADMIN')).json()).toEqual({code:'USERNAME_EXISTS'});
+ const responses=await Promise.all([create('racing'),create(' RACING ','ADMIN')]);
+ expect(responses.map(r=>r.status).sort()).toEqual([201,409]);expect([...repo.accounts.values()].filter(u=>u.username==='racing')).toHaveLength(1);
+});
+it('safe deletion requires inactive, preserves history, blocks self and replays deletion',async()=>{
+ const {repo,login,call}=setup();const {headers}=await login();
+ const remove=(id:string,key=crypto.randomUUID())=>call('/admin/users/'+id,'DELETE',undefined,{...headers,'idempotency-key':key});
+ expect(await (await remove(adminId)).json()).toEqual({code:'CANNOT_DELETE_SELF'});
+ expect(await (await remove(mechanicId)).json()).toEqual({code:'USER_MUST_BE_INACTIVE'});
+ repo.accounts.get(mechanicId)!.active=false;
+ repo.audits.push({actorId:mechanicId,action:'LOGIN',entityId:mechanicId});
+ expect(await (await remove(mechanicId)).json()).toEqual({code:'USER_HAS_HISTORY'});
+ repo.audits=repo.audits.filter(a=>a.actorId!==mechanicId);
+ const key=crypto.randomUUID();expect((await remove(mechanicId,key)).status).toBe(200);expect(repo.accounts.has(mechanicId)).toBe(false);
+ expect((await remove(mechanicId,key)).status).toBe(200);
+});
+it('retry after committed invalid login uses a durable receipt and never counts twice',async()=>{
+ const {repo}=setup();let repeated=false;
+ const api=createApi({origin,repository:{run:async work=>{const result=await repo.run(work);if(!repeated){repeated=true;return repo.run(work);}return result;}}});
+ const response=await api(new Request(origin+'/api/auth/login',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify({username:'mechanic',password:'wrong'})}));
+ expect(response.status).toBe(401);expect(repo.accounts.get(mechanicId)!.failedLoginAttempts).toBe(1);expect(repo.receipts.size).toBe(1);
+});
+it.each([2601,2627])('maps SQL duplicate error %i to USERNAME_EXISTS',async number=>{
+ const {repo,login}=setup();const {headers}=await login();repo.insertUser=async()=>{throw Object.assign(new Error('duplicate'),{number});};
+ const api=createApi({repository:repo,origin});const response=await api(new Request(origin+'/api/admin/users',{method:'POST',headers:{origin,'content-type':'application/json',...headers,'idempotency-key':crypto.randomUUID()},body:JSON.stringify({username:'race',fullName:'Race',password,role:'ADMIN'})}));expect(response.status).toBe(409);expect(await response.json()).toEqual({code:'USERNAME_EXISTS'});
 });

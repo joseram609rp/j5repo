@@ -1,0 +1,2968 @@
+{
+  "schema_version": 1,
+  "brand_aliases": [
+    {
+      "canonical": "KGM",
+      "aliases": [
+        "SsangYong",
+        "Ssang Yong",
+        "Ssang-Yong"
+      ],
+      "source_ids": [
+        "kgm-cr"
+      ],
+      "note": "Nombre corporativo nuevo y marca histórica; misma familia de sugerencias."
+    },
+    {
+      "canonical": "Great Wall",
+      "aliases": [
+        "GWM",
+        "Greatwall",
+        "Great Wall Motors"
+      ],
+      "source_ids": [
+        "greatwall-cr"
+      ],
+      "note": "Equivalencia operativa local para pickups/históricos; no absorbe Haval, Tank ni Ora."
+    },
+    {
+      "canonical": "MG",
+      "aliases": [
+        "M.G.",
+        "M.G",
+        "MG Motor",
+        "Morris Garages"
+      ],
+      "source_ids": [
+        "mg-combustion"
+      ],
+      "note": "Puntuación/nombre expandido; no se prefija MG a ZS/RX5 dos veces."
+    },
+    {
+      "canonical": "Citroën",
+      "aliases": [
+        "Citroen"
+      ],
+      "source_ids": [
+        "citroen-cr"
+      ]
+    },
+    {
+      "canonical": "Mercedes-Benz",
+      "aliases": [
+        "Mercedes Benz",
+        "Mercedes"
+      ],
+      "source_ids": [
+        "aivema"
+      ]
+    },
+    {
+      "canonical": "Dongfeng",
+      "aliases": [
+        "Donfeng",
+        "Dongfeen",
+        "DFM"
+      ],
+      "source_ids": [
+        "dongfeng-cr"
+      ],
+      "note": "No aplicar a toda la categoría Donfeng (ZNA) de CRAutos: contiene otras marcas."
+    }
+  ],
+  "model_aliases": [
+    {
+      "make": "Toyota",
+      "from": "Avalon Hybrid",
+      "to": "Avalon",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "Camry Hybrid",
+      "to": "Camry",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "Corolla Cross Hybrid",
+      "to": "Corolla Cross",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "Corolla Hybrid",
+      "to": "Corolla",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "GR Corolla",
+      "to": "Corolla",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "GR Supra",
+      "to": "Supra",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "GR86",
+      "to": "86",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "Grand Highlander Hybrid",
+      "to": "Grand Highlander",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "Highlander Hybrid",
+      "to": "Highlander",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "Prius Plug-In Hybrid",
+      "to": "Prius",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "Prius Plug-in",
+      "to": "Prius",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "Prius Prime",
+      "to": "Prius",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "RAV4 EV",
+      "to": "RAV4",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "RAV4 Hybrid",
+      "to": "RAV4",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "RAV4 Plug-In Hybrid",
+      "to": "RAV4",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Toyota",
+      "from": "RAV4 Prime",
+      "to": "RAV4",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Nissan",
+      "from": "Altima Hybrid",
+      "to": "Altima",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Nissan",
+      "from": "Rogue Plug-In Hybrid",
+      "to": "Rogue",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Suzuki",
+      "from": "XL-7",
+      "to": "XL7",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mitsubishi",
+      "from": "Lancer Evolution",
+      "to": "Lancer",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mitsubishi",
+      "from": "Mirage G4",
+      "to": "Mirage",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mitsubishi",
+      "from": "Outlander PHEV",
+      "to": "Outlander",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Hyundai",
+      "from": "Elantra Hybrid",
+      "to": "Elantra",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Hyundai",
+      "from": "Elantra N",
+      "to": "Elantra",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Hyundai",
+      "from": "IONIQ 5 N",
+      "to": "IONIQ 5",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Hyundai",
+      "from": "Ioniq Electric",
+      "to": "Ioniq",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Hyundai",
+      "from": "Ioniq Hybrid",
+      "to": "Ioniq",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Hyundai",
+      "from": "Ioniq Plug-In Hybrid",
+      "to": "Ioniq",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Hyundai",
+      "from": "Kona Electric",
+      "to": "Kona",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Hyundai",
+      "from": "Santa Fe Hybrid",
+      "to": "Santa Fe",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Hyundai",
+      "from": "Santa Fe Plug-In Hybrid",
+      "to": "Santa Fe",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Hyundai",
+      "from": "Sonata Hybrid",
+      "to": "Sonata",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Hyundai",
+      "from": "Sonata Plug-in Hybrid",
+      "to": "Sonata",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Hyundai",
+      "from": "Tucson Plug-In Hybrid",
+      "to": "Tucson",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Kia",
+      "from": "Niro EV",
+      "to": "Niro",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Kia",
+      "from": "Niro Plug-In Hybrid",
+      "to": "Niro",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Kia",
+      "from": "Optima Hybrid",
+      "to": "Optima",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Kia",
+      "from": "Optima Plug-In Hybrid",
+      "to": "Optima",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Kia",
+      "from": "Sorento Hybrid",
+      "to": "Sorento",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Kia",
+      "from": "Sorento Plug-In Hybrid",
+      "to": "Sorento",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Kia",
+      "from": "Soul EV",
+      "to": "Soul",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Kia",
+      "from": "Sportage Hybrid",
+      "to": "Sportage",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Kia",
+      "from": "Sportage Plug-In Hybrid",
+      "to": "Sportage",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Kia",
+      "from": "Telluride Hybrid",
+      "to": "Telluride",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Honda",
+      "from": "Accord Hybrid",
+      "to": "Accord",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Honda",
+      "from": "Accord Plug-In Hybrid",
+      "to": "Accord",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Honda",
+      "from": "CR-V Hybrid",
+      "to": "CR-V",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Honda",
+      "from": "Fit EV",
+      "to": "Fit",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mazda",
+      "from": "B-Series Pickup",
+      "to": "B-Series",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mazda",
+      "from": "B-Series Truck",
+      "to": "B-Series",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mazda",
+      "from": "MX-5 Miata RF",
+      "to": "MX-5 Miata",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mazda",
+      "from": "Mazdaspeed 3",
+      "to": "3",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mazda",
+      "from": "Mazdaspeed 6",
+      "to": "6",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mazda",
+      "from": "Mazdaspeed MX-5 Miata",
+      "to": "MX-5 Miata",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mazda",
+      "from": "Mazdaspeed Protege",
+      "to": "Protege",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mazda",
+      "from": "Tribute Hybrid",
+      "to": "Tribute",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Black Diamond Avalanche",
+      "to": "Avalanche",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Blazer EV",
+      "to": "Blazer",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Bolt EV",
+      "to": "Bolt",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Captiva Sport",
+      "to": "Captiva",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Chevy Van Classic",
+      "to": "Chevy Van",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Corvette Stingray",
+      "to": "Corvette",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Cruze Limited",
+      "to": "Cruze",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Equinox EV",
+      "to": "Equinox",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Impala Limited",
+      "to": "Impala",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Malibu Classic",
+      "to": "Malibu",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Malibu Hybrid",
+      "to": "Malibu",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Malibu Limited",
+      "to": "Malibu",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Silverado 1500 Classic",
+      "to": "Silverado 1500",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Silverado 1500 Hybrid",
+      "to": "Silverado 1500",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Silverado 1500 LD",
+      "to": "Silverado 1500",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Silverado 1500 Limited",
+      "to": "Silverado 1500",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Silverado 1500HD Classic",
+      "to": "Silverado 1500HD",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Silverado 2500HD Classic",
+      "to": "Silverado 2500HD",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Silverado 3500 Classic",
+      "to": "Silverado 3500",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Silverado EV",
+      "to": "Silverado",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Spark EV",
+      "to": "Spark",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Tahoe Hybrid",
+      "to": "Tahoe",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Tahoe Limited/Z71",
+      "to": "Tahoe",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Traverse Limited",
+      "to": "Traverse",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "C-Max Energi",
+      "to": "C-Max",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "C-Max Hybrid",
+      "to": "C-Max",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "Contour SVT",
+      "to": "Contour",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "Escape Hybrid",
+      "to": "Escape",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "Escape Plug-In Hybrid",
+      "to": "Escape",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "F-150 Heritage",
+      "to": "F-150",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "F-150 Lightning",
+      "to": "F-150",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "F-150 SVT Lightning",
+      "to": "F-150",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "Focus RS",
+      "to": "Focus",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "Focus ST",
+      "to": "Focus",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "Fusion Energi",
+      "to": "Fusion",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "Fusion Hybrid",
+      "to": "Fusion",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "Fusion Plug-In Hybrid",
+      "to": "Fusion",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "Mustang SVT Cobra",
+      "to": "Mustang",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "Shelby GT350",
+      "to": "Mustang",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Ford",
+      "from": "Shelby GT500",
+      "to": "Mustang",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Volkswagen",
+      "from": "Jetta Hybrid",
+      "to": "Jetta",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Subaru",
+      "from": "B9 Tribeca",
+      "to": "Tribeca",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Subaru",
+      "from": "Impreza WRX",
+      "to": "WRX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Subaru",
+      "from": "STI S209",
+      "to": "WRX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Subaru",
+      "from": "XV Crosstrek",
+      "to": "Crosstrek",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Jeep",
+      "from": "Grand Cherokee 4xe",
+      "to": "Grand Cherokee",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Jeep",
+      "from": "Grand Cherokee SRT",
+      "to": "Grand Cherokee",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Jeep",
+      "from": "Grand Cherokee WK",
+      "to": "Grand Cherokee",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Jeep",
+      "from": "Wrangler 4xe",
+      "to": "Wrangler",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Jeep",
+      "from": "Wrangler JK",
+      "to": "Wrangler",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "RAM",
+      "from": "1500 Classic",
+      "to": "1500",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "3 Series eDrive",
+      "to": "3 Series",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "ActiveHybrid 5",
+      "to": "5 Series",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "ActiveHybrid 7",
+      "to": "7 Series",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "ActiveHybrid X6",
+      "to": "X6",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "M2 CS",
+      "to": "M2",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "M3 CS",
+      "to": "M3",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "M4 CS",
+      "to": "M4",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "M4 CSL",
+      "to": "M4",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "M4 GTS",
+      "to": "M4",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "M5 CS",
+      "to": "M5",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "X3 M",
+      "to": "X3",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "X4 M",
+      "to": "X4",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "X5 M",
+      "to": "X5",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "X5 eDrive",
+      "to": "X5",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "X6 M",
+      "to": "X6",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "XM Label",
+      "to": "XM",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "190-Class",
+      "to": "190",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "300-Class",
+      "to": "300",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "350-Class",
+      "to": "350",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "400-Class",
+      "to": "400",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "420-Class",
+      "to": "420",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "500-Class",
+      "to": "500",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "560-Class",
+      "to": "560",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "600-Class",
+      "to": "600",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "A-Class",
+      "to": "A",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "B-Class Electric Drive",
+      "to": "B",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "C-Class",
+      "to": "C",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "CL-Class",
+      "to": "CL",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "CLA-Class",
+      "to": "CLA",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "CLK-Class",
+      "to": "CLK",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "CLS-Class",
+      "to": "CLS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "E-Class",
+      "to": "E",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "G-Class",
+      "to": "G",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "GL-Class",
+      "to": "GL",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "GLA-Class",
+      "to": "GLA",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "GLB-Class",
+      "to": "GLB",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "GLC-Class",
+      "to": "GLC",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "GLC-Class Coupe",
+      "to": "GLC Coupe",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "GLE-Class",
+      "to": "GLE",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "GLE-Class Coupe",
+      "to": "GLE Coupe",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "GLK-Class",
+      "to": "GLK",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "GLS-Class",
+      "to": "GLS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "M-Class",
+      "to": "M",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "R-Class",
+      "to": "R",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "S-Class",
+      "to": "S",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "SL-Class",
+      "to": "SL",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "SLC-Class",
+      "to": "SLC",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "SLK-Class",
+      "to": "SLK",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "SLS AMG GT",
+      "to": "SLS AMG",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "SLS AMG GT Final Edition",
+      "to": "SLS AMG",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "Sprinter Worker",
+      "to": "Sprinter",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "CT 200h",
+      "to": "CT",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "ES 250",
+      "to": "ES",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "ES 300",
+      "to": "ES",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "ES 300h",
+      "to": "ES",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "ES 330",
+      "to": "ES",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "ES 350",
+      "to": "ES",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "GS 200t",
+      "to": "GS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "GS 300",
+      "to": "GS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "GS 350",
+      "to": "GS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "GS 400",
+      "to": "GS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "GS 430",
+      "to": "GS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "GS 450h",
+      "to": "GS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "GS 460",
+      "to": "GS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "GS F",
+      "to": "GS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "GX 460",
+      "to": "GX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "GX 470",
+      "to": "GX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "HS 250h",
+      "to": "HS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "IS 200t",
+      "to": "IS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "IS 250",
+      "to": "IS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "IS 250 C",
+      "to": "IS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "IS 300",
+      "to": "IS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "IS 350",
+      "to": "IS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "IS 350 C",
+      "to": "IS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "IS 500",
+      "to": "IS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "IS F",
+      "to": "IS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "LC 500",
+      "to": "LC",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "LC 500 Convertible",
+      "to": "LC",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "LC 500h",
+      "to": "LC",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "LS 400",
+      "to": "LS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "LS 430",
+      "to": "LS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "LS 460",
+      "to": "LS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "LS 500",
+      "to": "LS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "LS 500h",
+      "to": "LS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "LS 600h L",
+      "to": "LS",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "LX 450",
+      "to": "LX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "LX 470",
+      "to": "LX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "LX 570",
+      "to": "LX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "LX 600",
+      "to": "LX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "NX 200t",
+      "to": "NX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "NX 250",
+      "to": "NX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "NX 300",
+      "to": "NX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "NX 300h",
+      "to": "NX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "NX 350",
+      "to": "NX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "NX 350h",
+      "to": "NX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "NX 450h+",
+      "to": "NX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "RC 200t",
+      "to": "RC",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "RC 300",
+      "to": "RC",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "RC 350",
+      "to": "RC",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "RC F",
+      "to": "RC",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "RX 300",
+      "to": "RX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "RX 330",
+      "to": "RX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "RX 350",
+      "to": "RX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "RX 350L",
+      "to": "RX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "RX 350h",
+      "to": "RX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "RX 400h",
+      "to": "RX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "RX 450h",
+      "to": "RX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "RX 450hL",
+      "to": "RX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "RZ 450e",
+      "to": "RZ",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "SC 300",
+      "to": "SC",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "SC 400",
+      "to": "SC",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "SC 430",
+      "to": "SC",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "UX 200",
+      "to": "UX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Lexus",
+      "from": "UX 250h",
+      "to": "UX",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Volvo",
+      "from": "C40 Recharge",
+      "to": "C40",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Volvo",
+      "from": "XC40 Recharge",
+      "to": "XC40",
+      "reason": "base_model_normalization",
+      "source_ids": [
+        "carsxe-docs"
+      ],
+      "note": "Regla editorial: conservar modelo base; respuesta original intacta en RAW."
+    },
+    {
+      "make": "Changan",
+      "from": "Alsvin Plus",
+      "to": "Alsvin",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Changan",
+      "from": "CS35 Plus",
+      "to": "CS35",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Changan",
+      "from": "CS35 Max",
+      "to": "CS35",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Changan",
+      "from": "CS55 Plus",
+      "to": "CS55",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Changan",
+      "from": "CS75 Plus",
+      "to": "CS75",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Changan",
+      "from": "Hunter REEV",
+      "to": "Hunter",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Changan",
+      "from": "UNI T",
+      "to": "UNI-T",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Changan",
+      "from": "UNIK",
+      "to": "UNI-K",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Changan",
+      "from": "X7 Plus",
+      "to": "X7",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Chery",
+      "from": "Tiggo 2 Pro",
+      "to": "Tiggo 2",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Chery",
+      "from": "Tiggo 2 Pro Max",
+      "to": "Tiggo 2",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Chery",
+      "from": "Tiggo 4 Pro",
+      "to": "Tiggo 4",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Chery",
+      "from": "Tiggo 7 Pro",
+      "to": "Tiggo 7",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Chery",
+      "from": "Tiggo 7 Pro Max",
+      "to": "Tiggo 7",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Chery",
+      "from": "Tiggo 8 Pro",
+      "to": "Tiggo 8",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Chery",
+      "from": "Tiggo 8 Pro Max",
+      "to": "Tiggo 8",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Haval",
+      "from": "Jolion Pro",
+      "to": "Jolion",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Haval",
+      "from": "Jolion FL",
+      "to": "Jolion",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Haval",
+      "from": "H6 Supreme",
+      "to": "H6",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Haval",
+      "from": "H6 All New",
+      "to": "H6",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "BAIC",
+      "from": "BJ41e",
+      "to": "BJ41",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "BAIC",
+      "from": "BJ60e",
+      "to": "BJ60",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "BAIC",
+      "from": "X35 Turbo",
+      "to": "X35",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "JAC",
+      "from": "E JS 1",
+      "to": "JS1",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "JAC",
+      "from": "E-JS1",
+      "to": "JS1",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "JAC",
+      "from": "EJS1",
+      "to": "JS1",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "JAC",
+      "from": "E JS 4",
+      "to": "JS4",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "JAC",
+      "from": "E-JS4",
+      "to": "JS4",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "JAC",
+      "from": "EJS4",
+      "to": "JS4",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "JAC",
+      "from": "Refine M 3",
+      "to": "M3",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "KGM",
+      "from": "Torres EVX",
+      "to": "Torres",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "KGM",
+      "from": "Rexton TDI",
+      "to": "Rexton",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "MG",
+      "from": "MG ZS",
+      "to": "ZS",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "MG",
+      "from": "RX 5",
+      "to": "RX5",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "MG",
+      "from": "MG RX 8",
+      "to": "RX8",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "MG",
+      "from": "ZS EV",
+      "to": "ZS",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Suzuki",
+      "from": "Jimny 5 Puertas",
+      "to": "Jimny",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Suzuki",
+      "from": "Jimny 3 Puertas",
+      "to": "Jimny",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Suzuki",
+      "from": "XL7 Híbrida",
+      "to": "XL7",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Suzuki",
+      "from": "Fronx Híbrido",
+      "to": "Fronx",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Suzuki",
+      "from": "Alto K10",
+      "to": "Alto",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Suzuki",
+      "from": "APV Panel",
+      "to": "APV",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Dongfeng",
+      "from": "Rich 6 Pro",
+      "to": "Rich 6",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Dongfeng",
+      "from": "Rich 6 EV",
+      "to": "Rich 6",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Dongfeng",
+      "from": "Rich 7 Tiger",
+      "to": "Rich 7",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Dongfeng",
+      "from": "Friday e-DRIVE",
+      "to": "Friday",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Dongfeng",
+      "from": "Mage EV",
+      "to": "Mage",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "GAC",
+      "from": "GS4 MAX",
+      "to": "GS4",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "GAC",
+      "from": "M6 PRO",
+      "to": "M6",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "JMC",
+      "from": "Grand Avenue Pro",
+      "to": "Grand Avenue",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Kaiyi",
+      "from": "KYX3 PRO MAX",
+      "to": "KYX3",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Kaiyi",
+      "from": "KYX7 PRO",
+      "to": "KYX7",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Kaiyi",
+      "from": "KYX7 PRO MAX",
+      "to": "KYX7",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Maxus",
+      "from": "D60 Luxury",
+      "to": "D60",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Maxus",
+      "from": "T60 Comfort",
+      "to": "T60",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Geely",
+      "from": "New Coolray",
+      "to": "Coolray",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Geely",
+      "from": "GX3 Pro",
+      "to": "GX3",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Peugeot",
+      "from": "E-2008",
+      "to": "2008",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Renault",
+      "from": "Sandero Stepway",
+      "to": "Stepway",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Jaecoo",
+      "from": "EJ5",
+      "to": "J5",
+      "reason": "base_model_normalization",
+      "note": "Nombre observado reducido a base; mantener trazabilidad y revisar política por familia."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "C36 AMG",
+      "to": "C",
+      "reason": "base_model_normalization",
+      "note": "Motor/performance dentro de clase, conservado en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "C43 AMG",
+      "to": "C",
+      "reason": "base_model_normalization",
+      "note": "Motor/performance dentro de clase, conservado en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "E55 AMG",
+      "to": "E",
+      "reason": "base_model_normalization",
+      "note": "Motor/performance dentro de clase, conservado en RAW."
+    },
+    {
+      "make": "Mercedes-Benz",
+      "from": "ML55 AMG",
+      "to": "M",
+      "reason": "base_model_normalization",
+      "note": "Motor/performance dentro de clase, conservado en RAW."
+    },
+    {
+      "make": "BMW",
+      "from": "Z4 M",
+      "to": "Z4",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Ford",
+      "from": "E-Transit Cargo Van",
+      "to": "Transit",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Ford",
+      "from": "Transit Cargo Van",
+      "to": "Transit",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Ford",
+      "from": "Transit Passenger Van",
+      "to": "Transit",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Ford",
+      "from": "Transit Crew Van",
+      "to": "Transit",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Ford",
+      "from": "Transit Van",
+      "to": "Transit",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Ford",
+      "from": "Transit Wagon",
+      "to": "Transit",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Ford",
+      "from": "Transit Connect Cargo Van",
+      "to": "Transit Connect",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Ford",
+      "from": "Transit Connect Passenger Wagon",
+      "to": "Transit Connect",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Ford",
+      "from": "E-Series Van",
+      "to": "E-Series",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Ford",
+      "from": "E-Series Wagon",
+      "to": "E-Series",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Ford",
+      "from": "Econoline Cargo",
+      "to": "Econoline",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Ford",
+      "from": "Econoline Wagon",
+      "to": "Econoline",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Ford",
+      "from": "Windstar Cargo",
+      "to": "Windstar",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Astro Cargo",
+      "to": "Astro",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Express Cargo",
+      "to": "Express",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Chevrolet",
+      "from": "Chevy Van Classic",
+      "to": "Chevy Van",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Nissan",
+      "from": "NV Cargo",
+      "to": "NV",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "Nissan",
+      "from": "NV Passenger",
+      "to": "NV",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "RAM",
+      "from": "ProMaster Cargo Van",
+      "to": "ProMaster",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "RAM",
+      "from": "ProMaster Window Van",
+      "to": "ProMaster",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "RAM",
+      "from": "ProMaster EV Cargo Van",
+      "to": "ProMaster",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "RAM",
+      "from": "ProMaster EV Delivery Van",
+      "to": "ProMaster",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "RAM",
+      "from": "ProMaster EV Step Van",
+      "to": "ProMaster",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "RAM",
+      "from": "C/V Cargo Van",
+      "to": "C/V",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    },
+    {
+      "make": "RAM",
+      "from": "C/V Tradesman",
+      "to": "C/V",
+      "reason": "base_model_normalization",
+      "note": "Utilitario: agrupar carrocería/carga/pasajeros y propulsión bajo modelo base."
+    }
+  ],
+  "do_not_merge": [
+    [
+      "Dongfeng",
+      "DFSK",
+      "Seres"
+    ],
+    [
+      "Great Wall",
+      "Haval",
+      "Tank",
+      "Ora"
+    ],
+    [
+      "Changan",
+      "Deepal",
+      "Avatr"
+    ],
+    [
+      "Geely",
+      "Zeekr",
+      "Riddara"
+    ],
+    [
+      "GAC",
+      "Aion"
+    ],
+    [
+      "Chery",
+      "Omoda",
+      "Jaecoo",
+      "iCAUR"
+    ]
+  ]
+}
