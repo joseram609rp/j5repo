@@ -1,3 +1,5 @@
+ > Nota histórica: esta validación inicial fue superada por el catálogo integrado de 57 marcas/986 modelos. Ver data/vehicle-catalog/README.md para el estado vigente y fuentes; este documento conserva evidencia inicial.
+
 # Validación CarsXE — 2026-10-09
 Solo 2 requests reales, sin reintentos ni importación SQL. No se guardaron respuestas completas ni key.
 GET https://api.carsxe.com/v1/ymm-options con dimension=models y make=Toyota/Suzuki, sin year/model/variants.
