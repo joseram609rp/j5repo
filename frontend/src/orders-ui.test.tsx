@@ -689,7 +689,7 @@ it('history search errors and empty results are local and reset on reentry', asy
  await click('Inicio'); expect(notices()).not.toContain('No se pudieron cargar las órdenes.');
  await click('Historial'); expect(notices()).not.toContain('No se pudieron cargar las órdenes.');
 });
-it('save status is scoped to the editor while global health errors survive navigation', async () => {
+it('save status is scoped to the editor; health stays until a backend response confirms recovery', async () => {
  seed(); vi.mocked(bootstrapSession).mockResolvedValue({session,status:'authenticated',healthOk:false});
  await mount(); await click('Órdenes abiertas'); await click('Continuar');
  await input('[data-field=identification]','12'); expect(notices()).toContain('guardados en este dispositivo');
@@ -715,4 +715,43 @@ it('session expiry clears editor notices and remains visible on the login screen
  const expire=vi.mocked(trackActivity).mock.calls.at(-1)![1];
  await act(async()=>{expire();for(let i=0;i<30;i++)await Promise.resolve();});
  expect(notices()).toContain('La sesión terminó.'); expect(notices()).not.toContain('Orden cancelada.'); expect(button('Entrar')).toBeTruthy();
+});
+
+it('clears failed bootstrap health on recovery and preserves browser warnings', async () => {
+  vi.mocked(bootstrapSession).mockResolvedValue({session:clone(session),status:'authenticated',healthOk:false});
+  Object.defineProperty(navigator, 'locks', {configurable:true,value:undefined});
+  await mount();
+  expect(container.textContent).toContain('La base de datos no está disponible');
+  expect(container.textContent).toContain('Este navegador no admite el bloqueo');
+  const actual = await vi.importActual<typeof import('./api')>('./api');
+  vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => Response.json({orders:[]})));
+  await act(async () => { await actual.api('/orders?status=OPEN'); });
+  expect(container.textContent).not.toContain('La base de datos no está disponible');
+  expect(container.textContent).toContain('Este navegador no admite el bloqueo');
+});
+
+it('health recovery after navigation preserves expired-session messages', async () => {
+ vi.mocked(bootstrapSession).mockResolvedValue({session:clone(session),status:'authenticated',healthOk:false});
+ await mount(); await click('Órdenes abiertas');
+ expect(notices()).toContain('La base de datos no está disponible');
+ const actual=await vi.importActual<typeof import('./api')>('./api');
+ vi.stubGlobal('fetch',vi.fn().mockImplementation(async () => Response.json({orders:[]})));
+ await act(async()=>{await actual.api('/orders?status=OPEN');});
+ expect(notices()).not.toContain('La base de datos no está disponible');
+ const expire=vi.mocked(trackActivity).mock.calls.at(-1)![1];
+ await act(async()=>{expire();});
+ await act(async()=>{await actual.api('/health');});
+ expect(notices()).toContain('La sesión terminó.');
+});
+
+it('shows failed health on the login screen without replacing login messages', async () => {
+ vi.mocked(bootstrapSession).mockResolvedValue({session:null,status:'anonymous',healthOk:false});
+ await mount();
+ expect(notices()).toContain('La base de datos no está disponible');
+ expect(notices()).toContain('Inicia sesión para continuar.');
+ const actual=await vi.importActual<typeof import('./api')>('./api');
+ vi.stubGlobal('fetch',vi.fn().mockImplementation(async()=>Response.json({status:'ok'})));
+ await act(async()=>{await actual.api('/health');});
+ expect(notices()).not.toContain('La base de datos no está disponible');
+ expect(notices()).toContain('Inicia sesión para continuar.');
 });

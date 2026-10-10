@@ -1,6 +1,11 @@
 export class ApiError extends Error {
   constructor(public status: number, public code: string) { super(code); }
 }
+const backendSuccessListeners = new Set<() => void>();
+export function onBackendSuccess(listener: () => void): () => void {
+  backendSuccessListeners.add(listener);
+  return () => { backendSuccessListeners.delete(listener); };
+}
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
   const method = options.method ?? 'GET';
@@ -11,7 +16,11 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
     let response: Response | undefined;
     try {
       response = await fetch(`/api${path}`, { ...options, headers, credentials: 'same-origin', signal: AbortSignal.timeout(Math.min(35000, Math.max(1, deadline - Date.now()))) });
-      if (response.ok) return await response.json() as T;
+      if (response.ok) {
+        const result = await response.json() as T;
+        for (const listener of backendSuccessListeners) listener();
+        return result;
+      }
       const body = await response.json().catch(() => ({ code: 'API_ERROR' }));
       throw new ApiError(response.status, body.code);
     } catch (error) {

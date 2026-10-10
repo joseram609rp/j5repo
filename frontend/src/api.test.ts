@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { api } from './api';
+import { api, onBackendSuccess } from './api';
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 it('does not retry unsafe mutations or version conflicts', async () => {
   const fetch = vi.fn().mockResolvedValue(Response.json({ code: 'BUSY' }, { status: 503 })); vi.stubGlobal('fetch', fetch);
@@ -13,4 +13,16 @@ it('honors Retry-After and preserves write identity', async () => {
   await vi.advanceTimersByTimeAsync(5999); expect(fetch).toHaveBeenCalledTimes(1);
   await vi.advanceTimersByTimeAsync(1000); expect(await promise).toEqual({ ok: true });
   expect(fetch.mock.calls[1]?.[1].headers.get('Idempotency-Key')).toBe('same-key');
+});
+
+it('reports recovery only after successful parsed responses', async () => {
+  const recovered = vi.fn(); const stop = onBackendSuccess(recovered);
+  try {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(Response.json({}, {status:401}))
+      .mockResolvedValueOnce(new Response('invalid')).mockResolvedValueOnce(Response.json({orders:[]})));
+    await expect(api('/auth/me')).rejects.toMatchObject({status:401});
+    await expect(api('/health')).rejects.toThrow();
+    expect(recovered).not.toHaveBeenCalled();
+    await api('/orders?status=OPEN'); expect(recovered).toHaveBeenCalledTimes(1);
+  } finally { stop(); }
 });

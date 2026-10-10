@@ -8,7 +8,7 @@ import { EntitySearch } from './EntitySearch';
 import { Users } from './Users';
 import { visibleErrors, formatCRC, formatMileage } from './form-validation';
 import { useEffect, useRef, useState } from 'react';
-import { api } from './api';
+import { api, onBackendSuccess } from './api';
 import { loginErrorMessage } from './login-error';
 import {
   Autosave,
@@ -39,6 +39,8 @@ export function App() {
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [draft, setDraft] = useState<Draft | null>(null);
   const [globalMessage, setGlobalMessage] = useState('');
+  const [healthMessage, setHealthMessage] = useState('');
+  useEffect(() => onBackendSuccess(() => setHealthMessage('')), []);
   const [editorId, setEditorId] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ page: typeof page; orderId: string | null; message: string; retryable: boolean } | null>(null);
   const noticeGeneration = useRef(0);
@@ -93,6 +95,7 @@ export function App() {
   }
   async function checkSession() {
     setGlobalMessage('');
+    setHealthMessage('');
     setBootstrapError(false);
     setSessionStatus('checking');
     try {
@@ -102,7 +105,7 @@ export function App() {
       if (result.status === 'anonymous')
         setGlobalMessage('Inicia sesión para continuar.');
       if (!result.healthOk)
-        setGlobalMessage(
+        setHealthMessage(
           'La base de datos no está disponible. Tu copia local está protegida.',
         );
     } catch {
@@ -470,6 +473,7 @@ export function App() {
         )}
       </header>
       <main>
+        {healthMessage && <p role="status">{healthMessage}</p>}
         {sessionStatus === 'authenticated' && session && (
           <>
             <nav aria-label="Navegación principal">
@@ -523,6 +527,7 @@ export function App() {
               <Users session={session} />
             )}
             {globalMessage && <p role="status">{globalMessage}</p>}
+
             {!editor && message && <p role="status">{message}</p>}
           </>
         )}
