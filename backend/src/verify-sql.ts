@@ -12,7 +12,7 @@ async function main() {
   if(process.argv.includes('--preflight')) return;
   for(const name of ['Users','Customers','Vehicles','Orders','OrderItems','Sessions','AuditLogs','IdempotencyRequests','SchemaMigrations','VehicleMakes','VehicleModels']) if(!tables.includes(name)) throw new Error('SCHEMA_INCOMPLETE');
   const migrations=(await tx.query<{name:string}>('SELECT name FROM dbo.SchemaMigrations')).recordset;
-  if(migrations.length!==15 || !migrations.some(m=>m.name==='011_daily_order_numbers.sql')) throw new Error('SCHEMA_INCOMPLETE');
+  if(migrations.length!==16 || !migrations.some(m=>m.name==='011_daily_order_numbers.sql')) throw new Error('SCHEMA_INCOMPLETE');
   await tx.query(`IF (SELECT COUNT(*) FROM dbo.VehicleMakes)<>57 OR (SELECT COUNT(*) FROM dbo.VehicleModels)<>986
  OR EXISTS(SELECT 1 FROM dbo.VehicleModels v LEFT JOIN dbo.VehicleMakes m ON m.id=v.make_id WHERE m.id IS NULL)
  THROW 51010,'CATALOG_INTEGRITY_FAILED',1;
@@ -23,8 +23,10 @@ async function main() {
  OR NOT EXISTS(SELECT 1 FROM sys.check_constraints WHERE name='CK_Users_FailedLogin' AND is_disabled=0 AND is_not_trusted=0)
  OR NOT EXISTS(SELECT 1 FROM sys.check_constraints WHERE name='CK_Vehicles_Plate' AND is_disabled=0 AND is_not_trusted=0)
  THROW 51103,'UNEXPECTED_SECURITY_PLATE_SCHEMA',1;`);
-  if(!['012_user_lockout.sql','013_flexible_plates.sql','014_username_check_pattern.sql','015_flexible_order_plate_guard.sql'].every(name=>migrations.some(m=>m.name===name))) throw new Error('SCHEMA_INCOMPLETE');
+  if(!['012_user_lockout.sql','013_flexible_plates.sql','014_username_check_pattern.sql','015_flexible_order_plate_guard.sql','016_customer_identification_legal.sql'].every(name=>migrations.some(m=>m.name===name))) throw new Error('SCHEMA_INCOMPLETE');
   await tx.query("IF NOT EXISTS(SELECT 1 FROM sys.triggers WHERE object_id=OBJECT_ID('dbo.TR_Orders_Guard') AND is_disabled=0) OR COALESCE(CHARINDEX(N'LEN(i.plate_snapshot) NOT BETWEEN 3 AND 12',OBJECT_DEFINITION(OBJECT_ID('dbo.TR_Orders_Guard'))),0)=0 THROW 51103,'UNEXPECTED_CLOSE_PLATE_GUARD',1;");
+  await tx.query("IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID('dbo.Customers') AND name='identification' AND TYPE_NAME(user_type_id)='varchar' AND max_length=10 AND is_nullable=0) OR NOT EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.Customers') AND name='UQ_Customers_Identification' AND is_unique=1 AND is_disabled=0) OR NOT EXISTS(SELECT 1 FROM sys.check_constraints WHERE parent_object_id=OBJECT_ID('dbo.Customers') AND name='CK_Customers_Identification' AND is_disabled=0 AND is_not_trusted=0) OR EXISTS(SELECT 1 FROM dbo.Customers WHERE DATALENGTH(identification) NOT IN (9,10) OR identification COLLATE Latin1_General_100_BIN2 LIKE '%[^0-9]%') THROW 51103,'UNEXPECTED_CUSTOMER_IDENTIFICATION_SCHEMA',1;");
+  console.log('Customers: identification varchar(10); unique/check enabled; only 9/10 ASCII digits');
   console.log('Users: unique enabled; canonical duplicates=0; lockout columns present');
   const catalogColumns=(await tx.query<{table_name:string;name:string;is_computed:boolean;collation_name:string}>("SELECT t.name AS table_name,c.name,c.is_computed,c.collation_name FROM sys.columns c JOIN sys.tables t ON t.object_id=c.object_id WHERE t.name IN ('VehicleMakes','VehicleModels')")).recordset;
   for(const table of ['VehicleMakes','VehicleModels']) for(const name of ['id','name','normalized_name','active','created_at',...(table==='VehicleModels'?['make_id']:[])]) if(!catalogColumns.some(c=>c.table_name===table && c.name===name)) throw new Error('SCHEMA_INCOMPLETE');
