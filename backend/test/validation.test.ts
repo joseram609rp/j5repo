@@ -6,7 +6,7 @@ const draft={customerName:'Cliente',identification:'123456789',phone:'88888888',
 describe('validation contracts shared by frontend and backend',()=>{
  it('normalizes names, email and plate',()=>{expect(customerSchema.parse(customer).email).toBe('email@example.com');expect(vehicleSchema.parse(vehicle).plate).toBe('ABC123');expect(fullNameSchema.parse(' Nombre ')).toBe('Nombre');});
  it.each(['','   '])('rejects empty full name %j',fullName=>expect(customerSchema.safeParse({...customer,fullName}).success).toBe(false));
- it.each(['12345678','1234567890','abcdefghi','12345678９'])('rejects identification %s',identification=>expect(customerSchema.safeParse({...customer,identification}).success).toBe(false));
+ it.each(['12345678','12345678901','abcdefghi','12345678９','123456789x','1234-56789'])('rejects identification %s',identification=>expect(customerSchema.safeParse({...customer,identification}).success).toBe(false));
  it.each(['1234567','123456789','8888abcd'])('rejects phone %s',phone=>expect(customerSchema.safeParse({...customer,phone}).success).toBe(false));
  it.each(['wrong','a@','a@b'])('rejects email %s',email=>expect(customerSchema.safeParse({...customer,email}).success).toBe(false));
  it.each(['','AB','ABC!123','ABC🚘','ABCDEFGHIJKLM','ÁBC123','ＡBC123'])('rejects plate %s',plate=>expect(vehicleSchema.safeParse({...vehicle,plate}).success).toBe(false));
@@ -44,3 +44,13 @@ it('IVA is rounded per line and totals are derived in cents',()=>{
 });
 
 it.each(['ABC111','ABC1234','CL111111','C111111','111111','AB1234','123ABC'])('accepts flexible plate %s',plate=>{expect(vehicleSchema.parse({...vehicle,plate}).plate).toBe(plate);expect(draftSchema.parse({...draft,plate}).plate).toBe(plate);expect(canClose({...draft,plate})).toBe(true);});
+
+it.each(['123456789','3101234567','0123456789'])('accepts physical/legal identification %s in customers, drafts and closing',identification=>{
+ expect(customerSchema.parse({...customer,identification}).identification).toBe(identification);
+ expect(draftSchema.parse({...draft,identification}).identification).toBe(identification);
+ expect(canClose({...draft,identification})).toBe(true);
+});
+it.each(['12345678','12345678901','12345678a','123456789a','12345678９'])('rejects invalid identification %s in drafts and closing',identification=>{
+ expect(draftSchema.safeParse({...draft,identification}).success).toBe(false);
+ expect(canClose({...draft,identification})).toBe(false);
+});

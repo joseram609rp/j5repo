@@ -749,17 +749,18 @@ export function App() {
                     </label>
                     <div className="fields">
                       <label>
-                        Cédula (9 dígitos)
+                        Cédula física o jurídica
                         <input
                           data-field="identification"
                           {...accessibility('identification')}
                           inputMode="numeric"
-                          maxLength={9}
+                          maxLength={10}
                           value={draft.identification ?? ''}
                           onChange={(e) =>
                             edit('identification', e.target.value)
                           }
                         />
+                        <small>9 dígitos: física · 10 dígitos: jurídica</small>
                         {validation('identification')}
                       </label>
                       <label>
