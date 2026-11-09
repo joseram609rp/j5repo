@@ -7,13 +7,17 @@ OPEN tables;
 FETCH NEXT FROM tables INTO @schema,@table;
 WHILE @@FETCH_STATUS=0
 BEGIN
- SET @command=N'SELECT @count=COUNT_BIG(*), @hash=CONVERT(varchar(64),
-   HASHBYTES(''SHA2_256'',COALESCE(STRING_AGG(CONVERT(varchar(max), row_hash), '''')
-      WITHIN GROUP (ORDER BY row_hash COLLATE Latin1_General_100_BIN2),'''')),2)
-   FROM (SELECT CONVERT(varchar(64), HASHBYTES(''SHA2_256'',
-     (SELECT t.* FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER)),2) AS row_hash
+ -- Materialize row hashes so FOR JSON and the ordered aggregate compile separately.
+ SET @command=N'CREATE TABLE #RowHashes (row_hash varchar(64) COLLATE Latin1_General_100_BIN2 NOT NULL);
+   INSERT #RowHashes (row_hash)
+   SELECT CONVERT(varchar(64), HASHBYTES(''SHA2_256'',
+     (SELECT t.* FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER)),2)
    FROM '+QUOTENAME(@schema)+N'.'+QUOTENAME(@table)+N' AS t'
-   +CASE WHEN @lockTables=1 THEN N' WITH (TABLOCKX,HOLDLOCK)' ELSE N'' END+N') AS hashed_rows;';
+   +CASE WHEN @lockTables=1 THEN N' WITH (TABLOCKX,HOLDLOCK)' ELSE N'' END+N';
+   SELECT @count=COUNT_BIG(*), @hash=CONVERT(varchar(64),
+    HASHBYTES(''SHA2_256'',COALESCE(STRING_AGG(CONVERT(varchar(max),row_hash),'''')
+      WITHIN GROUP (ORDER BY row_hash),'''')),2)
+   FROM #RowHashes;';
  EXEC sys.sp_executesql @command,N'@count bigint OUTPUT,@hash varchar(64) OUTPUT',@count OUTPUT,@hash OUTPUT;
  SET @id=OBJECT_ID(QUOTENAME(@schema)+N'.'+QUOTENAME(@table),'U');
  SET @metadata=CONVERT(varchar(64),HASHBYTES('SHA2_256',COALESCE((

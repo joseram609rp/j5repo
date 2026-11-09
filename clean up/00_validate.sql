@@ -31,17 +31,29 @@ INSERT @reviewed VALUES
  (N'TR_Orders_Guard',OBJECT_ID('dbo.Orders'),@ordersTrigger),
  (N'TR_Orders_DailyNumber',OBJECT_ID('dbo.Orders'),@numberTrigger);
 
+-- Azure can rewrite the CREATE/ALTER header. Match the reviewed text from TRIGGER onward.
+DECLARE @actual TABLE (name sysname NOT NULL, parent_id int NOT NULL, sha256 binary(32) NULL, enabled bit NOT NULL);
+DECLARE @whitespace nvarchar(4)=N' '+NCHAR(9)+NCHAR(10)+NCHAR(13);
+INSERT @actual
+SELECT tr.name,tr.parent_id,
+ CASE WHEN position.start_at>0
+   AND REPLACE(REPLACE(REPLACE(REPLACE(LEFT(m.definition,
+    CASE WHEN position.start_at>0 THEN position.start_at-1 ELSE 0 END),
+    N' ',N''),NCHAR(9),N''),NCHAR(10),N''),NCHAR(13),N'')
+    COLLATE Latin1_General_100_BIN2 IN (N'CREATE',N'ALTER',N'CREATEORALTER')
+  THEN HASHBYTES('SHA2_256',TRIM(@whitespace FROM
+   REPLACE(SUBSTRING(m.definition,position.start_at,2147483647),CHAR(13)+CHAR(10),CHAR(10))))
+ END,
+ CASE WHEN tr.is_disabled=0 AND tr.is_instead_of_trigger=0 AND tr.is_not_for_replication=0 THEN 1 ELSE 0 END
+FROM sys.triggers tr JOIN @targets t ON t.object_id=tr.parent_id
+LEFT JOIN sys.sql_modules m ON m.object_id=tr.object_id
+CROSS APPLY (VALUES (CHARINDEX(N'TRIGGER dbo.',m.definition COLLATE Latin1_General_100_BIN2))) position(start_at);
 IF EXISTS (
- SELECT tr.name,tr.parent_id,HASHBYTES('SHA2_256',REPLACE(m.definition,CHAR(13)+CHAR(10),CHAR(10)))
- FROM sys.triggers tr JOIN @targets t ON t.object_id=tr.parent_id
- LEFT JOIN sys.sql_modules m ON m.object_id=tr.object_id
+ SELECT name,parent_id,sha256 FROM @actual
  EXCEPT SELECT name,parent_id,sha256 FROM @reviewed
 ) OR EXISTS (
  SELECT name,parent_id,sha256 FROM @reviewed
- EXCEPT
- SELECT tr.name,tr.parent_id,HASHBYTES('SHA2_256',REPLACE(m.definition,CHAR(13)+CHAR(10),CHAR(10)))
- FROM sys.triggers tr JOIN sys.sql_modules m ON m.object_id=tr.object_id
- WHERE tr.is_disabled=0 AND tr.is_instead_of_trigger=0 AND tr.is_not_for_replication=0
+ EXCEPT SELECT name,parent_id,sha256 FROM @actual WHERE enabled=1
 )
  THROW 51104, 'TRIGGER_DRIFT', 1;
 

@@ -19,7 +19,7 @@ function triggerHash(migration: string, name: string) {
   const definitions = [...source.matchAll(/EXEC\(N'((?:[^']|'')*)'\);/g)];
   const definition = definitions.find(([, body]) => body.startsWith(start))?.[1];
   if (!definition) throw new Error('REVIEWED_TRIGGER_NOT_FOUND');
-  return createHash('sha256').update(definition.replace(/''/g, "'"), 'utf16le').digest();
+  return createHash('sha256').update(definition.slice('CREATE OR ALTER '.length).trim().replace(/''/g, "'"), 'utf16le').digest();
 }
 
 type SnapshotRow = { schema_name: string; table_name: string; row_count: string; sha256: string; fk_sha256: string };
