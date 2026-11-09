@@ -1,4 +1,5 @@
 import { LegacyHistory } from './LegacyHistory';
+import { YearPicker } from './YearPicker';
 import { CatalogInput } from './CatalogInput';
 import { ConflictReview, downloadRecovery } from './ConflictReview';
 import { applyUpdate, onUpdateAvailable, updateAvailable } from './pwa-update';
@@ -500,12 +501,6 @@ export function App() {
     busy ||
     !!saver.current?.state.pending?.draft.action;
   const editor = page === 'editor';
-  const firstSuggestedYear = 1970;
-  const lastSuggestedYear = new Date().getFullYear() + 5;
-  const suggestedYears = Array.from(
-    { length: lastSuggestedYear - firstSuggestedYear + 1 },
-    (_, index) => firstSuggestedYear + index,
-  );
   function validation(field: string) {
     const error = errors.find((e) => e.field === field);
     return error ? (
@@ -865,32 +860,24 @@ export function App() {
                       </label>
                     </div>
                     <div className="fields">
-                      <label>
-                        Año
-                        <input
-                          data-field="year"
-                          {...accessibility('year')}
-                          type="number"
-                          inputMode="numeric"
-                          min={1950}
-                          step={1}
-                          value={draft.year ?? ''}
-                          onChange={(e) => edit('year', e.target.value)}
-                        />
+                      <div>
+                        <label htmlFor="vehicle-year">Año</label>
+                        <div className="year-field">
+                          <input
+                            id="vehicle-year"
+                            data-field="year"
+                            {...accessibility('year')}
+                            type="number"
+                            inputMode="numeric"
+                            min={1950}
+                            step={1}
+                            value={draft.year ?? ''}
+                            onChange={(e) => edit('year', e.target.value)}
+                          />
+                          <YearPicker year={draft.year} disabled={readOnly} onSelect={(year) => edit('year', String(year))} />
+                        </div>
                         {validation('year')}
-                      </label>
-                      <label>
-                        Elegir año del vehículo
-                        <select
-                          value={suggestedYears.includes(draft.year ?? 0) ? draft.year ?? '' : ''}
-                          onChange={(e) => edit('year', e.target.value)}
-                        >
-                          <option value="" disabled>Selecciona un año</option>
-                          {suggestedYears.map((year) => (
-                            <option key={year} value={year}>{year}</option>
-                          ))}
-                        </select>
-                      </label>
+                      </div>
                     </div>
                     {session.role === 'ADMIN' && order?.status === 'OPEN' && <label>Mecánico asignado
                       <select aria-label="Mecánico asignado" value={selectedMechanic} onChange={e => setSelectedMechanic(e.target.value)}>
