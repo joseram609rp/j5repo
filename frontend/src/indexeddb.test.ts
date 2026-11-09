@@ -88,6 +88,7 @@ it('migrates a legacy user draft atomically without overwriting the newer order 
  const user=crypto.randomUUID(),old=fresh();old.draft.notes='Legacy';
  const db=await openDB('j5-drafts-v1',1);await db.put('drafts',old,user);
  expect((await storage.list(user)).map(r=>r.id)).toContain(old.id);
+ expect(await db.get('drafts',user)).toEqual(old);
  expect((await storage.read(user,old.id))?.draft.notes).toBe('Legacy');
  expect(await db.get('drafts',user)).toBeUndefined();
  const newer=structuredClone(old);newer.draft.notes='Newer';await storage.write(user,newer);await db.put('drafts',old,user);

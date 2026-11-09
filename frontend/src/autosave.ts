@@ -76,9 +76,16 @@ export const storage = {
     } finally { database.close(); }
   },
   async list(user: string): Promise<RecordState[]> {
-    await this.read(user);
     const database = await db();
-    try { return await database.getAll('drafts', IDBKeyRange.bound([user, ''], [user, '\uffff'])); }
+    try {
+      const tx = database.transaction('drafts');
+      const records = await tx.store.getAll(IDBKeyRange.bound([user, ''], [user, '\uffff'])) as RecordState[];
+      // A tab without the editor lock may list drafts. Migration happens on read
+      // when the editor owns the lock.
+      const legacy = await tx.store.get(user) as RecordState | undefined;
+      if (legacy && !records.some(record => record.id === legacy.id)) records.push(legacy);
+      return records;
+    }
     finally { database.close(); }
   },
   async write(user: string, record: RecordState) {
@@ -114,6 +121,8 @@ export class Autosave {
   private syncing = false;
   private stopped = false;
   private detached = false;
+  private paused?: Promise<void>;
+  private requests = new AbortController();
   private active?: Promise<void>;
   private timer?: ReturnType<typeof setTimeout>;
   constructor(
@@ -126,6 +135,7 @@ export class Autosave {
     private send = (id: string, mutation: Mutation) =>
       api<{ version: string } & Partial<Order>>(`/orders/${id}`, {
         method: 'PUT',
+        signal: this.requests.signal,
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-Token': this.csrf,
@@ -148,6 +158,7 @@ export class Autosave {
     return this.queue;
   }
   async edit(draft: Draft) {
+    if (this.detached) throw new Error('EDITOR_DETACHED');
     if (this.state.conflict) throw new Error('ORDER_CONFLICT');
     if (
       this.state.pending?.draft.action ||
@@ -167,6 +178,7 @@ export class Autosave {
       );
       return;
     }
+    if (this.detached) return;
     clearTimeout(this.timer);
     this.timer = setTimeout(() => void this.sync(), 800);
   }
@@ -287,12 +299,17 @@ export class Autosave {
     this.report('Conflicto resuelto. Tu borrador anterior se conserva en este dispositivo.');
     if (selected) await this.sync();
   }
-  async pause() {
+  pause(interrupt = false) {
+    if (interrupt) this.requests.abort();
+    if (this.paused) return this.paused;
     this.detached = true;
     this.stopped = true;
     clearTimeout(this.timer);
-    await this.active;
-    await this.write();
+    this.paused = (async () => {
+      await this.active;
+      await this.write();
+    })();
+    return this.paused;
   }
   sync(): Promise<void> {
     if (this.active) return this.active;
@@ -302,12 +319,12 @@ export class Autosave {
     return this.active;
   }
   private async runSync() {
-    if (this.syncing || this.stopped) return;
+    if (this.syncing || this.stopped || this.detached) return;
     this.syncing = true;
     try {
       await this.queue;
       while (
-        !this.stopped &&
+        !this.stopped && !this.detached &&
         (this.state.pending || this.state.savedRevision < this.state.revision)
       ) {
         if (
@@ -327,6 +344,7 @@ export class Autosave {
           baseDraft: structuredClone(this.baselineDraft),
         };
         await this.write();
+        if (this.detached) return;
         const mutation = this.state.pending;
         if (!draftSchema.safeParse(mutation.draft).success) {
           delete this.state.pending;
