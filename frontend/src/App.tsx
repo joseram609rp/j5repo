@@ -13,7 +13,7 @@ import { OrderList } from './OrderList';
 import { EntitySearch } from './EntitySearch';
 import { Users } from './Users';
 import { visibleErrors, formatCRC, formatMileage } from './form-validation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { api, onBackendSuccess } from './api';
 import { loginErrorMessage } from './login-error';
 import {
@@ -25,7 +25,16 @@ import {
   type RecordState,
 } from './autosave';
 import { trackActivity, type Session } from './session';
+import { startEditorLock, type EditorAccess } from './editor-lock';
 import './style.css';
+
+const editorMessages: Record<Exclude<EditorAccess, 'ready'>, string> = {
+  checking: 'Comprobando si la edición está disponible…',
+  occupied: 'La edición está ocupada temporalmente. Si tienes otra pestaña de J5, ciérrala. Puedes seguir consultando las órdenes.',
+  unsupported: 'Este navegador permite consultar. Para editar tus borradores, usa un navegador con bloqueo de edición.',
+  error: 'No se pudo comprobar el bloqueo de edición. Revisa los permisos del navegador y reintenta.',
+};
+
 export function App() {
   const [hasUpdate, setHasUpdate] = useState(updateAvailable);
   useEffect(()=>onUpdateAvailable(()=>setHasUpdate(true)),[]);
@@ -38,7 +47,9 @@ export function App() {
   const [selectedMechanic, setSelectedMechanic] = useState('');
   const [mechanics, setMechanics] = useState<{id: string; fullName: string; role: string}[]>([]);
   const [order, setOrder] = useState<Order | null>(null);
-  const [editorReady, setEditorReady] = useState(false);
+  const [editorAccess, setEditorAccess] = useState<EditorAccess>('checking');
+  const editorLock = useRef<ReturnType<typeof startEditorLock> | null>(null);
+  const editorSession = useRef<Session | null>(null);
   const [closing, setClosing] = useState(false);
   const [closeOwner,setCloseOwner]=useState<{vehicleId:string;customerId:string;expectedOwnerId:string;ownerName:string;decision:'transfer'|'keep'} | null>(null);
 
@@ -46,12 +57,12 @@ export function App() {
     'close' | 'reopen' | 'transfer-owner' | 'void' | null
   >(null);
   const [session, setSession] = useState<Session | null>(null);
+  const editorReady = editorSession.current === session && editorAccess === 'ready' && !!editorLock.current?.lease;
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>('checking');
   const [bootstrapError, setBootstrapError] = useState(false);
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [draft, setDraft] = useState<Draft | null>(null);
   const [globalMessage, setGlobalMessage] = useState('');
-  const [editorAccessMessage, setEditorAccessMessage] = useState('');
   const [healthMessage, setHealthMessage] = useState('');
   useEffect(() => onBackendSuccess(() => setHealthMessage('')), []);
   const [editorId, setEditorId] = useState<string | null>(null);
@@ -95,7 +106,7 @@ export function App() {
     if (page !== 'editor' || !order || order.status !== 'OPEN') return;
     const refresh = () => {
       if (document.visibilityState === 'hidden') return;
-      void saver.current?.refresh().catch(() => undefined);
+      if (editorLock.current?.lease) void saver.current?.refresh().catch(() => undefined);
     };
     window.addEventListener('focus', refresh);
     document.addEventListener('visibilitychange', refresh);
@@ -103,13 +114,14 @@ export function App() {
     return () => { clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
   }, [page, order?.id, order?.status]);
   async function updateMechanic() {
-    if (!saver.current || !order || !session || busy) return;
+    const service = saver.current;
+    if (!editorLock.current?.lease || !service || !order || !session || busy) return;
     setBusy(true);
     try {
-      await saver.current.flush();
-      await saver.current.edit({ ...saver.current.state.draft, mechanicId: selectedMechanic, action: 'assign-mechanic' });
-      await saver.current.flush();
-      if (saver.current.state.order?.mechanicId !== selectedMechanic) throw new Error('ASSIGNMENT_FAILED');
+      await service.flush();
+      await service.edit({ ...service.state.draft, mechanicId: selectedMechanic, action: 'assign-mechanic' });
+      await service.flush();
+      if (service.state.order?.mechanicId !== selectedMechanic) throw new Error('ASSIGNMENT_FAILED');
       setMessage('Mecánico actualizado.');
     } catch { setMessage('No se pudo actualizar el mecánico. Revisa la orden y sincroniza los cambios pendientes.'); }
     finally { setBusy(false); }
@@ -136,21 +148,33 @@ export function App() {
   useEffect(() => {
     void checkSession();
   }, []);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!session) return;
-    setEditorAccessMessage('');
-    let disposed = false;
-    let release: (() => void) | undefined;
+    const controller = startEditorLock(session.userId, setEditorAccess, async () => {
+      const service = saver.current;
+      saver.current = null;
+      if (editorLock.current === controller) {
+        clearNotice();
+        setConfirmAction(null);
+        if (service) setPage(current => current === 'editor' ? 'open' : current);
+      }
+      try { await service?.pause(true); }
+      catch {
+        if (editorLock.current === controller) {
+          setHealthMessage('No se pudo guardar la última copia local. Revisa el borrador en Órdenes abiertas.');
+        }
+      }
+    });
+    editorLock.current = controller;
+    editorSession.current = session;
     const expire = () => {
-      if (disposed) return;
-      void saver.current?.pause().catch(() => undefined);
+      if (editorLock.current !== controller) return;
+      controller.dispose();
       clearNotice();
       setDraft(null);
       setOrder(null);
       setPage('dashboard');
       setSession(null);
-      setPage('dashboard');
-      setOrder(null);
       setSessionStatus('anonymous');
       setTouched(new Set());
       setGlobalMessage(
@@ -158,50 +182,15 @@ export function App() {
       );
     };
     const stop = trackActivity(session, expire);
-    if (!navigator.locks) {
-      setEditorAccessMessage(
-        'Este navegador permite consultar, pero no editar de forma segura entre pestañas. Tus borradores se conservan; para editarlos usa un navegador con bloqueo de edición.',
-      );
-      return stop;
-    }
-    void navigator.locks.request(
-      `j5-editor-${session.userId}`,
-      { ifAvailable: true },
-      async (lock) => {
-        if (disposed) return;
-        if (!lock) {
-          setEditorAccessMessage(
-            'El borrador está abierto en otra pestaña. Ciérrala y recarga aquí.',
-          );
-          return;
-        }
-        try {
-          if (disposed) return;
-          setEditorReady(true);
-          await new Promise<void>((resolve) => {
-            release = resolve;
-          });
-          await saver.current?.pause();
-        } catch {
-          if (disposed) return;
-          setEditorAccessMessage(
-            'No se pudo abrir el almacenamiento local. Revisa los permisos del navegador.',
-          );
-        }
-      },
-    ).catch(() => {
-      if (!disposed) setEditorAccessMessage('No se pudo obtener el bloqueo de edición. Revisa los permisos del navegador y recarga.');
-    });
-    const online = () => void saver.current?.sync();
+    const online = () => {
+      if (controller.lease) void saver.current?.sync();
+    };
     window.addEventListener('online', online);
     return () => {
-      disposed = true;
-      setEditorReady(false);
-      setEditorAccessMessage('');
+      editorLock.current = null;
+      editorSession.current = null;
+      controller.dispose();
       stop();
-      void saver.current?.pause().catch(() => undefined);
-      release?.();
-      saver.current = null;
       window.removeEventListener('online', online);
     };
   }, [session]);
@@ -244,10 +233,12 @@ export function App() {
       );
     }
   }
-  async function attach(record: RecordState, syncInBackground = false) {
-    if (!session) return;
+  async function attach(record: RecordState, lease: object, syncInBackground = false) {
+    const controller = editorLock.current;
+    if (!session || controller?.lease !== lease) return;
     await saver.current?.pause();
-    await storage.write(session.userId, record);
+    await controller.write(lease, () => storage.write(session.userId, record));
+    if (controller.lease !== lease) return;
     clearNotice();
     setEditorId(record.id);
     const serviceGeneration = noticeGeneration.current;
@@ -266,6 +257,8 @@ export function App() {
         setDraft({ ...service.state.draft });
       },
       () => {
+        if (saver.current !== service) return;
+        controller.dispose();
         setSession(null);
         setSessionStatus('anonymous');
         setGlobalMessage('La sesión terminó. Vuelve a entrar para recuperar tu borrador.');
@@ -312,14 +305,16 @@ export function App() {
     setPage(next);
   }
   async function newOrder() {
-    if (!session || !editorReady || busy || creating.current || confirmAction) return;
+    const controller = editorLock.current;
+    const lease = controller?.lease;
+    if (!session || !lease || busy || creating.current || confirmAction) return;
     creating.current = true;
     setBusy(true);
     try {
-      await storage.read(session.userId); // Migrate the legacy draft without reusing it.
+      await controller.write(lease, () => storage.read(session.userId));
       const record = fresh();
       record.revision = 1;
-      await attach(record, true);
+      await attach(record, lease, true);
     } catch {
       setMessage(
         'No se pudo abrir la orden. Tu borrador local está conservado.',
@@ -330,20 +325,24 @@ export function App() {
     }
   }
   async function openOrder(selected: Order) {
-    if (!session || !editorReady || busy) return;
+    const controller = editorLock.current;
+    const lease = controller?.lease;
+    const editing = selected.status === 'OPEN';
+    if (!session || !controller || (editing && !lease) || busy) return;
     setBusy(true);
     try {
-      const local = saver.current?.state.id === selected.id
-        ? saver.current.state : await storage.read(session.userId, selected.id);
-      if (
-        local?.id === selected.id &&
-        (local.pending || local.savedRevision < local.revision || !local.version)
-      ) {
-        await attach(local);
-        return;
+      if (editing && lease) {
+        const local = saver.current?.state.id === selected.id
+          ? saver.current.state : await controller.write(lease, () => storage.read(session.userId, selected.id));
+        if (controller.lease !== lease) return;
+        if (local?.id === selected.id && (local.pending || local.savedRevision < local.revision || !local.version)) {
+          await attach(local, lease);
+          return;
+        }
       }
       await saver.current?.pause();
       const remote = await api<Order>('/orders/' + selected.id);
+      if (editorLock.current !== controller || (editing && controller.lease !== lease)) return;
       if (remote.status !== 'OPEN') {
         clearNotice();
         setEditorId(remote.id);
@@ -354,7 +353,7 @@ export function App() {
         setClosing(false);
         setConfirmAction(null);
         setPage('editor');
-      } else
+      } else if (lease && controller.lease === lease)
         await attach({
           id: remote.id,
           draft: remote.draft,
@@ -362,7 +361,7 @@ export function App() {
           order: remote,
           revision: 0,
           savedRevision: 0,
-        });
+        }, lease);
     } catch {
       setMessage(
         'No se pudo abrir otra orden. Revisa la conexión o sincroniza el borrador pendiente.',
@@ -372,7 +371,8 @@ export function App() {
     }
   }
   async function performAction() {
-    if (!confirmAction || !order || !session) return;
+    const lease = editorLock.current?.lease;
+    if (!lease || !confirmAction || !order || !session || busy) return;
     const action = confirmAction;
     setBusy(true);
     try {
@@ -386,21 +386,24 @@ export function App() {
           order,
           revision: 0,
           savedRevision: 0,
-        });
-      if (!saver.current) throw new Error('EDITOR_NOT_READY');
-      const saved = await saver.current.action(action, action==='close' && closeOwner ? {decision:closeOwner.decision,vehicleId:closeOwner.vehicleId,customerId:closeOwner.customerId,expectedOwnerId:closeOwner.expectedOwnerId} : undefined);
+        }, lease);
+      const service = saver.current;
+      if (editorLock.current?.lease !== lease || !service) return;
+      const saved = await service.action(action, action==='close' && closeOwner ? {decision:closeOwner.decision,vehicleId:closeOwner.vehicleId,customerId:closeOwner.customerId,expectedOwnerId:closeOwner.expectedOwnerId} : undefined);
+      if (editorLock.current?.lease !== lease) return;
       if (action === 'transfer-owner') {
-        const currentDraft=saver.current.state.draft;
+        const currentDraft=service.state.draft;
         const lookup=await api<{vehicles:{id:string;ownerId:string}[]}>(`/vehicles?q=${encodeURIComponent(currentDraft.plate)}`);
+        if (editorLock.current?.lease !== lease) return;
         const vehicle=lookup.vehicles.find(v=>v.id.toLowerCase()===currentDraft.vehicleId?.toLowerCase());
         if(!vehicle || vehicle.ownerId.toLowerCase()!==currentDraft.customerId?.toLowerCase()) throw new Error('OWNER_TRANSFER_NOT_APPLIED');
         setOwnerRevision(n => n + 1);
       }
       if (action === 'close') setClosing(false);
       setOrder(saved ?? null);
-      setDraft(saver.current.state.draft);
+      setDraft(service.state.draft);
       setConfirmAction(null);
-      setNotice({ page: 'editor', orderId: saver.current.state.id, retryable: false, message:
+      setNotice({ page: 'editor', orderId: service.state.id, retryable: false, message:
         action === 'void'
           ? 'Orden cancelada. Se conserva su información.'
           : action === 'close'
@@ -410,6 +413,7 @@ export function App() {
             : 'Dueño actual actualizado. El historial anterior se conserva.',
       });
     } catch (error) {
+      if (editorLock.current?.lease !== lease) return;
       if (!saver.current?.state.pending) setConfirmAction(null);
       if(error instanceof Error && error.message==='OWNER_TRANSFER_NOT_APPLIED') {
         setMessage('El dueño registrado del vehículo no cambió. Busca el vehículo por placa y confirma Actualizar dueño antes de crear otra orden.');
@@ -424,7 +428,7 @@ export function App() {
   }
   async function resolveConflict(version: string, selected?: Draft) {
     const service=saver.current;
-    if(!service || busy) return;
+    if(!editorLock.current?.lease || !service || busy) return;
     setBusy(true);
     try {
       await service.resolveConflict(version,selected);
@@ -450,7 +454,7 @@ export function App() {
     finally { setBusy(false); }
   }
   function saveDraft(next: Draft) {
-    if (busy || confirmAction || conflict || (order && order.status !== 'OPEN')) return;
+    if (!editorLock.current?.lease || !saver.current || busy || confirmAction || conflict || (order && order.status !== 'OPEN')) return;
     setDraft(next);
     void saver.current
       ?.edit(next)
@@ -495,6 +499,7 @@ export function App() {
   const totals = amounts(draft?.items, taxRate);
   const errors = draft ? visibleErrors(draft, touched, closing) : [];
   const readOnly =
+    !editorReady ||
     (!!order && order.status !== 'OPEN') ||
     !!confirmAction ||
     !!conflict ||
@@ -578,7 +583,14 @@ export function App() {
                 </button>
               )}
             </nav>
-            {editorAccessMessage && ['dashboard', 'open', 'history', 'editor'].includes(page) && <p role="status" className="editor-access-notice">{editorAccessMessage}</p>}
+            {editorAccess !== 'ready' && ['dashboard', 'open', 'history', 'editor'].includes(page) && (
+              <div className="editor-access-notice">
+                <p role="status">{editorMessages[editorAccess]}</p>
+                {(editorAccess === 'occupied' || editorAccess === 'error') && (
+                  <button type="button" className="quiet" onClick={() => editorLock.current?.retry()}>Reintentar edición</button>
+                )}
+              </div>
+            )}
             {page === 'dashboard' && (
               <Dashboard
                 session={session}
@@ -592,10 +604,13 @@ export function App() {
                 key={page}
                 userId={session.userId}
                 role={session.role}
+                canEdit={editorReady && !busy}
                 onCancel={async selected => {
+                  const lease = editorLock.current?.lease;
+                  if (!lease) return;
                   await openOrder(selected);
                   const current = saver.current?.state.order;
-                  if (current?.id === selected.id && current.status === 'OPEN' && (session.role === 'ADMIN' || current.mechanicId === session.userId)) setConfirmAction('void');
+                  if (editorLock.current?.lease === lease && current?.id === selected.id && current.status === 'OPEN' && (session.role === 'ADMIN' || current.mechanicId === session.userId)) setConfirmAction('void');
                 }}
                 status={page === 'open' ? 'OPEN' : 'CLOSED'}
                 onOpen={(o) => void openOrder(o)}
@@ -730,12 +745,18 @@ export function App() {
                       </ul>
                     </div>
                   )}
-                  {conflict && saver.current && <ConflictReview key={editorId+':'+conflict.remote.version} record={saver.current.state} busy={busy} onResolve={(version,selected)=>void resolveConflict(version,selected)} />}
+                  {conflict && saver.current && <ConflictReview key={editorId+':'+conflict.remote.version} record={saver.current.state} busy={busy || !editorReady} onResolve={(version,selected)=>void resolveConflict(version,selected)} />}
                   {!!saver.current?.state.recoveryCopies?.length && <button type="button" className="quiet" onClick={()=>{if(saver.current)downloadRecovery(saver.current.state);}}>Descargar copias de recuperación</button>}
-                  {(!order || order.status === 'OPEN') && !conflict && (
+                  {editorReady && (!order || order.status === 'OPEN') && !conflict && (
                     <div hidden={!!confirmAction || busy}><EntitySearch key={`${page}:${editorId}`} ownerRevision={ownerRevision} draft={draft} onSelect={saveDraft} allowTransfer={(session.role === 'ADMIN' || session.role === 'MECHANIC')} onTransfer={() => {
+                      const service = saver.current;
+                      if (!editorLock.current?.lease || !service) return;
                       setBusy(true);
-                      void saver.current?.flush().then(() => { setOrder(saver.current?.state.order ?? null); setConfirmAction('transfer-owner'); })
+                      void service.flush().then(() => {
+                        if (saver.current !== service) return;
+                        setOrder(service.state.order ?? null);
+                        setConfirmAction('transfer-owner');
+                      })
                         .catch(() => setMessage('Sincroniza la orden antes de actualizar el dueño.')).finally(() => setBusy(false));
                     }} /></div>
                   )}
@@ -1022,23 +1043,26 @@ export function App() {
                     <button
                       type="button"
                       className="danger"
-                      disabled={busy || !!confirmAction}
+                      disabled={!editorReady || busy || !!confirmAction}
                       onClick={() => {
+                        const service = saver.current;
+                        if (!editorLock.current?.lease || !service) return;
                         setClosing(true);
                         if (visibleErrors(draft, touched, true).length === 0) {
                           setBusy(true);
-                          void saver.current
-                            ?.flush()
+                          void service
+                            .flush()
                             .then(async () => {
-                              const current=saver.current?.state.draft;
-                              if(!current) throw new Error('EDITOR_NOT_READY');
+                              if (saver.current !== service) return;
+                              const current=service.state.draft;
                               const lookup=await api<{vehicles:{id:string;ownerId:string;owner?:{fullName:string}}[]}>(`/vehicles?q=${encodeURIComponent(current.plate)}`);
+                              if (saver.current !== service) return;
                               const vehicle=lookup.vehicles.find(v=>!current.vehicleId || v.id.toLowerCase()===current.vehicleId.toLowerCase());
                               // Require the resolved persisted identities when a known vehicle is involved.
                               if(current.vehicleId && (!vehicle || !current.customerId)) throw new Error('OWNER_LOOKUP_REQUIRED');
                               setCloseOwner(vehicle && current.customerId && vehicle.ownerId.toLowerCase()!==current.customerId.toLowerCase()
                                 ? {vehicleId:vehicle.id,customerId:current.customerId,expectedOwnerId:vehicle.ownerId,ownerName:vehicle.owner?.fullName ?? 'dueño actual',decision:'transfer'} : null);
-                              setOrder(saver.current?.state.order ?? null);
+                              setOrder(service.state.order ?? null);
                               setConfirmAction('close');
                             })
                             .catch(() =>
@@ -1054,13 +1078,13 @@ export function App() {
                     </button>
                   )}
                   {order?.status === 'OPEN' && !conflict && (session.role === 'ADMIN' || order.mechanicId === session.userId) && (
-                    <button type="button" className="danger" disabled={busy || !!confirmAction} onClick={() => setConfirmAction('void')}>Cancelar orden</button>
+                    <button type="button" className="danger" disabled={!editorReady || busy || !!confirmAction} onClick={() => setConfirmAction('void')}>Cancelar orden</button>
                   )}
                   </div>
                   {order?.status === 'CLOSED' && !conflict && session.role === 'ADMIN' && (
                     <button
                       type="button"
-                      disabled={busy}
+                      disabled={!editorReady || busy}
                       onClick={() => setConfirmAction('reopen')}
                     >
                       Reabrir orden
@@ -1092,7 +1116,7 @@ export function App() {
                       <p>Total: {formatCRC(totals.total)}</p>
                       <button
                         type="button"
-                        disabled={busy}
+                        disabled={!editorReady || busy}
                         onClick={() => void performAction()}
                       >
                         {busy ? 'Procesando…' : 'Confirmar'}
@@ -1120,9 +1144,9 @@ export function App() {
           <SyncStatus
             message={sessionStatus === 'authenticated' ? (editor ? message : '') : globalMessage}
             retryable={
-              retryable && !!draft && sessionStatus === 'authenticated'
+              editorReady && retryable && !!draft && sessionStatus === 'authenticated'
             }
-            onRetry={() => void saver.current?.sync()}
+            onRetry={() => { if (editorLock.current?.lease) void saver.current?.sync(); }}
           />
         </section>
       </main>

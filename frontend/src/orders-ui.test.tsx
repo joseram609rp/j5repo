@@ -511,6 +511,50 @@ async function historySearch() {
   await click('Buscar');
 }
 
+it('keeps open lists and closed details accessible when another tab owns the editor', async () => {
+  vi.mocked(bootstrapSession).mockResolvedValue({
+    session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,
+  });
+  seed();
+  seed('CLOSED');
+  let occupied = true;
+  Object.defineProperty(navigator, 'locks', {
+    configurable: true,
+    value: { request: async (_name: string, _options: unknown, callback: LockGrantedCallback<Promise<void>>) =>
+      callback(occupied ? null : { name: _name, mode: 'exclusive' }) },
+  });
+  await mount();
+  expect(button('Nueva orden').disabled).toBe(true);
+  await click('Órdenes abiertas');
+  expect(button('Continuar').disabled).toBe(true);
+  expect(button('Cancelar orden').disabled).toBe(true);
+  await click('Historial');
+  await historySearch();
+  await click('Ver detalle');
+  expect(button('Reabrir orden').disabled).toBe(true);
+  expect(storage.write).not.toHaveBeenCalled();
+  expect(puts).toBe(0);
+  occupied = false;
+  await click('Reintentar edición');
+  expect(button('Reabrir orden').disabled).toBe(false);
+});
+
+it('recovers a locally saved draft after pagehide and pageshow without starting another order', async () => {
+  await mount();
+  await click('Nueva orden');
+  const id = disk!.id;
+  await input('[data-field=identification]', '12');
+  const initialPuts = puts;
+  await act(async () => { window.dispatchEvent(new Event('pagehide')); });
+  expect(button('Continuar').disabled).toBe(true);
+  expect(records.get(id)?.draft.identification).toBe('12');
+  await act(async () => { window.dispatchEvent(new Event('pageshow')); });
+  await click('Continuar');
+  expect(container.querySelector<HTMLInputElement>('[data-field=identification]')?.value).toBe('12');
+  expect(disk?.id).toBe(id);
+  expect(puts).toBe(initialPuts);
+});
+
 it('keeps pending drafts independent while creating and continuing multiple orders', async () => {
  await mount(); await click('Nueva orden'); const first=disk!.id;
  await input('[data-field=identification]','12');
@@ -1035,7 +1079,7 @@ it('login retains credentials while waiting and after service failure, with no e
 it('editor lock notices stay in order screens and never leak to Usuarios or login',async()=>{
  vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
  Object.defineProperty(navigator,'locks',{configurable:true,value:{request:async(_name:string,_options:unknown,callback:(lock:object|null)=>Promise<void>)=>callback(null)}});
- await mount();expect(notices()).toContain('El borrador está abierto en otra pestaña');expect(button('Nueva orden').disabled).toBe(true);
+ await mount();expect(notices()).toContain('La edición está ocupada temporalmente');expect(button('Nueva orden').disabled).toBe(true);
  await click('Usuarios');expect(text()).toContain('Crear usuario');expect(notices()).not.toContain('otra pestaña');
  await click('Órdenes abiertas');expect(notices()).toContain('otra pestaña');
  await click('Usuarios');const expire=vi.mocked(trackActivity).mock.calls.at(-1)![1];await act(async()=>{expire();});
@@ -1048,5 +1092,5 @@ it('late editor lock errors cannot display an order notice in Usuarios',async()=
  Object.defineProperty(navigator,'locks',{configurable:true,value:{request:()=>new Promise<void>((_resolve,fail)=>{reject=fail;})}});
  await mount();await click('Usuarios');await act(async()=>{reject(new Error('lock unavailable'));});
  expect(text()).toContain('Crear usuario');expect(notices()).not.toContain('bloqueo de edición');
- await click('Inicio');expect(notices()).toContain('No se pudo obtener el bloqueo de edición');
+ await click('Inicio');expect(notices()).toContain('No se pudo comprobar el bloqueo de edición');
 });
