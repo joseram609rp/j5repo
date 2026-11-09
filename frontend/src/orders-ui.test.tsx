@@ -530,6 +530,35 @@ it('ADMIN gets active assignees on OPEN; MECHANIC remains read-only and year has
  expect(container.querySelector('[data-field=year]')?.getAttribute('min')).toBe('1950');
  expect(container.querySelector('[data-field=year]')?.hasAttribute('max')).toBe(false);
 });
+
+it('selects a suggested year and saves manually entered years outside the list', async () => {
+ await mount(); await click('Nueva orden');
+ const year = container.querySelector<HTMLInputElement>('[data-field=year]')!;
+ const trigger = container.querySelector<HTMLButtonElement>('[aria-label="Elegir año del vehículo"]')!;
+ expect(trigger.getAttribute('aria-expanded')).toBe('false');
+ await act(async () => trigger.click());
+
+ const years = [...container.querySelectorAll<HTMLButtonElement>('button[data-year]')];
+ const lastYear = new Date().getFullYear() + 5;
+ expect(years.map(option => Number(option.textContent))).toEqual(
+   Array.from({ length: lastYear - 1970 + 1 }, (_, index) => 1970 + index),
+ );
+
+ await act(async () => {
+   document.activeElement!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+ });
+ expect(document.activeElement).toBe(years[0]);
+ await act(async () => years[0]!.click());
+ expect(year.value).toBe('1970');
+ expect(disk?.draft.year).toBe(1970);
+ expect(trigger.getAttribute('aria-expanded')).toBe('false');
+ expect(document.activeElement).toBe(trigger);
+
+ for (const manualYear of [1955, 2201]) {
+   await input('[data-field=year]', String(manualYear));
+   expect(disk?.draft.year).toBe(manualYear);
+ }
+});
 it('owner mismatch preserves chosen customer and requires an explicit decision', async () => {
  seed(); await mount(); await click('Órdenes abiertas'); await click('Continuar');
  await input('.lookup input','XYZ987'); await click('Buscar'); await click('XYZ987');
