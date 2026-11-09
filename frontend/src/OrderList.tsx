@@ -142,7 +142,7 @@ export function OrderList({
         ))}
       </div>
       {more && !loading && !error && (
-        <button className="quiet" onClick={() => setCursor(orders.at(-1)?.id)}>
+        <button className="quiet" onClick={() => setCursor(orders[orders.length - 1]?.id)}>
           Cargar más
         </button>
       )}

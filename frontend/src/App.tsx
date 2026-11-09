@@ -159,7 +159,7 @@ export function App() {
     const stop = trackActivity(session, expire);
     if (!navigator.locks) {
       setEditorAccessMessage(
-        'Este navegador no admite el bloqueo de edición. Usa una versión reciente.',
+        'Este navegador permite consultar, pero no editar de forma segura entre pestañas. Tus borradores se conservan; para editarlos usa un navegador con bloqueo de edición.',
       );
       return stop;
     }
@@ -656,6 +656,7 @@ export function App() {
                     ? 'No se pudo comprobar la sesión'
                     : 'Comprobando sesión…'}
                 </h3>
+                {bootstrapError && <p>Revisa tu conexión o espera a que el servicio esté disponible y reintenta. Tus borradores locales se conservan.</p>}
                 {bootstrapError && (
                   <button onClick={() => void checkSession()}>
                     Reintentar
