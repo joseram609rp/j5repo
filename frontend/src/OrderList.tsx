@@ -9,9 +9,11 @@ export function OrderList({
   userId,
   role,
   onCancel,
+  canEdit = true,
 }: {
   role?: 'ADMIN' | 'MECHANIC';
   onCancel?: (order: Order) => void;
+  canEdit?: boolean;
   userId?: string;
   status: 'OPEN' | 'CLOSED';
   onOpen: (order: Order) => void;
@@ -132,11 +134,11 @@ export function OrderList({
             {localOrders.some(local => local.id === order.id) && (
               <p className="status">Cambios guardados en este dispositivo; pendientes de sincronizar.</p>
             )}
-            <button disabled={loading} onClick={() => onOpen(order)}>
+            <button disabled={loading || (status === 'OPEN' && !canEdit)} onClick={() => onOpen(order)}>
               {status === 'OPEN' ? 'Continuar' : 'Ver detalle'}
             </button>
             {order.status === 'OPEN' && !!order.version && onCancel && (role === 'ADMIN' || order.mechanicId === userId) && (
-              <button className="quiet" disabled={loading} onClick={() => onCancel(order)}>Cancelar orden</button>
+              <button className="quiet" disabled={loading || !canEdit} onClick={() => onCancel(order)}>Cancelar orden</button>
             )}
           </article>
         ))}
