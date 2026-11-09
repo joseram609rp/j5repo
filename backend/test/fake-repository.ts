@@ -99,15 +99,23 @@ export class FakeRepository implements Repository, UnitOfWork {
     for (const s of this.sessions.values())
       if (s.userId === id) s.revoked = true;
   }
-  async listOrders(status: 'OPEN' | 'CLOSED', search: string, before?: string) {
+  async listOrders(status: 'OPEN' | 'CLOSED', search: string, before?: string, dates?: { from: string; to: string }) {
     const fold = (v: string) => v.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
     const sorted = [...this.orders.values()].sort((a,b) => (b.openedAt ?? '').localeCompare(a.openedAt ?? '') || (b.displayOrderId ?? '').localeCompare(a.displayOrderId ?? ''));
     const offset = before ? sorted.findIndex(o => o.id === before) + 1 : 0;
-    return sorted.slice(offset).filter(o => o.status === status && (!search ||
+    return sorted.slice(offset).filter(o => {
+      if (o.status !== status) return false;
+      if (status === 'CLOSED' && dates) {
+        if (!o.openedAt) return false;
+        const businessDate = new Date(Date.parse(o.openedAt) - 6 * 3600000).toISOString().slice(0, 10);
+        if (businessDate < dates.from || businessDate > dates.to) return false;
+      }
+      return !search ||
       fold(o.draft.customerName).includes(fold(search)) ||
       o.draft.plate === search.toUpperCase().replace(/[\s-]/g, '') ||
       o.draft.identification === search ||
-      (o.displayOrderId ?? '').startsWith(search))).slice(0,50);
+      (o.displayOrderId ?? '').startsWith(search);
+    }).slice(0,50);
   }
   async findCustomers(_search: string) {
     return [];

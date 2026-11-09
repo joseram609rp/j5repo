@@ -286,8 +286,14 @@ export class SqlUnit implements UnitOfWork {
       { id },
     );
   }
-  async listOrders(status: 'OPEN' | 'CLOSED', search: string, before?: string) {
-    if (status === 'CLOSED' && search.trim().length < 2) throw new HttpError(400, 'HISTORY_SEARCH_REQUIRED');
+  async listOrders(
+    status: 'OPEN' | 'CLOSED',
+    search: string,
+    before?: string,
+    dates?: { from: string; to: string },
+  ) {
+    const range = status === 'CLOSED' ? dates : undefined;
+    if (status === 'CLOSED' && !range && search.trim().length < 2) throw new HttpError(400, 'HISTORY_SEARCH_REQUIRED');
     const rows = (
       await this.query<OrderRow>(
         `SELECT TOP (50) o.*,(SELECT COALESCE(SUM(ROUND(oi.price*b.tax_rate/100,2)),0) FROM dbo.OrderItems oi JOIN dbo.Orders b ON b.id=oi.order_id WHERE oi.order_id=o.id) AS tax_amount,u.full_name AS mechanic_name FROM dbo.Orders o
@@ -297,8 +303,9 @@ export class SqlUnit implements UnitOfWork {
       AND (@search='' OR LEFT(o.display_order_id,LEN(@search)) COLLATE Latin1_General_100_CI_AS=@search COLLATE Latin1_General_100_CI_AS OR o.plate_snapshot=@plate
       OR CHARINDEX(@search COLLATE Latin1_General_100_CI_AI,o.customer_name_snapshot COLLATE Latin1_General_100_CI_AI)>0
       OR COALESCE(JSON_VALUE(o.draft_data,'$.identification'),c.identification)=@search)
+      ${range ? 'AND o.order_date BETWEEN CONVERT(date,@from,23) AND CONVERT(date,@to,23)' : ''}
       ORDER BY o.created_at DESC,o.order_number DESC`,
-        { status, search, plate: search.toUpperCase().replace(/[\s-]/g, ''), before: before ?? null },
+        { status, search, plate: search.toUpperCase().replace(/[\s-]/g, ''), before: before ?? null, ...range },
       )
     ).recordset;
     return rows.map(order);
