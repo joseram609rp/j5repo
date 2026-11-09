@@ -8,6 +8,6 @@ it('migration seed is reproducible from approved JSON and preserves legacy migra
  const migration=readFileSync('database/migrations/010_vehicle_catalog.sql','utf8');
  expect(migration).toContain('Latin1_General_100_CI_AI');expect(migration).toContain('FK_VehicleModels_Make');expect(migration).toContain('CATALOG_SEED_INVALID');
  expect(migration).not.toMatch(/ALTER TABLE dbo.Vehicles|https?:/);
- const cleanup=readFileSync('clean up/02_cleanup_qa.sql','utf8');
- expect(cleanup).toContain('CATALOG_CHANGED');expect(cleanup).not.toMatch(/(?:DELETE FROM|TRUNCATE TABLE|DROP TABLE) dbo.Vehicle(?:Makes|Models)/);
+ const cleanup=readFileSync('clean up/02_cleanup.sql','utf8');
+ expect(cleanup).toContain('PROTECTED_DATA_CHANGED');expect(cleanup).not.toMatch(/(?:DELETE FROM|TRUNCATE TABLE|DROP TABLE) dbo.Vehicle(?:Makes|Models)/);
 });

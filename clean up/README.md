@@ -1,32 +1,24 @@
-# Cleanup total de J5 — DEV/QA ONLY
-Elimina órdenes/trabajos, clientes, vehículos, sesiones, recibos idempotentes, auditoría y usuarios MECHANIC u otros no ADMIN.
-Conserva TODOS los ADMIN activos e inactivos con sus campos intactos, SchemaMigrations y schema/constraints/triggers/índices/secuencia.
-No es una migración; no altera migraciones aplicadas. Si aparecen tablas nuevas, aborta hasta revisarlas.
+# Entrega limpia de J5
 
-## Prerequisitos
-Node soportado, pnpm y dependencias instaladas; .env local ignorado con configuración SQL existente.
-Destino exclusivo: j5sqlserver.database.windows.net / tallerj5.
-Detenga TODOS los procesos API/frontend y pestañas J5, incluyendo otras máquinas, antes de borrar.
-No utilizar en producción. No genera respaldo: recuperación depende del respaldo Azure disponible.
+Destino exclusivo: `j5sqlserver.database.windows.net`, base `tallerj5`. La limpieza vacía `dbo.OrderItems`, `dbo.Orders` (OPEN, CLOSED y VOID), `dbo.Vehicles` y `dbo.Customers`. Compara el contenido de todas las demás tablas por conteo y SHA-256, incluyendo todo `legacy`, todos los usuarios, catálogo, migraciones, sesiones, auditoría e idempotencia. Las migraciones y la secuencia quedan intactas.
 
-## Desde la raíz del repo, PowerShell
+## Verificaciones obligatorias
+
+1. Confirmar la identidad del recurso en Azure y revisar la retención y el intervalo disponible de recuperación a un punto en el tiempo. Tras suspender escrituras, verificar una restauración de un punto dentro de esa ventana de mantenimiento en una base separada, con acceso restringido. Comparar los conteos y hashes del punto recuperado contra la base de origen. Registrar referencia de la operación y hora UTC del punto restaurado.
+2. Coordinar todos los dispositivos y perfiles J5, incluidos los que estén desconectados. Identificar y resolver borradores pendientes o conflictos. Cerrar los clientes, suspender escrituras de las API, trabajos, integraciones y otras conexiones de ambas ramas, y verificar que se mantengan suspendidas hasta concluir el postcheck. Ver [revisión de dispositivos](04_clear_local_cache.md).
+3. Ejecutar el precheck con la configuración SQL autorizada y permisos de lectura y `VIEW DEFINITION` a nivel de base. Revisar que los datos operativos sean exclusivamente de prueba, el catálogo tenga las 57 marcas y 986 modelos esperados, el archivo incluya las 16.289 órdenes y 13.219 vehículos esperados y se cumplan 17 o más migraciones. Investigar cualquier diferencia antes de continuar. Verificar dependencias y que toda referencia SQL entrante pueda resolverse dentro de las cuatro tablas.
+4. Conservar evidencia operativa fuera de Git. Preparar un JSON con `server`, `database`, `azureRestoreOperation`, `restorePointUtc`, `writesSuspendedAt`, `maintenanceExpiresAt` y los booleanos `restoreVerified`, `offlineQueuesVerifiedEmpty`, `writesSuspended`, `onlyTestDataVerified` y `protectedCountsReviewed`. Usar fechas ISO 8601 UTC. Registrar estos campos únicamente después de verificar las condiciones. El runner valida el documento y su vigencia, pero la evidencia de Azure y los dispositivos se verifica fuera de SQL.
+
+## Ejecución desde PowerShell
+
+Con Node y dependencias del repo instaladas, usar el `.env` local ignorado o una identidad Azure autorizada. Guardar evidencia y resultados en un directorio privado fuera del repo.
+
 ```powershell
-& '.\clean up\run-cleanup.ps1' -Mode precheck
-& '.\clean up\run-cleanup.ps1' -Mode cleanup -ConfirmDeleteAllQA
-& '.\clean up\run-cleanup.ps1' -Mode postcheck
-pnpm --filter @j5/backend db:verify
+& '.\clean up\run-cleanup.ps1' -Mode precheck -BaselinePath $baseline
+& '.\clean up\run-cleanup.ps1' -Mode cleanup -BaselinePath $baseline -EvidencePath $evidence -ConfirmTestDataDelete
+& '.\clean up\run-cleanup.ps1' -Mode postcheck -BaselinePath $baseline
 ```
-El runner usa .env sin imprimir secretos, arma confirmación SOLO en memoria y no reintenta mutaciones.
-Manual SQL: ejecutar 01, cambiar @ConfirmCleanup=1 en una copia de 02, ejecutar y luego ejecutar 03.
-02 mantiene @ConfirmCleanup=0 en Git. Usa transacción, locks, XACT_ABORT, TRY/CATCH y checks de ADMIN y migraciones intactos.
-Reabre CLOSED/VOID solo dentro de la transacción para cumplir triggers; borra en orden FK. Falla sin ADMIN/schema conocido y hace rollback.
 
-## Secuencia y limpieza local
-@ResetOrderNumber=1 reinicia dbo.OrderNumber a 1 para QA/entrega inicial después de borrar todas las órdenes.
-En producción NO reiniciar salvo decisión explícita; configure @ResetOrderNumber=0.
-test:sql usa fixtures rollback-only; puede consumir números de secuencia. Si se ejecuta, repetir postcheck. No publicar resultados operativos de DB en el repo.
-Complete [limpieza local](04_clear_local_cache.md) antes de reabrir frontend.
+El modo cleanup ejecuta el postcheck de solo lectura después del commit. Mantener la pausa de escrituras hasta confirmar `CLEANUP_COMMITTED`, `POSTCHECK_OK`, cuatro conteos en cero y coincidencia de tablas protegidas. Si hay desconexión o timeout, conservar la pausa y comprobar el estado con postcheck antes de considerar un nuevo intento.
 
-VehicleMakes (57) y VehicleModels (986) son tablas esperadas y se preservan completas, sin DELETE/TRUNCATE. Cleanup compara todas sus columnas antes/después dentro de la transacción y verifica 0 huérfanos. SchemaMigrations contiene 15 migraciones incluyendo 012_user_lockout.sql, 013_flexible_plates.sql , 014_username_check_pattern.sql y 015_flexible_order_plate_guard.sql. La última actualiza también el trigger de cierre para placas de 3..12 caracteres. ADMIN y reset QA de OrderNumber conservan su comportamiento.
-
-Lockout persistido: 5 fallos / 15 minutos. Reactivación, desbloqueo y reset limpian el bloqueo; reset revoca sesiones. Cleanup conserva ADMIN con todas sus columnas y catálogo 57/986. No ejecutar cleanup como parte de las migraciones.
+La ejecución valida claves foráneas y el código exacto de los triggers revisados. Dentro de la transacción toma bloqueos exclusivos, contrasta el estado con el precheck y reabre las órdenes cerradas o anuladas temporalmente para respetar el trigger de ítems. Los triggers quedan habilitados. Un error o diferencia antes del commit revierte la transacción. La ejecución requiere DELETE en las cuatro tablas y UPDATE en Orders. Si la validación o el acceso a restauración falla, detenerse antes del borrado.
