@@ -38,3 +38,9 @@ IF DATABASE_PRINCIPAL_ID(N'legacy_reader') IS NULL CREATE ROLE legacy_reader;
 GRANT SELECT ON SCHEMA::legacy TO legacy_reader;
 DENY INSERT, UPDATE, DELETE, ALTER ON SCHEMA::legacy TO legacy_reader;
 -- DBA must add the non-owner API identity to legacy_reader. Import with a separate identity.
+
+-- Dedicated execution identity: no login, no operational privileges, archive SELECT only.
+IF DATABASE_PRINCIPAL_ID(N'j5_legacy_reader') IS NOT NULL
+ THROW 51000, 'Reserved legacy execution principal already exists; review before migration', 1;
+CREATE USER j5_legacy_reader WITHOUT LOGIN WITH DEFAULT_SCHEMA=legacy;
+ALTER ROLE legacy_reader ADD MEMBER j5_legacy_reader;

@@ -1,58 +1,77 @@
-# Archivo histórico (rama feature/legacy-history-import)
+# Historial anterior: importación y QA
 
-Rama creada desde dev (0c47e1d); no merges ni push. La copia de trabajo original C:\j5repo sigue en fix/legal-identification. Esta implementación está en la copia de trabajo indicada por `git worktree list`.
+Rama feature/legacy-history-import, actualizada con dev mediante ed98ee5. Incluye las migraciones 016 y 017. No hacer merge hacia dev/main hasta revisar la app.
 
-## Compatibilidad y privacidad
+## Ubicaciones y credenciales
 
-En dev la última migración es 015; 016 existe en fix/legal-identification. No se copió ni modificó. Se agrega 017, compatible con el ejecutor por nombre/checksum (no exige números consecutivos). Antes de cargar, el comando --migrate compara toda la historia efectiva y los checksums. Si SQL ya tiene 016 y esta rama aún no contiene ese archivo, aborta: integrar primero el cambio revisado de 016 en esta rama y repetir. Nunca alterar SchemaMigrations para saltarse esta comprobación.
+El .env existente está en C:\j5repo\.env y no se borró. Git lo ignora; por eso no aparece automáticamente en la copia de trabajo separada. No copiarlo al repositorio ni mostrar sus valores. Node puede leerlo con --env-file=C:\j5repo\.env.
 
-El ZIP se lee sin extraer ni limpiar. Se usa exclusivamente legacy_vehicles_curated.jsonl, legacy_work_orders.jsonl, legacy_mechanics.jsonl y quality_summary.json. Los payloads conservan campos originales, procedencia, calidad y nulls. La tabla ImportIssues conserva el resumen de calidad; las marcas individuales permanecen en cada payload. Los IDs originales de registros son las claves; la secuencia antigua no se usa como clave. Fichas contradictorias de una misma placa se muestran separadas, sin asignar automáticamente propietarios ni relacionar dbo con legacy.
+Copia de trabajo: C:\Users\joser\Documents\Codex\2026-11-08\referenced-chatgpt-conversation-this-is-an\work\j5repo
+ZIP privado: C:\J5-legacy-private\J5_legacy_cleaned_PRIVATE.zip
 
-ZIP y JSONL están ignorados; mantenerlos fuera de Git. No imprimir payloads ni errores de driver. No copiar credenciales al repositorio. La API no devuelve raw_record ni el payload completo; usa Cache-Control: no-store. La PWA no cachea rutas API y esta pantalla no escribe en IndexedDB.
+## Destino aprobado
 
-## Validación y carga exclusivamente DEV/QA
+El usuario autorizó expresamente el 8 de noviembre de 2026 usar la base de producción existente j5sqlserver.database.windows.net / tallerj5, con tablas independientes. Esto reemplaza la instrucción anterior de cargar exclusivamente DEV/QA. La migración específica crea legacy y registra 017 en dbo.SchemaMigrations; no cambia datos ni definiciones de las tablas operativas. No ejecutar el migrador general, que podría aplicar otras migraciones pendientes.
 
-Requiere Node 22.12–24, PowerShell 7 (`pwsh`), dependencias del proyecto y SQL DEV/QA separado. Con pnpm disponible:
+El comando --migrate compara la historia SQL completa y sus checksums, exige las migraciones previas y aplica únicamente 017. Nunca modificar una migración ya aplicada ni su checksum. El importador requiere lista permitida explícita y --production-approved para ese servidor/base exactos; se rechaza ejecutar desde una instancia desplegada.
+
+## Validación e importación (PowerShell)
+
+Desde la copia de trabajo, con Node en PATH y el backend compilado:
+
+```powershell
+node --env-file=C:\j5repo\.env backend/dist/legacy-import.js C:\J5-legacy-private\J5_legacy_cleaned_PRIVATE.zip --validate
+$env:LEGACY_ENVIRONMENT='production'
+$env:LEGACY_ALLOWED_SERVER='j5sqlserver.database.windows.net'
+$env:LEGACY_ALLOWED_DATABASE='tallerj5'
+node --env-file=C:\j5repo\.env backend/dist/legacy-import.js C:\J5-legacy-private\J5_legacy_cleaned_PRIVATE.zip --migrate --production-approved
+node --env-file=C:\j5repo\.env backend/dist/legacy-import.js C:\J5-legacy-private\J5_legacy_cleaned_PRIVATE.zip --apply --production-approved
+```
+
+Repetir --apply verifica conteos sin duplicar el mismo ZIP. Un archivo diferente con IDs ya existentes falla sin reemplazarlos. La transacción abarca toda la carga y usa bloqueo exclusivo; ante error se revierte completa. El ZIP no se extrae, limpia ni modifica. Se valida SHA-256 antes/después de leer. No subir ZIP, JSONL, reportes privados ni credenciales a Git.
+
+Archivos usados: legacy_vehicles_curated.jsonl (13219), legacy_work_orders.jsonl (16289), legacy_mechanics.jsonl (5), quality_summary.json. Nulls, datos originales y marcas de calidad se conservan en payloads. ImportIssues conserva el resumen; cada registro conserva sus marcas individuales. Se preservan 3 fechas nulas, 13219 identificaciones nulas y los importes cero.
+
+## Lectura histórica aislada
+
+Tablas legacy.ImportBatches, Vehicles, WorkOrders, Mechanics e ImportIssues. No hay FK ni cargas hacia dbo.Customers, dbo.Vehicles u Orders.
+
+El usuario interno j5_legacy_reader no tiene login y pertenece a legacy_reader: SELECT sobre legacy, DENY INSERT/UPDATE/DELETE/ALTER. El lector SQL de la API ejecuta EXECUTE AS USER para cada transacción histórica y luego REVERT; no utiliza esa identidad en consultas operativas. La cuenta actual de conexión es propietaria de la base; esta ejecución restringida limita las consultas históricas sin modificar los permisos operativos existentes. Si se cambia en el futuro a una identidad SQL no propietaria, conceder únicamente IMPERSONATE sobre j5_legacy_reader a la identidad real del API, tras revisión. No agregar la cuenta propietaria al rol legacy_reader: eso no restringiría al propietario y podría afectar la importación.
+
+GET /api/legacy/work-orders?q=texto&from=2020-01-01&to=2026-12-31&page=1&pageSize=25
+GET /api/legacy/work-orders/{record_id}
+
+Todos requieren sesión válida; solo GET, respuestas no-store. La PWA no cachea API y esta pantalla no escribe IndexedDB. Se conservan fichas contradictorias por placa y se muestran separadas. Buscar por cliente encuentra trabajos de la placa compartida; no supone propiedad histórica cierta. Sin filtro de fecha se incluyen fechas nulas; un rango las excluye.
+
+## Pruebas
 
 ```powershell
 pnpm --filter @j5/backend build
-node backend/dist/legacy-import.js C:\J5-legacy-private\J5_legacy_cleaned_PRIVATE.zip --validate
+pnpm --filter @j5/frontend typecheck
+pnpm exec vitest run --maxWorkers=2
+# Desde frontend:
+pnpm exec vite build --configLoader runner
 ```
 
-Validación real del ZIP: 13219 vehículos, 16289 trabajos, 5 mecánicos, 3 fechas nulas y 13219 identificaciones nulas. Valida forma, IDs únicos, conteos y placas presentes; no corrige datos. Precios cero y fechas/cédulas nulas se conservan.
-
-Configurar SQL_SERVER, SQL_DATABASE, SQL_AUTH_MODE y autenticación mediante variables del proceso con una identidad importadora separada. No usar el .env de producción. Confirmar con el responsable que la base es DEV/QA, luego definir:
+Verificaciones SQL exclusivamente de lectura, con conexión configurada:
 
 ```powershell
-$env:LEGACY_ENVIRONMENT='dev' # o qa
-$env:LEGACY_ALLOWED_SERVER=$env:SQL_SERVER
-$env:LEGACY_ALLOWED_DATABASE=$env:SQL_DATABASE
-node backend/dist/legacy-import.js C:\J5-legacy-private\J5_legacy_cleaned_PRIVATE.zip --migrate
-node backend/dist/legacy-import.js C:\J5-legacy-private\J5_legacy_cleaned_PRIVATE.zip --apply
+$env:LEGACY_LIVE_READ_TEST='1'
+node --env-file=C:\j5repo\.env node_modules/vitest/vitest.mjs run backend/test/legacy-read.integration.test.ts --maxWorkers=1
 ```
 
-La lista permitida debe contener el servidor/base DEV/QA comprobados por el operador. No prueba por sí sola que una base no sea producción. El importador rechaza entornos de despliegue/producción, requiere coincidencia explícita y nunca usa credenciales inventadas. No ejecutar el migrador general para esta carga: su destino está fijado en el código existente a tallerj5. --migrate aplica solamente 017, tras validar las migraciones anteriores.
+No ejecutar suites generales de integración contra producción: pueden crear datos o probar mutaciones. La suite anterior solamente consulta conteos, permisos y el lector histórico.
 
-La carga usa bloqueo exclusivo y una transacción; falla completa ante colisiones o errores. Se verifica el SHA-256 del ZIP antes/después de leerlo. Repetir el mismo ZIP no duplica registros y verifica conteos. Un ZIP diferente con IDs ya existentes falla, sin reemplazar datos. La carga tiene presupuesto de 180 segundos; ante timeout revisar el resultado repitiendo el mismo archivo. No borrar tablas ni ejecutar limpiezas para reintentar.
+QA de la app: configurar conexión local leyendo el .env original; iniciar API y frontend; entrar con cuenta existente; abrir Historial anterior; buscar placa/cliente/texto; probar fechas, paginación, detalle, fichas contradictorias, fecha nula, precio cero y falta de conexión. El historial no tiene controles de edición ni de reutilización en órdenes actuales. Las pruebas con dobles verifican creación/autosave/clientes/vehículos aislados sin crear registros de prueba en producción. Falta la revisión visual manual antes del merge/despliegue.
 
-Un DBA debe agregar la identidad API a legacy_reader con `ALTER ROLE legacy_reader ADD MEMBER [identidad_api]` usando el nombre real aprobado. Este rol tiene SELECT y DENY de INSERT/UPDATE/DELETE/ALTER sobre legacy. La API no debe ser db_owner, sysadmin, propietaria del esquema ni usar la identidad importadora: los propietarios pueden eludir los DENY. Verificar los permisos efectivos bajo la identidad API con HAS_PERMS_BY_NAME sobre legacy (SELECT=1; INSERT, UPDATE, DELETE, ALTER=0). No desplegar sin verificarlo. La migración no adivina ni cambia membresías de usuarios existentes.
+## Ejecución del 8 de noviembre de 2026
 
-## API y QA local
+Conexión validada y migración 017 aplicada tras verificar 001–016. Carga completada y repetición idempotente confirmada sin duplicados. Pruebas SQL de solo lectura: 2 aprobadas; verificaron 1 lote, 13219 fichas, 16289 trabajos, 5 mecánicos, 3 fechas nulas, 13219 identificaciones nulas, 4125 precios cero, paginación/detalle y permisos efectivos de j5_legacy_reader (solo SELECT en legacy, sin SELECT en dbo.Orders). Conteos operativos antes/después: 6 clientes, 6 vehículos, 19 órdenes, 19 ítems, sin cambios. Suite local: 314 pruebas aprobadas y 39 integraciones operativas omitidas; no se ejecutaron mutaciones de prueba contra producción.
 
-GET /api/legacy/work-orders?q=placa-o-cliente-o-texto&from=2020-01-01&to=2026-12-31&page=1&pageSize=25
-GET /api/legacy/work-orders/{record_id}
+Para iniciar la API local con el .env que ya existe (sin copiarlo), desde esta copia de trabajo:
 
-Sesión activa requerida para todos los roles existentes. Páginas 1–10000, tamaño 1–100, fechas válidas, orden estable fecha/ID y total. Sin rango de fechas se incluyen fechas nulas; dentro de rango se excluyen. Sin filtros se pagina el archivo completo. Solo GET; intentos de escritura se rechazan. La consulta de cliente devuelve trabajos asociados por placa; el detalle lista todas las fichas candidatas y advierte sobre ambigüedad.
+```powershell
+node --env-file=C:\j5repo\.env backend/dist/local.js
+```
 
-1. Ejecutar pnpm check (typecheck, pruebas, builds). Las pruebas SQL requieren una conexión DEV/QA autorizada; no confundir pruebas omitidas con aprobadas.
-2. Validar ZIP, migrar, cargar y repetir --apply. Verificar 13219/16289/5 en tablas legacy y una sola fila de lote; revisar resumen de calidad y fechas/cédulas nulas. Capturar conteos dbo antes/después: deben permanecer iguales.
-3. Con identidad API verificar SELECT y denegaciones. Con sesión expirada probar 401 y sin datos; con sesión válida buscar placa, cliente, texto, fechas y paginar. Probar vacíos, error de conexión, fecha nula, precio cero, fichas contradictorias y detalle inexistente.
-4. Iniciar app/API con configuración DEV/QA y abrir Historial anterior. Confirmar funcionamiento en pantalla móvil y PWA instalada, sin cachear datos al perder conexión.
-5. Crear una orden nueva, buscar clientes y vehículos, probar autosave, cerrar y consultar órdenes actuales. Ninguno debe tomar datos de legacy. Los tests de aislamiento comprueban rutas operativas y autosave; las tablas históricas no tienen FK operativa.
-6. Revisar git diff/status, probar localmente y decidir el merge manualmente. Esta tarea no publica ni hace merge a dev/main.
-
-## Verificación realizada y pendiente
-
-Validación del ZIP real y pruebas automatizadas sin datos personales. No había conexión SQL configurada (servidor/base vacíos); no se aplicaron migraciones ni importaciones. Conteos SQL, permisos efectivos, integración SQL y recorrido visual conectado quedan pendientes de DEV/QA.
-
-Resultados finales: 291 pruebas aprobadas, 39 SQL omitidas; suite completa con `vitest run --maxWorkers=2`. Typecheck frontend y compilación backend con `tsc`; frontend/PWA con `vite build --configLoader runner`. La primera corrida concurrente agotó tiempos de tests y la carga de configuración predeterminada de Vite encontró una restricción de acceso; ambas verificaciones pasaron con los comandos indicados. Se reutilizaron dependencias locales mediante enlaces de directorio ignorados, sin modificar dependencias ni lockfile.
+En otra terminal, desde frontend, ejecutar `pnpm exec vite --host localhost --configLoader runner`. Abrir http://localhost:5173 e iniciar sesión con una cuenta existente. No ejecutar Nueva orden como prueba contra producción; verificar los flujos de escritura en un entorno de pruebas o con una operación real autorizada del taller. La app publicada no cambia hasta publicar/desplegar la rama; los datos SQL ya están cargados.

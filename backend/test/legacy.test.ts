@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { createApi,tokenHash } from '../src/api.js';
 import { FakeRepository } from './fake-repository.js';
 import { legacySearch, SqlLegacyReader } from '../src/legacy.js';
-import { importValidated, validateRows } from '../src/legacy-import.js';
+import { assertImportTarget, importValidated, validateRows } from '../src/legacy-import.js';
 import { z } from 'zod';
 import { readFileSync } from 'node:fs';
 function setup() {
@@ -37,7 +37,7 @@ describe('isolated legacy archive',()=>{
   const query=vi.fn(async(text:string)=>({recordset:text.includes('COUNT(*)')?[{total:0}]:[]}));
   const reader=new SqlLegacyReader({runSql:async(fn:any)=>fn({query})} as any);
   await reader.search(legacySearch.parse({q:"%' OR 1=1 --"}),AbortSignal.timeout(1000));
-  for(const [text,params] of query.mock.calls as any){expect(text).not.toContain('dbo.');expect(text).not.toContain("%' OR");expect(params.q).toContain('~%');}
+  for(const [text,params] of query.mock.calls as any){expect(text).not.toContain('dbo.');expect(text).not.toContain("%' OR");if(params)expect(params.q).toContain('~%');}
  });
  it('preserves null and rejects duplicates or count mismatch before import',()=>{
   const schema=z.object({record_id:z.string(),date:z.string().nullable()});const raw=JSON.stringify({record_id:'fixture',date:null});
@@ -60,4 +60,22 @@ it('same archive is inserted once and repeated import validates persisted counts
  const priorCalls=query.mock.calls.length;
  expect(await importValidated(repo,data,'fixture')).toContain('Already imported');expect(inserts).toBe(1);
  expect(query.mock.calls.slice(priorCalls).some(([text])=>text.startsWith('INSERT'))).toBe(false);
+});
+
+it('requires explicit production approval and exact allowlisted server/database',()=>{
+ const target={server:'j5sqlserver.database.windows.net',database:'tallerj5'};
+ const env={LEGACY_ENVIRONMENT:'production',LEGACY_ALLOWED_SERVER:target.server,LEGACY_ALLOWED_DATABASE:target.database};
+ expect(()=>assertImportTarget(target,env,false)).toThrow('PRODUCTION_TARGET_NOT_APPROVED');
+ expect(()=>assertImportTarget(target,env,true)).not.toThrow();
+ expect(()=>assertImportTarget({...target,database:'other'},env,true)).toThrow('TARGET_MISMATCH');
+ expect(()=>assertImportTarget(target,{...env,WEBSITE_INSTANCE_ID:'deployed'},true)).toThrow();
+ expect(()=>assertImportTarget(target,{...env,LEGACY_ENVIRONMENT:'dev'},true)).toThrow();
+});
+it('archive reads always impersonate the restricted identity and revert even on failure',async()=>{
+ const query=vi.fn(async()=>({recordset:[]}));
+ const repo={runSql:async(fn:any)=>fn({query})} as any;
+ const reader=new SqlLegacyReader(repo);
+ await expect(reader.detail('missing',AbortSignal.timeout(1000))).rejects.toMatchObject({code:'LEGACY_NOT_FOUND'});
+ expect(query.mock.calls[0]?.[0]).toContain("EXECUTE AS USER = N'j5_legacy_reader'");
+ expect(query.mock.calls.at(-1)?.[0]).toBe('REVERT;');
 });

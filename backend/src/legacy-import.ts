@@ -25,7 +25,7 @@ export function validateArchive(entries:Record<string,string>) {
 }
 export async function main() {
  const args=process.argv.slice(2); const path=args[0];
- if(!path || args.some((a,i)=>i>0&&!['--apply','--validate','--migrate'].includes(a))) throw new Error('ARGUMENTS');
+ if(!path || args.some((a,i)=>i>0&&!['--apply','--validate','--migrate','--production-approved'].includes(a))) throw new Error('ARGUMENTS');
  // Hash exactly the archive read; detect replacement while reading. Never extract private files.
  const hash=async()=>createHash('sha256').update(await readFile(path)).digest('hex');
  const archiveHash=await hash();
@@ -35,10 +35,10 @@ export async function main() {
  if(await hash()!==archiveHash) throw new Error('ARCHIVE_CHANGED');
  console.log(JSON.stringify({vehicles:data.vehicles.length,workOrders:data.orders.length,mechanics:data.mechanics.length,nullDates:data.orders.filter(r=>r.work_date===null).length,nullIdentifications:data.vehicles.filter(r=>r.customer_identification===null).length}));
  if(!args.includes('--apply') && !args.includes('--migrate')) return;
- // Explicit DEV/QA allowlist required; generic application .env is never sufficient authorization.
- if(!['dev','qa'].includes(process.env.LEGACY_ENVIRONMENT??'') || process.env.NODE_ENV==='production' || process.env.WEBSITE_INSTANCE_ID || !config.sql.server || !config.sql.database || config.sql.server!==process.env.LEGACY_ALLOWED_SERVER || config.sql.database!==process.env.LEGACY_ALLOWED_DATABASE) throw new Error('DEV_QA_TARGET_REQUIRED');
+ // Explicit allowlist; production also requires the separately approved CLI flag.
+ assertImportTarget(config.sql,process.env,args.includes('--production-approved'));
  const repo=new SqlRepository();
- if(args.includes('--migrate')) {
+ if(args.includes('--migrate') || args.includes('--apply')) {
   const directory=fileURLToPath(new URL('../../database/migrations/',import.meta.url));
   const names=(await readdir(directory)).filter(n=>/^\d{3}_.*\.sql$/.test(n)).sort();
   const migrations=await Promise.all(names.map(async name=>{const text=await readFile(directory+'/'+name,'utf8');return {name,text,checksum:createHash('sha256').update(text.replace(/\r\n/g,'\n')).digest('hex')};}));
@@ -48,11 +48,12 @@ export async function main() {
    if(applied.some(a=>!migrations.some(m=>m.name===a.name&&m.checksum===a.checksum)) || migrations.filter(m=>m.name<'017_').some(m=>!applied.some(a=>a.name===m.name)))throw new Error('MIGRATION_HISTORY_MISMATCH');
    const migration=migrations.find(m=>m.name==='017_legacy_archive.sql')!;
    if(!applied.some(a=>a.name===migration.name)) {
+    if(!args.includes('--migrate'))throw new Error('LEGACY_MIGRATION_REQUIRED');
     await tx.query(migration.text);
     await tx.query('INSERT dbo.SchemaMigrations(name,checksum) VALUES(@name,@checksum)',{name:migration.name,checksum:migration.checksum});
    }
   });
-  console.log('Migration 017 verified/applied in DEV/QA.');
+  console.log('Migration 017 verified/applied on the explicitly approved target.');
  }
  if(!args.includes('--apply')) return;
  console.log(await importValidated(repo,data,archiveHash));
@@ -78,4 +79,10 @@ export async function importValidated(repo:SqlRepository,data:ReturnType<typeof 
   return prior?'Already imported; counts verified.':'Imported; counts verified.';
  },AbortSignal.timeout(180000),false,180000);
 }
-if(process.argv[1] && /legacy-import\.(ts|js)$/.test(process.argv[1])) main().catch(()=>{console.error('Legacy import failed; private data and driver details suppressed. Check archive, DEV/QA target, migration and permissions.');process.exitCode=1;});
+export function assertImportTarget(target:{server?:string;database?:string},env:NodeJS.ProcessEnv,productionApproved:boolean) {
+ if(env.WEBSITE_INSTANCE_ID || !target.server || !target.database || target.server!==env.LEGACY_ALLOWED_SERVER || target.database!==env.LEGACY_ALLOWED_DATABASE) throw new Error('TARGET_MISMATCH');
+ if(env.LEGACY_ENVIRONMENT==='production') {
+  if(!productionApproved || target.server!=='j5sqlserver.database.windows.net' || target.database!=='tallerj5')throw new Error('PRODUCTION_TARGET_NOT_APPROVED');
+ } else if(!['dev','qa'].includes(env.LEGACY_ENVIRONMENT??'') || env.NODE_ENV==='production' || productionApproved) throw new Error('ENVIRONMENT_NOT_APPROVED');
+}
+if(process.argv[1] && /legacy-import\.(ts|js)$/.test(process.argv[1])) main().catch(()=>{console.error('Legacy import failed; private data and driver details suppressed. Check archive, approved target, migration and permissions.');process.exitCode=1;});
