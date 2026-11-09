@@ -727,16 +727,21 @@ it('session expiry clears editor notices and remains visible on the login screen
 });
 
 it('clears failed bootstrap health on recovery and preserves browser warnings', async () => {
+  seed();
+  const original = clone(disk);
   vi.mocked(bootstrapSession).mockResolvedValue({session:clone(session),status:'authenticated',healthOk:false});
   Object.defineProperty(navigator, 'locks', {configurable:true,value:undefined});
   await mount();
   expect(container.textContent).toContain('La base de datos no está disponible');
-  expect(container.textContent).toContain('Este navegador no admite el bloqueo');
+  expect(container.textContent).toContain('Este navegador permite consultar');
+  expect(button('Nueva orden').disabled).toBe(true);
+  expect(disk).toEqual(original);
+  expect(storage.write).not.toHaveBeenCalled();
   const actual = await vi.importActual<typeof import('./api')>('./api');
   vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => Response.json({orders:[]})));
   await act(async () => { await actual.api('/orders?status=OPEN'); });
   expect(container.textContent).not.toContain('La base de datos no está disponible');
-  expect(container.textContent).toContain('Este navegador no admite el bloqueo');
+  expect(container.textContent).toContain('Este navegador permite consultar');
 });
 
 it('health recovery after navigation preserves expired-session messages', async () => {

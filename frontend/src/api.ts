@@ -1,3 +1,4 @@
+import { checkCancellation, requestSignal, retryDelay } from './request-signal';
 export class ApiError extends Error {
   constructor(public status: number, public code: string) { super(code); }
 }
@@ -6,7 +7,6 @@ export function onBackendSuccess(listener: () => void): () => void {
   backendSuccessListeners.add(listener);
   return () => { backendSuccessListeners.delete(listener); };
 }
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
   const method = options.method ?? 'GET';
   const headers = new Headers(options.headers);
@@ -15,9 +15,11 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
   const catalog = path === '/vehicle-catalog' && method === 'GET';
   const deadline = Date.now() + (login ? 60000 : 120000);
   for (let attempt = 0; ; attempt++) {
+    checkCancellation(options.signal);
+    const scope = requestSignal(Math.min(35000, Math.max(1, deadline - Date.now())), options.signal);
     let response: Response | undefined;
     try {
-      response = await fetch(`/api${path}`, { ...options, headers, credentials: 'same-origin', signal: AbortSignal.timeout(Math.min(35000, Math.max(1, deadline - Date.now()))) });
+      response = await fetch(`/api${path}`, { ...options, headers, credentials: 'same-origin', signal: scope.signal });
       if (response.ok) {
         const result = await response.json() as T;
         for (const listener of backendSuccessListeners) listener();
@@ -26,6 +28,8 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
       const body = await response.json().catch(() => ({ code: 'API_ERROR' }));
       throw new ApiError(response.status, body.code);
     } catch (error) {
+      scope.cleanup();
+      checkCancellation(options.signal);
       const transient = error instanceof ApiError ? [408, 429, 502, 503, 504].includes(error.status) : error instanceof TypeError || (error instanceof DOMException && ['TimeoutError', 'AbortError'].includes(error.name));
       if (login) {
         // Retry availability only: never repeat credentials rejected by authentication/rate limits.
@@ -36,7 +40,7 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
         const seconds = Number(retryAfter);
         const retryMs = retryAfter ? (Number.isFinite(seconds) ? seconds * 1000 : Date.parse(retryAfter) - Date.now()) : 0;
         const wait = Math.min(remaining, Math.max(attempt === 0 ? 5000 : 10000, Number.isFinite(retryMs) ? retryMs : 0));
-        await delay(wait);
+        await retryDelay(wait, options.signal);
         if (Date.now() >= deadline) throw new ApiError(503, 'LOGIN_SERVICE_UNAVAILABLE');
         continue;
       }
@@ -46,7 +50,9 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
       const retryMs = retryAfter ? (Number.isFinite(seconds) ? seconds * 1000 : Date.parse(retryAfter) - Date.now()) : 0;
       const wait = Math.max((catalog ? [1000, 2000, 4000] : [2000, 5000, 10000])[attempt]!, Number.isFinite(retryMs) ? retryMs : 0) + Math.random() * 250;
       if (Date.now() + wait >= deadline) throw error;
-      await delay(wait);
+      await retryDelay(wait, options.signal);
+    } finally {
+      scope.cleanup();
     }
   }
 }
