@@ -16,3 +16,10 @@ local.settings.json
 *.p12
 *.bak
 *.bacpac
+
+# Private legacy datasets must never be committed
+_private/
+*.zip
+*.jsonl
+quality_summary.json
+VALIDATION_REPORT.md

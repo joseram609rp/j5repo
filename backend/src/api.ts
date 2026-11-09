@@ -1,3 +1,4 @@
+import { legacySearch, SqlLegacyReader, type LegacyReader } from './legacy.js';
 import {
   createHash,
   randomBytes,
@@ -104,11 +105,13 @@ async function authenticated(tx: UnitOfWork, hash: string) {
 export function createApi(
   options: {
     repository?: Repository;
+    legacyReader?: LegacyReader;
     production?: boolean;
     origin?: string;
   } = {},
 ) {
   const repository = options.repository ?? new SqlRepository();
+  const legacyReader = options.legacyReader ?? new SqlLegacyReader();
   const origin = options.origin ?? config.origin;
   const secure = (options.production ?? config.production) ? '; Secure' : '';
   const cookie = (token: string, expire = false) =>
@@ -285,6 +288,14 @@ export function createApi(
           ) {
             await tx.touchSession(hash, now);
             return result({ lastActivity: now });
+          }
+          if (path.startsWith('/api/legacy/')) {
+            if (method !== 'GET') throw new HttpError(405, 'LEGACY_READ_ONLY');
+            if (path === '/api/legacy/work-orders')
+              return result(await legacyReader.search(legacySearch.parse(Object.fromEntries(new URL(request.url).searchParams)), signal));
+            const legacyDetail = /^\/api\/legacy\/work-orders\/([A-Za-z0-9_-]{1,100})$/.exec(path);
+            if (legacyDetail) return result(await legacyReader.detail(legacyDetail[1]!, signal));
+            throw new HttpError(404, 'NOT_FOUND');
           }
           if (path === '/api/vehicle-catalog' && method === 'GET') return result(await tx.vehicleCatalog());
           if (path.startsWith('/api/admin/') && user.role !== 'ADMIN')

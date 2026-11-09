@@ -746,6 +746,7 @@ export class SqlRepository implements Repository {
     work: (tx: SqlUnit) => Promise<T>,
     signal?: AbortSignal,
     rollbackOnly = false,
+    budgetMs = config.sql.retryBudgetMs,
   ): Promise<T> {
     return retrySql(
       async (attemptSignal) => {
@@ -776,7 +777,7 @@ export class SqlRepository implements Repository {
           await pool.close().catch(() => undefined);
         }
       },
-      config.sql.retryBudgetMs,
+      budgetMs,
       signal,
     );
   }

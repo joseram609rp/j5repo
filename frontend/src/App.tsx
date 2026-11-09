@@ -1,3 +1,4 @@
+import { LegacyHistory } from './LegacyHistory';
 import { CatalogInput } from './CatalogInput';
 import { ConflictReview, downloadRecovery } from './ConflictReview';
 import { applyUpdate, onUpdateAvailable, updateAvailable } from './pwa-update';
@@ -30,7 +31,7 @@ export function App() {
   const [conflict, setConflict] = useState<RecordState['conflict']>();
   const [catalog, setCatalog] = useState<VehicleCatalog>({makes:[]});
   const [page, setPage] = useState<
-    'dashboard' | 'editor' | 'open' | 'history' | 'users'
+    'dashboard' | 'editor' | 'open' | 'history' | 'legacy' | 'users'
   >('dashboard');
   const [ownerRevision, setOwnerRevision] = useState(0);
   const [selectedMechanic, setSelectedMechanic] = useState('');
@@ -566,6 +567,7 @@ export function App() {
               >
                 Historial
               </button>
+              <button className="quiet" onClick={() => void navigate('legacy')}>Historial anterior</button>
               {session.role === 'ADMIN' && (
                 <button
                   className="quiet"
@@ -598,6 +600,7 @@ export function App() {
                 onOpen={(o) => void openOrder(o)}
               />
             )}
+            {page === 'legacy' && <LegacyHistory />}
             {page === 'users' && session.role === 'ADMIN' && (
               <Users session={session} />
             )}
