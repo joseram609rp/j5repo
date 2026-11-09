@@ -6,7 +6,7 @@ export function fieldErrors(d:Draft): FieldError[] {
  const errors:FieldError[]=[];
  const add=(field:string,section:Section,message:string)=>errors.push({field,section,message});
  const customer=customerSchema.safeParse({fullName:d.customerName,identification:d.identification ?? '',phone:d.phone ?? '',email:d.email ?? ''});
- const messages:Record<string,string>={fullName:'Escribe el nombre completo.',identification:'La cédula debe tener exactamente 9 dígitos.',phone:'El teléfono debe tener exactamente 8 dígitos.',email:'Escribe un correo válido o deja el campo vacío.'};
+ const messages:Record<string,string>={fullName:'Escribe el nombre completo.',identification:'La cédula debe tener 9 dígitos (física) o 10 dígitos (jurídica).',phone:'El teléfono debe tener exactamente 8 dígitos.',email:'Escribe un correo válido o deja el campo vacío.'};
  if(!customer.success) for(const issue of customer.error.issues) {const key=String(issue.path[0]);add(key==='fullName'?'customerName':key,'Datos del cliente',messages[key]!);}
  const vehicle=vehicleSchema.safeParse({make:d.make ?? '',model:d.model ?? '',year:d.year,plate:d.plate,ownerId:'00000000-0000-4000-8000-000000000000'});
  const vehicleMessages:Record<string,string>={make:'Escribe la marca.',model:'Escribe el modelo.',year:'Indica un año entero igual o mayor que 1950.',plate:'La placa debe tener entre 3 y 12 letras o números.'};

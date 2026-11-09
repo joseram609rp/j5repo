@@ -1,6 +1,6 @@
 import { z } from 'zod';
 export const fullNameSchema = z.string().trim().min(1).max(200);
-export const identificationSchema = z.string().trim().regex(/^\d{9}$/);
+export const identificationSchema = z.string().trim().regex(/^\d{9,10}$/);
 export const phoneSchema = z.string().trim().regex(/^\d{8}$/);
 export const emailSchema = z.string().trim().toLowerCase().pipe(z.union([z.literal(''), z.email().max(254)]));
 export const plateSchema = z.string().transform(s => s.toUpperCase().replace(/[\s-]/g, '')).pipe(z.string().regex(/^[A-Z0-9]{3,12}$/));

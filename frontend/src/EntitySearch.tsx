@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from './api';
+import { identificationSchema } from '../../backend/src/validation';
 import type { Draft } from './autosave';
 
 type Customer = {
@@ -191,7 +192,7 @@ export function EntitySearch({
           setQuery('');
           setMessage('');
         }}>Cancelar cambio de cliente</button>
-        {allowTransfer && draft.customerId && draft.vehicleId && /^\d{9}$/.test(draft.identification ?? '') && mismatch && <button type="button" onClick={onTransfer}>Actualizar dueño a {draft.customerName}</button>}
+        {allowTransfer && draft.customerId && draft.vehicleId && identificationSchema.safeParse(draft.identification ?? '').success && mismatch && <button type="button" onClick={onTransfer}>Actualizar dueño a {draft.customerName}</button>}
       </div>}
       {!changingCustomerForVehicle && mismatch && ownerDecision !== identity && <div className="confirmation" role="group" aria-label="Dueño actual del vehículo">
         <p>Este vehículo está registrado actualmente a nombre de {ownerVehicle?.owner?.fullName}. El cliente de esta orden es {draft.customerName}.</p>

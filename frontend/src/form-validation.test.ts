@@ -36,3 +36,16 @@ it('formats mileage without mutating draft values; blanks and invalid numbers st
  expect(visibleErrors({...complete,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: ''},new Set())).toEqual([]);
  expect(visibleErrors({...complete,paymentMethod: 'CASH' as const, electronicInvoice: false, notes: '   '},new Set(['notes']))).toEqual([]);
 });
+
+it.each(['123456789','3101234567','0123456789'])('accepts physical/legal identification %s inline and when closing',identification=>{
+ const draft={...complete,identification};
+ expect(fieldErrors(draft)).toEqual([]);
+ expect(visibleErrors(draft,new Set(),true)).toEqual([]);
+});
+it.each(['12345678','12345678901','12345678a','123456789a','12345678９'])('explains invalid identification %s inline and when closing',identification=>{
+ const draft={...complete,identification};
+ const error={field:'identification',section:'Datos del cliente',message:'La cédula debe tener 9 dígitos (física) o 10 dígitos (jurídica).'};
+ expect(fieldErrors(draft)).toEqual([error]);
+ expect(visibleErrors(draft,new Set(['identification']))).toEqual([error]);
+ expect(visibleErrors(draft,new Set(),true)).toEqual([error]);
+});
