@@ -394,6 +394,16 @@ nav {
 .search button {
   flex-shrink: 0;
 }
+.history-search {
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.history-search label:first-child {
+  flex-basis: 100%;
+}
+.history-search input[type='date'] {
+  min-height: 44px;
+}
 .lookup {
   background: #f1f5fc;
   padding: 16px;

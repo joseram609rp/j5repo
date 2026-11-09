@@ -657,6 +657,30 @@ it('history searches on submit and loads the next page using the last server UUI
  expect(button('Cargar más')).toBeUndefined();
 });
 
+it('submits date-only history, keeps applied dates on the next page and clears the results', async () => {
+ const list=Array.from({length:50},(_,i)=>({id:crypto.randomUUID(),version:'v',status:'CLOSED' as const,
+   mechanicId:session.userId,draft:complete,displayOrderId:'OT-'+i}));
+ vi.mocked(api).mockImplementation(async path =>
+   ({orders:new URL('http://test'+path).searchParams.has('before') ? [] : list}) as never);
+ await act(async()=>root.render(<OrderList status="CLOSED" onOpen={()=>{}}/>));
+ await input('.history-search label:nth-child(2) input', '2026-11-09');
+ await input('.history-search label:nth-child(3) input', '2026-11-08');
+ await click('Buscar');
+ expect(container.querySelector('[role=alert]')?.textContent).toContain('anterior o igual');
+ expect(vi.mocked(api)).not.toHaveBeenCalled();
+ await input('.history-search label:nth-child(3) input', '');
+ await click('Buscar');
+ expect(vi.mocked(api).mock.calls.at(-1)?.[0]).toBe('/orders?status=CLOSED&q=&from=2026-11-09');
+ await input('.history-search label:nth-child(2) input', '2026-11-10');
+ await click('Cargar más');
+ expect(vi.mocked(api).mock.calls.at(-1)?.[0]).toContain('from=2026-11-09');
+ expect(container.querySelectorAll('.order-card')).toHaveLength(50);
+ await click('Limpiar');
+ expect(container.querySelectorAll('.order-card')).toHaveLength(0);
+ expect(vi.mocked(api)).toHaveBeenCalledTimes(2);
+ expect(container.textContent).toContain('Si eliges una sola fecha');
+});
+
 
 it('assigned mechanic cancels with confirmation; VOID is read-only and absent on reentry',async()=>{
  const initial=seed(); await mount();await click('Órdenes abiertas');await click('Continuar');

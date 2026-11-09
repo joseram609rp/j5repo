@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
+import { z } from 'zod';
 import { api } from './api';
 import { formatCRC } from './form-validation';
 import { storage, type Order } from './autosave';
+
+const historyDate = z.iso.date().refine((value) => value.slice(0, 4) !== '0000');
 
 export function OrderList({
   status,
@@ -19,14 +22,20 @@ export function OrderList({
   onOpen: (order: Order) => void;
 }) {
   const [localOrders, setLocalOrders] = useState<Order[]>([]);
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const [appliedDates, setAppliedDates] = useState({ from: '', to: '' });
+  const [dateError, setDateError] = useState('');
   const [orders, setOrders] = useState<Order[]>([]),
     [query, setQuery] = useState(''),
     [applied, setApplied] = useState(''),
-    [loading, setLoading] = useState(true),
+    [loading, setLoading] = useState(status === 'OPEN'),
     [error, setError] = useState(false),
     [reload, setReload] = useState(0),
     [cursor, setCursor] = useState<string | undefined>(),
     [more, setMore] = useState(false);
+  const { from: appliedFrom, to: appliedTo } = appliedDates;
+  const hasHistorySearch = applied.length >= 2 || !!appliedFrom || !!appliedTo;
   useEffect(() => {
     if (status !== 'OPEN' || !userId) return;
     let current = true;
@@ -39,15 +48,19 @@ export function OrderList({
   }, [status, userId, reload]);
   useEffect(() => {
     let current = true;
-    if (status === 'CLOSED' && applied.length < 2) {
+    if (status === 'CLOSED' && !hasHistorySearch) {
       setOrders([]); setMore(false); setLoading(false); setError(false);
       return;
     }
     setLoading(true);
     setError(false);
-    void api<{ orders: Order[] }>(
-      `/orders?status=${status}&q=${encodeURIComponent(applied)}${cursor ? '&before=' + encodeURIComponent(cursor) : ''}`,
-    )
+    const params = new URLSearchParams({ status, q: applied });
+    if (cursor) params.set('before', cursor);
+    if (status === 'CLOSED') {
+      if (appliedFrom) params.set('from', appliedFrom);
+      if (appliedTo) params.set('to', appliedTo);
+    }
+    void api<{ orders: Order[] }>(`/orders?${params}`)
       .then((data) => {
         if (current) {
           setOrders((old) => (cursor ? [...old, ...data.orders] : data.orders));
@@ -63,7 +76,7 @@ export function OrderList({
     return () => {
       current = false;
     };
-  }, [status, applied, cursor, reload]);
+  }, [status, applied, appliedFrom, appliedTo, hasHistorySearch, cursor, reload]);
   useEffect(() => {
     if (status !== 'OPEN') return;
     const refresh = () => { if (document.visibilityState !== 'hidden') { setCursor(undefined); setReload(n => n + 1); } };
@@ -77,9 +90,24 @@ export function OrderList({
     <section className="card">
       <h2>{status === 'OPEN' ? 'Órdenes abiertas' : 'Historial'}</h2>
       <form
-        className="search"
+        className={status === 'CLOSED' ? 'search history-search' : 'search'}
         onSubmit={(e) => {
           e.preventDefault();
+          if (status === 'CLOSED') {
+            if ([from, to].some((value) => value && !historyDate.safeParse(value).success)) {
+              setDateError('Ingresa fechas válidas en formato AAAA-MM-DD.');
+              return;
+            }
+            if (from && to && from > to) {
+              setDateError('La fecha Desde debe ser anterior o igual a Hasta.');
+              return;
+            }
+            if (!from && !to && query.trim().length < 2) return;
+            setDateError('');
+            setAppliedDates({ from, to });
+            setOrders([]);
+            setMore(false);
+          }
           setCursor(undefined);
           setApplied(query.trim());
           setReload((n) => n + 1);
@@ -93,8 +121,34 @@ export function OrderList({
             onChange={(e) => setQuery(e.target.value)}
           />
         </label>
-        <button type="submit" disabled={status === 'CLOSED' && query.trim().length < 2}>Buscar</button>
+        {status === 'CLOSED' && (
+          <>
+            <label>
+              Desde
+              <input type="date" value={from} onChange={(e) => { setFrom(e.target.value); setDateError(''); }} />
+            </label>
+            <label>
+              Hasta
+              <input type="date" value={to} onChange={(e) => { setTo(e.target.value); setDateError(''); }} />
+            </label>
+          </>
+        )}
+        <button type="submit" disabled={status === 'CLOSED' && query.trim().length < 2 && !from && !to}>Buscar</button>
+        {status === 'CLOSED' && (
+          <button type="button" className="quiet" onClick={() => {
+            setQuery('');
+            setFrom('');
+            setTo('');
+            setApplied('');
+            setAppliedDates({ from: '', to: '' });
+            setDateError('');
+            setCursor(undefined);
+            setOrders([]);
+            setMore(false);
+          }}>Limpiar</button>
+        )}
       </form>
+      {dateError && <p role="alert">{dateError}</p>}
       {loading && <p role="status">Cargando órdenes…</p>}
       {error && (
         <p role="alert">
@@ -102,15 +156,11 @@ export function OrderList({
           <button onClick={() => setReload((n) => n + 1)}>Reintentar</button>
         </p>
       )}
-      {status === 'CLOSED' && !applied && <p>Busca por nombre, cédula, placa o número de orden para consultar el historial.</p>}
-      {!loading && !error && !visible.length && (status === 'OPEN' || !!applied) && (
+      {status === 'CLOSED' && !hasHistorySearch && <p>Busca por nombre, cédula, placa, número de orden o fecha para consultar el historial. Si eliges una sola fecha, se busca ese día.</p>}
+      {!loading && !error && !visible.length && (status === 'OPEN' || hasHistorySearch) && (
         <p>
           No hay órdenes
-          {applied
-            ? ' que coincidan con la búsqueda'
-            : status === 'OPEN'
-              ? ' abiertas'
-              : ' cerradas'}
+          {applied || hasHistorySearch ? ' que coincidan con la búsqueda' : ' abiertas'}
           .
         </p>
       )}

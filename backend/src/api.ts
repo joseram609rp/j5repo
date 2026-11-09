@@ -315,11 +315,20 @@ export function createApi(
               .trim()
               .max(200)
               .parse(url.searchParams.get('q') ?? '');
-            if (status === 'CLOSED' && search.length < 2) throw new HttpError(400, 'HISTORY_SEARCH_REQUIRED');
+            let dates: { from: string; to: string } | undefined;
+            if (status === 'CLOSED') {
+              const date = z.iso.date().refine((value) => value.slice(0, 4) !== '0000');
+              const from = date.optional().parse(url.searchParams.get('from') ?? undefined);
+              const to = date.optional().parse(url.searchParams.get('to') ?? undefined);
+              if (from && to && from > to) throw new HttpError(400, 'INVALID_DATE_RANGE');
+              if (from) dates = { from, to: to ?? from };
+              else if (to) dates = { from: to, to };
+              if (!dates && search.length < 2) throw new HttpError(400, 'HISTORY_SEARCH_REQUIRED');
+            }
             const before = url.searchParams.get('before');
             if (before) uuid.parse(before);
             return result({
-              orders: await tx.listOrders(status, search, before ?? undefined),
+              orders: await tx.listOrders(status, search, before ?? undefined, dates),
             });
           }
           if (path === '/api/customers' && method === 'GET') {

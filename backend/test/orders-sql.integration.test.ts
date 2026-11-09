@@ -534,6 +534,12 @@ it.skipIf(!enabled)('SQL daily OT: UTC-6 boundary, sequential numbers beyond 100
  for(const suffix of ['01','02','03','100','102']) expect(all.some(o=>o.displayOrderId==='OT-19980402-'+suffix)).toBe(true);
  expect((await tx.listOrders('CLOSED','ot-19980403'))[0]?.displayOrderId).toBe('OT-19980403-01');
  expect(await tx.listOrders('CLOSED','ot-19980402-102')).toHaveLength(1);
+ const dates = { from: '1998-04-02', to: '1998-04-02' };
+ const dateFirst = await tx.listOrders('CLOSED', '', undefined, dates);
+ expect(dateFirst.map(o => o.id)).toEqual(first.map(o => o.id));
+ expect((await tx.listOrders('CLOSED', plate, dateFirst.at(-1)!.id, dates)).map(o => o.id)).toEqual(second.map(o => o.id));
+ expect(await tx.listOrders('CLOSED', 'ot-19980403', undefined, dates)).toEqual([]);
+ expect(await tx.listOrders('CLOSED', 'ot-19980403', undefined, { ...dates, to: '1998-04-03' })).toHaveLength(1);
  },undefined,true);
 },60000);
 it.skipIf(!enabled)('SQL concurrent allocators serialize through a transaction lock; rollback releases allocation (rollback only)',async()=>{
