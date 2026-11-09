@@ -530,6 +530,29 @@ it('ADMIN gets active assignees on OPEN; MECHANIC remains read-only and year has
  expect(container.querySelector('[data-field=year]')?.getAttribute('min')).toBe('1950');
  expect(container.querySelector('[data-field=year]')?.hasAttribute('max')).toBe(false);
 });
+
+it('selects a suggested year and saves manually entered years outside the list', async () => {
+ await mount(); await click('Nueva orden');
+ const select = container.querySelector<HTMLSelectElement>('select')!;
+ const year = container.querySelector<HTMLInputElement>('[data-field=year]')!;
+ const lastYear = new Date().getFullYear() + 5;
+ expect(Array.from(select.options).slice(1).map(option => Number(option.value))).toEqual(
+   Array.from({ length: lastYear - 1970 + 1 }, (_, index) => 1970 + index),
+ );
+
+ await act(async () => {
+   select.value = '1970';
+   select.dispatchEvent(new Event('change', { bubbles: true }));
+ });
+ expect(year.value).toBe('1970');
+ expect(disk?.draft.year).toBe(1970);
+
+ for (const manualYear of [1955, lastYear + 1]) {
+   await input('[data-field=year]', String(manualYear));
+   expect(select.value).toBe('');
+   expect(disk?.draft.year).toBe(manualYear);
+ }
+});
 it('owner mismatch preserves chosen customer and requires an explicit decision', async () => {
  seed(); await mount(); await click('Órdenes abiertas'); await click('Continuar');
  await input('.lookup input','XYZ987'); await click('Buscar'); await click('XYZ987');

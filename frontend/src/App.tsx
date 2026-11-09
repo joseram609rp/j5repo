@@ -500,6 +500,12 @@ export function App() {
     busy ||
     !!saver.current?.state.pending?.draft.action;
   const editor = page === 'editor';
+  const firstSuggestedYear = 1970;
+  const lastSuggestedYear = new Date().getFullYear() + 5;
+  const suggestedYears = Array.from(
+    { length: lastSuggestedYear - firstSuggestedYear + 1 },
+    (_, index) => firstSuggestedYear + index,
+  );
   function validation(field: string) {
     const error = errors.find((e) => e.field === field);
     return error ? (
@@ -865,12 +871,25 @@ export function App() {
                           data-field="year"
                           {...accessibility('year')}
                           type="number"
+                          inputMode="numeric"
                           min={1950}
                           step={1}
                           value={draft.year ?? ''}
                           onChange={(e) => edit('year', e.target.value)}
                         />
                         {validation('year')}
+                      </label>
+                      <label>
+                        Elegir año del vehículo
+                        <select
+                          value={suggestedYears.includes(draft.year ?? 0) ? draft.year ?? '' : ''}
+                          onChange={(e) => edit('year', e.target.value)}
+                        >
+                          <option value="" disabled>Selecciona un año</option>
+                          {suggestedYears.map((year) => (
+                            <option key={year} value={year}>{year}</option>
+                          ))}
+                        </select>
                       </label>
                     </div>
                     {session.role === 'ADMIN' && order?.status === 'OPEN' && <label>Mecánico asignado
