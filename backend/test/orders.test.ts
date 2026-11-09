@@ -103,8 +103,41 @@ it.each(['MECHANIC', 'ADMIN'] as const)('%s can transfer ownership on OPEN and r
 
 it('history rejects missing criteria before reaching the repository', async()=>{
  const {repo,call}=setup();const spy=vi.spyOn(repo,'listOrders');
- for(const q of ['', ' ', 'a']) expect((await call('/orders?status=CLOSED&q='+encodeURIComponent(q))).status).toBe(400);
+ for (const query of ['', '&q=%20', '&q=a', '&from=', '&from=2026-2-03',
+   '&from=2026-02-29', '&to=0000-01-01', '&from=2026-11-09&to=2026-11-08']) {
+   expect((await call('/orders?status=CLOSED'+query)).status).toBe(400);
+ }
  expect(spy).not.toHaveBeenCalled();
+});
+
+it('filters closed history by Costa Rica business day before paginating', async () => {
+  const { repo, call } = setup();
+  const draft = { customerName: 'Cliente', plate: 'ABC123', mileage: 0,
+    paymentMethod: 'CASH' as const, electronicInvoice: false, notes: '', recommendations: '' };
+  const save = (openedAt: string, action?: 'close', plate = draft.plate) =>
+    repo.saveOrder(randomUUID(), userId, { ...draft, action, plate }).then(order => {
+      order.openedAt = openedAt;
+      return order;
+    });
+  const day = await Promise.all(Array.from({ length: 51 }, () => save('2026-11-09T05:59:59Z', 'close')));
+  const nextDay = await save('2026-11-09T06:00:00Z', 'close', 'DEF456');
+  const open = await save('2026-11-09T05:59:59Z');
+  const search = async (params: string) => {
+    const response = await call('/orders?status=CLOSED&' + params);
+    expect(response.status).toBe(200);
+    return (await response.json()).orders.map((order: { id: string }) => order.id);
+  };
+  const first = await search('from=2026-11-08');
+  expect(first).toHaveLength(50);
+  const second = await search('from=2026-11-08&before=' + first.at(-1));
+  expect(second).toHaveLength(1);
+  expect(new Set([...first, ...second])).toEqual(new Set(day.map(order => order.id)));
+  expect(await search('to=2026-11-09')).toEqual([nextDay.id]);
+  expect(await search('from=2026-11-08&to=2026-11-09&q=DEF456')).toEqual([nextDay.id]);
+  expect(await search('from=2026-11-08&q=DEF456')).toEqual([]);
+  expect(await search('to=2026-11-09&q=C')).toEqual([nextDay.id]);
+  const openResponse = await call('/orders?status=OPEN&from=invalid');
+  expect((await openResponse.json()).orders.map((order: { id: string }) => order.id)).toEqual([open.id]);
 });
 it('partial names are accent/case insensitive, exact identity and pages remain bounded',async()=>{
  const {repo,call}=setup();const ids=[];

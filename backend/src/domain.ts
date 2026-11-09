@@ -94,6 +94,7 @@ export interface UnitOfWork {
     status: 'OPEN' | 'CLOSED',
     search: string,
     before?: string,
+    dates?: { from: string; to: string },
   ): Promise<Order[]>;
   findCustomers(search: string): Promise<Customer[]>;
   findVehicles(search: string, customerId?: string): Promise<Vehicle[]>;
