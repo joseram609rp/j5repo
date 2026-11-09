@@ -264,6 +264,56 @@ main {
 .fields {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
+.year-field {
+  display: flex;
+  gap: 6px;
+}
+.year-picker {
+  position: relative;
+  flex: none;
+  margin-top: 7px;
+}
+.year-picker .year-picker-trigger,
+.year-picker-popup button {
+  margin: 0;
+  background: #fafbf8;
+  color: var(--ink);
+  border: 1px solid #d6dcd2;
+}
+.year-picker .year-picker-trigger {
+  display: grid;
+  width: 48px;
+  padding: 0;
+  place-items: center;
+}
+.year-picker-popup {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  width: 216px;
+  max-height: 224px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #d6dcd2;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px #0002;
+  padding: 8px;
+}
+.year-picker-popup button {
+  padding: 0;
+}
+.year-picker-popup button[aria-pressed="true"] {
+  background: var(--primary);
+  color: white;
+}
+.year-picker button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
 input,
 select,
 textarea {

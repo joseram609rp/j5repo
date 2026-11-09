@@ -1,4 +1,5 @@
 import { LegacyHistory } from './LegacyHistory';
+import { YearPicker } from './YearPicker';
 import { CatalogInput } from './CatalogInput';
 import { ConflictReview, downloadRecovery } from './ConflictReview';
 import { applyUpdate, onUpdateAvailable, updateAvailable } from './pwa-update';
@@ -859,19 +860,24 @@ export function App() {
                       </label>
                     </div>
                     <div className="fields">
-                      <label>
-                        Año
-                        <input
-                          data-field="year"
-                          {...accessibility('year')}
-                          type="number"
-                          min={1950}
-                          step={1}
-                          value={draft.year ?? ''}
-                          onChange={(e) => edit('year', e.target.value)}
-                        />
+                      <div>
+                        <label htmlFor="vehicle-year">Año</label>
+                        <div className="year-field">
+                          <input
+                            id="vehicle-year"
+                            data-field="year"
+                            {...accessibility('year')}
+                            type="number"
+                            inputMode="numeric"
+                            min={1950}
+                            step={1}
+                            value={draft.year ?? ''}
+                            onChange={(e) => edit('year', e.target.value)}
+                          />
+                          <YearPicker year={draft.year} disabled={readOnly} onSelect={(year) => edit('year', String(year))} />
+                        </div>
                         {validation('year')}
-                      </label>
+                      </div>
                     </div>
                     {session.role === 'ADMIN' && order?.status === 'OPEN' && <label>Mecánico asignado
                       <select aria-label="Mecánico asignado" value={selectedMechanic} onChange={e => setSelectedMechanic(e.target.value)}>
