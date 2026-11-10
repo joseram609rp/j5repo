@@ -18,6 +18,7 @@ import { api, onBackendSuccess } from './api';
 import { loginErrorMessage } from './login-error';
 import {
   Autosave,
+  canCancelBackfill,
   fresh,
   storage,
   type Draft,
@@ -256,7 +257,7 @@ export function App() {
         setOrder(service.state.order ?? null);
         setConflict(service.state.conflict ? {...service.state.conflict} : undefined);
         if (service.state.conflict || !service.state.pending && !service.state.draft.action)
-          setConfirmAction(null);
+          setConfirmAction(current => current === 'void' && canCancelBackfill(service.state) ? current : null);
         setDraft({ ...service.state.draft });
       },
       () => {
@@ -341,7 +342,7 @@ export function App() {
       if (editing && lease) {
         const local = saver.current?.state.id === selected.id
           ? saver.current.state : await controller.write(lease, () => storage.read(session.userId, selected.id));
-        if (controller.lease !== lease) return;
+        if (controller.lease !== lease || local?.cancelled) return;
         if (local?.id === selected.id && (local.pending || local.savedRevision < local.revision || !local.version)) {
           await attach(local, lease);
           return;
@@ -378,11 +379,26 @@ export function App() {
     }
   }
   async function performAction() {
-    const lease = editorLock.current?.lease;
-    if (!lease || !confirmAction || !session || busy || (!order && !(confirmAction === 'close' && draft?.workDate !== undefined))) return;
+    const controller = editorLock.current;
+    const lease = controller?.lease;
+    if (!lease || !confirmAction || !session || busy) return;
     const action = confirmAction;
+    const localDraft = saver.current;
+    const cancelDraft = action === 'void' && !order && session.role === 'ADMIN' &&
+      localDraft && localDraft.state.id === editorId && canCancelBackfill(localDraft.state);
+    if (!order && !cancelDraft && !(action === 'close' && draft?.workDate !== undefined)) return;
     setBusy(true);
     try {
+      if (cancelDraft) {
+        await controller.write(lease, () => localDraft.cancelBackfill());
+        if (controller.lease !== lease) return;
+        clearNotice();
+        setConfirmAction(null);
+        setDraft(null);
+        setEditorId(null);
+        setPage('open');
+        return;
+      }
       // History pauses the previous saver, including when it owns this same order.
       // Keep only a pending reopen receipt; otherwise attach a fresh active editor.
       if (action === 'reopen' && order && (saver.current?.state.id !== order.id || saver.current.state.pending?.draft.action !== 'reopen'))
@@ -421,6 +437,10 @@ export function App() {
       });
     } catch (error) {
       if (editorLock.current?.lease !== lease) return;
+      if (cancelDraft) {
+        setMessage('No se pudo cancelar el borrador en este dispositivo. Volvé a intentar.');
+        return;
+      }
       if (!saver.current?.state.pending) setConfirmAction(null);
       if(error instanceof Error && error.message==='OWNER_TRANSFER_NOT_APPLIED') {
         setMessage('El dueño registrado del vehículo no cambió. Busca el vehículo por placa y confirma Actualizar dueño antes de crear otra orden.');
@@ -625,8 +645,10 @@ export function App() {
                   const lease = editorLock.current?.lease;
                   if (!lease) return;
                   await openOrder(selected);
-                  const current = saver.current?.state.order;
-                  if (editorLock.current?.lease === lease && current?.id === selected.id && current.status === 'OPEN' && (session.role === 'ADMIN' || current.mechanicId === session.userId)) setConfirmAction('void');
+                  const record = saver.current?.state;
+                  if (editorLock.current?.lease !== lease || record?.id !== selected.id) return;
+                  if (record.order?.status === 'OPEN' && (session.role === 'ADMIN' || record.order.mechanicId === session.userId) ||
+                      session.role === 'ADMIN' && canCancelBackfill(record)) setConfirmAction('void');
                 }}
                 status={page === 'open' ? 'OPEN' : 'CLOSED'}
                 onOpen={(o) => void openOrder(o)}
@@ -1052,9 +1074,6 @@ export function App() {
                         <option value="">Selecciona Sí o No</option><option value="true">Sí</option><option value="false">No</option>
                       </select>{validation('electronicInvoice')}
                     </label>
-                    <small>
-                      El servidor calcula el total oficial al guardar.
-                    </small>
                     <label>
                       Observaciones generales (opcional)
                       <textarea
@@ -1129,7 +1148,8 @@ export function App() {
                       {historical ? 'Guardar orden cerrada' : 'Cerrar orden'}
                     </button>
                   )}
-                  {order?.status === 'OPEN' && !conflict && (session.role === 'ADMIN' || order.mechanicId === session.userId) && (
+                  {!conflict && ((order?.status === 'OPEN' && (session.role === 'ADMIN' || order.mechanicId === session.userId)) ||
+                    (!order && session.role === 'ADMIN' && saver.current?.state.id === editorId && canCancelBackfill(saver.current.state))) && (
                     <button type="button" className="danger" disabled={!editorReady || busy || !!confirmAction} onClick={() => setConfirmAction('void')}>Cancelar orden</button>
                   )}
                   </div>
@@ -1151,7 +1171,9 @@ export function App() {
                     >
                       <p>
                         {confirmAction === 'void'
-                          ? `¿Cancelar la orden ${order?.displayOrderId}? Esta acción la quitará de órdenes abiertas.`
+                          ? order
+                            ? `¿Cancelar la orden ${order.displayOrderId}? Esta acción la quitará de órdenes abiertas.`
+                            : '¿Cancelar este borrador de orden anterior? Se quitará de Órdenes abiertas.'
                           : confirmAction === 'close'
                           ? historical ? `¿Registrar como cerrada la orden del ${draft.workDate}?` : `¿Cerrar la orden ${order?.displayOrderId ?? 'local'}?`
                           : confirmAction === 'reopen'

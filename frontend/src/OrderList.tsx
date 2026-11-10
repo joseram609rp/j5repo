@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { api } from './api';
 import { formatCRC, formatRegistrationDate } from './form-validation';
-import { storage, type Order } from './autosave';
+import { canCancelBackfill, storage, type Order } from './autosave';
 
 const historyDate = z.iso.date().refine((value) => value.slice(0, 4) !== '0000');
 
@@ -21,7 +21,7 @@ export function OrderList({
   status: 'OPEN' | 'CLOSED';
   onOpen: (order: Order) => void;
 }) {
-  const [localOrders, setLocalOrders] = useState<Order[]>([]);
+  const [localOrders, setLocalOrders] = useState<(Order & { canCancelDraft: boolean })[]>([]);
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [appliedDates, setAppliedDates] = useState({ from: '', to: '' });
@@ -40,8 +40,8 @@ export function OrderList({
     if (status !== 'OPEN' || !userId) return;
     let current = true;
     void storage.list(userId).then(records => {
-      if(current) setLocalOrders(records.filter(r => r.order?.status !== 'CLOSED' && r.order?.status !== 'VOID' && (!r.version || r.pending || r.savedRevision < r.revision)).map(r => ({
-        ...(r.order ?? {status: 'OPEN' as const, mechanicId: userId}), id: r.id, draft: r.draft, version: r.version ?? '',
+      if(current) setLocalOrders(records.filter(r => !r.cancelled && r.order?.status !== 'CLOSED' && r.order?.status !== 'VOID' && (!r.version || r.pending || r.savedRevision < r.revision)).map(r => ({
+        ...(r.order ?? {status: 'OPEN' as const, mechanicId: userId}), id: r.id, draft: r.draft, version: r.version ?? '', canCancelDraft: canCancelBackfill(r),
       })));
     }).catch(() => { if(current) setError(true); });
   return () => { current = false; };
@@ -193,7 +193,9 @@ export function OrderList({
             <button disabled={loading || (status === 'OPEN' && !canEdit)} onClick={() => onOpen(order)}>
               {status === 'OPEN' ? 'Continuar' : 'Ver detalle'}
             </button>
-            {order.status === 'OPEN' && !!order.version && onCancel && (role === 'ADMIN' || order.mechanicId === userId) && (
+            {order.status === 'OPEN' && onCancel && (order.version
+              ? role === 'ADMIN' || order.mechanicId === userId
+              : role === 'ADMIN' && 'canCancelDraft' in order && order.canCancelDraft === true) && (
               <button className="quiet" disabled={loading || !canEdit} onClick={() => onCancel(order)}>Cancelar orden</button>
             )}
           </article>

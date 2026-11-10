@@ -136,3 +136,16 @@ it('keeps historical edits local and retries a confirmed close with the same per
   expect(saved.pending).toBeUndefined();
   expect(saved.order).toMatchObject({ status: 'CLOSED', isBackfilled: true, orderDate: '2024-02-29' });
 });
+
+it('rejects cancellation after a historical close is pending, preserving the exact retry', async () => {
+  const user = crypto.randomUUID();
+  const record = fresh();
+  record.draft.workDate = '2024-02-29';
+  const offline = vi.fn(async () => { throw new TypeError('response lost'); });
+  const service = new Autosave(record, user, 'csrf', () => {}, () => {}, storage.write, offline);
+  await expect(service.action('close')).rejects.toThrow('SYNC_REQUIRED');
+  const pending = structuredClone(record.pending);
+  await expect(service.cancelBackfill()).rejects.toThrow('ORDER_LOCKED');
+  expect((await storage.read(user, record.id))?.pending).toEqual(pending);
+  expect(record.cancelled).toBeUndefined();
+});

@@ -1164,3 +1164,34 @@ it('late editor lock errors cannot display an order notice in Usuarios',async()=
  expect(text()).toContain('Crear usuario');expect(notices()).not.toContain('bloqueo de edición');
  await click('Inicio');expect(notices()).toContain('No se pudo comprobar el bloqueo de edición');
 });
+
+it.each(['editor', 'open list'])('cancels an unsubmitted historical draft from the %s without sending a PUT', async source => {
+  vi.mocked(bootstrapSession).mockResolvedValue({
+    session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,
+  });
+  await mount();
+  await click('Orden anterior');
+  const id = disk!.id;
+  if (source === 'open list') await click('Órdenes abiertas');
+  await click('Cancelar orden');
+  const dialog = container.querySelector('[role="dialog"]');
+  expect(dialog?.textContent).toContain('¿Cancelar este borrador de orden anterior?');
+  expect(records.get(id)?.cancelled).toBeUndefined();
+  await act(async () => {
+    [...dialog!.querySelectorAll('button')].find(b => b.textContent === 'Cancelar')!.click();
+  });
+  expect(records.get(id)?.cancelled).toBeUndefined();
+  await click('Cancelar orden');
+  await click('Confirmar');
+  expect(records.get(id)?.cancelled).toBe(true);
+  expect(puts).toBe(0);
+  expect(text()).toContain('No hay órdenes abiertas');
+  expect(button('Cancelar orden')).toBeUndefined();
+
+  await act(async () => root.unmount());
+  root = createRoot(container);
+  await mount();
+  await click('Órdenes abiertas');
+  expect(text()).toContain('No hay órdenes abiertas');
+  expect(button('Cancelar orden')).toBeUndefined();
+});
