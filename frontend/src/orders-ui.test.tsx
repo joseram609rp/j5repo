@@ -198,6 +198,10 @@ async function click(label: string) {
     for (let i = 0; i < 30; i++) await Promise.resolve();
   });
 }
+async function newDailyOrder() {
+  await click('Nueva orden');
+  if (button('Orden del día')) await click('Orden del día');
+}
 async function input(selector: string, value: string) {
   await act(async () => {
     const e = container.querySelector<HTMLInputElement>(selector)!;
@@ -244,20 +248,39 @@ it.each(['ADMIN', 'MECHANIC'] as const)(
     await mount();
     expect(button('Nueva orden')).toBeTruthy();
     expect(!!button('Usuarios')).toBe(role === 'ADMIN');
-    expect(!!button('Orden anterior')).toBe(role === 'ADMIN');
+    expect(button('Orden anterior')).toBeUndefined();
     expect(
       container.querySelector('section.editor')?.hasAttribute('hidden'),
     ).toBe(true);
     expect(puts).toBe(0);
   },
 );
+it('lets an admin choose the order type from Nueva orden before creating anything', async () => {
+  vi.mocked(bootstrapSession).mockResolvedValue({
+    session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,
+  });
+  await mount();
+  expect(button('Orden anterior')).toBeUndefined();
+  await click('Nueva orden');
+  expect(button('Orden del día')).toBeTruthy();
+  expect(button('Orden anterior')).toBeTruthy();
+  expect(puts).toBe(0);
+  await click('Inicio');
+  expect(button('Orden anterior')).toBeUndefined();
+  await click('Nueva orden');
+  await click('Orden del día');
+  expect(puts).toBe(1);
+  expect(disk?.order?.status).toBe('OPEN');
+  expect(disk?.draft.workDate).toBeUndefined();
+});
+
 it('explicit Nueva orden creates a second OPEN; re-render and refresh create none', async () => {
   await mount();
-  await click('Nueva orden');
+  await newDailyOrder();
   expect(puts).toBe(1);
   const id = disk!.id;
   await click('Inicio');
-  await click('Nueva orden');
+  await newDailyOrder();
   expect(disk!.id).not.toBe(id);
   expect(puts).toBe(2);
   expect(orders.size).toBe(2);
@@ -270,7 +293,7 @@ it('Nueva orden preserves a legacy local draft and creates a different order', a
   disk = fresh();
   disk.draft.notes = 'Copia local antigua';
   await mount();
-  await click('Nueva orden');
+  await newDailyOrder();
   expect(puts).toBe(1);
   expect(disk?.draft.notes).toBe('');
 });
@@ -279,6 +302,7 @@ it('keeps the historical date and notices in the local editor, then registers di
     session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,
   });
   await mount();
+  await click('Nueva orden');
   await click('Orden anterior');
   const localId = disk!.id;
   expect(container.querySelector('#work-date')?.getAttribute('type')).toBe('date');
@@ -320,7 +344,7 @@ it('keeps the historical date and notices in the local editor, then registers di
 
 it('validates missing fields inline and in summary without closing', async () => {
   await mount();
-  await click('Nueva orden');
+  await newDailyOrder();
   await click('Cerrar orden');
   expect(text()).toContain('Revisa estos datos');
   expect(text()).toContain('Agrega al menos un trabajo');
@@ -406,7 +430,7 @@ it('ADMIN reopening with stale ETag refetches and keeps the conflict message', a
 });
 it('selects exact vehicle and current owner from search results', async () => {
   await mount();
-  await click('Nueva orden');
+  await newDailyOrder();
   await input('.lookup input', 'XYZ987');
   await click('Buscar');
   await click('XYZ987');
@@ -445,14 +469,14 @@ it('viewing CLOSED history preserves OPEN drafts and Nueva orden creates another
   };
   orders.set(closed.id, closed);
   await mount();
-  await click('Nueva orden');
+  await newDailyOrder();
   await click('Historial');
   await historySearch();
   await click('Ver detalle');
   expect(container.querySelector('fieldset')?.disabled).toBe(true);
   expect(records.get(active.id)).toBeDefined();
   await click('Inicio');
-  await click('Nueva orden');
+  await newDailyOrder();
   expect(disk?.id).not.toBe(active.id);
   expect(container.querySelector('fieldset')?.disabled).toBe(false);
 });
@@ -464,7 +488,7 @@ it('history has a useful empty state', async () => {
 });
 it('long customer names search without sending an invalid plate query', async () => {
   await mount();
-  await click('Nueva orden');
+  await newDailyOrder();
   vi.mocked(api).mockClear();
   await input('.lookup input', 'Nombre de cliente bastante largo');
   await click('Buscar');
@@ -544,7 +568,7 @@ it('ADMIN user activation is explicit and confirmed', async () => {
 
 it('OPEN list identifies pending local changes for the active order', async () => {
   await mount();
-  await click('Nueva orden');
+  await newDailyOrder();
   await input('[data-field=identification]', '12');
   await click('Órdenes abiertas');
   expect(container.querySelector('.order-card .status')?.textContent).toContain(
@@ -587,7 +611,7 @@ it('keeps open lists and closed details accessible when another tab owns the edi
 
 it('recovers a locally saved draft after pagehide and pageshow without starting another order', async () => {
   await mount();
-  await click('Nueva orden');
+  await newDailyOrder();
   const id = disk!.id;
   await input('[data-field=identification]', '12');
   const initialPuts = puts;
@@ -602,9 +626,9 @@ it('recovers a locally saved draft after pagehide and pageshow without starting 
 });
 
 it('keeps pending drafts independent while creating and continuing multiple orders', async () => {
- await mount(); await click('Nueva orden'); const first=disk!.id;
+ await mount(); await newDailyOrder(); const first=disk!.id;
  await input('[data-field=identification]','12');
- await click('Inicio'); await click('Nueva orden'); const second=disk!.id;
+ await click('Inicio'); await newDailyOrder(); const second=disk!.id;
  expect(second).not.toBe(first);
  expect(records.get(first)?.draft.identification).toBe('12');
  await click('Órdenes abiertas');
@@ -622,7 +646,7 @@ it('ADMIN gets active assignees on OPEN; MECHANIC remains read-only and year has
 });
 
 it('selects a suggested year and saves manually entered years outside the list', async () => {
- await mount(); await click('Nueva orden');
+ await mount(); await newDailyOrder();
  const year = container.querySelector<HTMLInputElement>('[data-field=year]')!;
  const trigger = container.querySelector<HTMLButtonElement>('[aria-label="Elegir año del vehículo"]')!;
  expect(trigger.getAttribute('aria-expanded')).toBe('false');
@@ -809,7 +833,7 @@ it.each([
  const first=seed(); await mount(); await click('Órdenes abiertas'); await click('Continuar');
  await click(action); await click('Confirmar'); expect(notices()).toContain(message);
  await click('Inicio'); expect(notices()).not.toContain(message);
- await click('Nueva orden'); expect(disk!.id).not.toBe(first.id); expect(notices()).not.toContain(message);
+ await newDailyOrder(); expect(disk!.id).not.toBe(first.id); expect(notices()).not.toContain(message);
  await click('Historial'); expect(notices()).not.toContain(message);
 });
 it('remote update and cancellation reports disappear outside the originating editor', async () => {
@@ -819,7 +843,7 @@ it('remote update and cancellation reports disappear outside the originating edi
  await click('Historial'); expect(notices()).not.toContain('Orden actualizada.');
  await click('Órdenes abiertas'); await click('Continuar');
  orders.set(first.id,{...first,status:'VOID',version:'void'}); await refresh(); expect(notices()).toContain('Esta orden fue cancelada.');
- await click('Inicio'); await click('Nueva orden'); expect(notices()).not.toContain('Esta orden fue cancelada.');
+ await click('Inicio'); await newDailyOrder(); expect(notices()).not.toContain('Esta orden fue cancelada.');
 });
 it('reopen and reassignment confirmations are cleared on navigation and another order', async () => {
  seed('CLOSED'); vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
@@ -830,7 +854,7 @@ it('reopen and reassignment confirmations are cleared on navigation and another 
  await click('Órdenes abiertas'); await click('Continuar');
  await act(async()=>{const e=container.querySelector<HTMLSelectElement>('[aria-label="Mecánico asignado"]')!;e.value=mechanic;e.dispatchEvent(new Event('change',{bubbles:true}));});
  await click('Actualizar mecánico'); expect(notices()).toContain('Mecánico actualizado.');
- await click('Inicio'); await click('Nueva orden'); expect(notices()).not.toContain('Mecánico actualizado.');
+ await click('Inicio'); await newDailyOrder(); expect(notices()).not.toContain('Mecánico actualizado.');
 });
 it('history search errors and empty results are local and reset on reentry', async () => {
  seed(); await mount(); await click('Historial'); await historySearch(); expect(text()).toContain('No hay órdenes que coincidan');
@@ -847,7 +871,7 @@ it('save status is scoped to the editor; health stays until a backend response c
  await input('[data-field=identification]','12'); expect(notices()).toContain('guardados en este dispositivo');
  await click('Inicio'); expect(notices()).not.toContain('Cambios guardados en este dispositivo');
  expect(notices()).toContain('La base de datos no está disponible.');
- await click('Nueva orden'); expect(notices()).not.toContain('Cambios guardados en este dispositivo'); expect(notices()).toContain('La base de datos no está disponible.');
+ await newDailyOrder(); expect(notices()).not.toContain('Cambios guardados en este dispositivo'); expect(notices()).toContain('La base de datos no está disponible.');
 });
 
 it('a late refresh cannot restore a notice after navigation or overwrite another editor', async () => {
@@ -856,7 +880,7 @@ it('a late refresh cannot restore a notice after navigation or overwrite another
  let resolve!: (order: Order) => void;
  vi.mocked(api).mockImplementation(async(path,options)=>path==='/orders/'+first.id && !options?.method ? new Promise<Order>(r=>{resolve=r;}) as never : implementation(path,options));
  await act(async()=>{window.dispatchEvent(new Event('focus'));await Promise.resolve();});
- await click('Inicio'); await click('Nueva orden'); const next=disk!.id;
+ await click('Inicio'); await newDailyOrder(); const next=disk!.id;
  await act(async()=>{resolve({...first,status:'VOID',version:'late'});for(let i=0;i<30;i++)await Promise.resolve();});
  expect(notices()).not.toContain('Esta orden fue cancelada.');
  expect(container.querySelector('.badge')?.textContent).toBe('ABIERTA'); expect(disk!.id).toBe(next);
@@ -928,7 +952,7 @@ it('reloads catalog suggestions on reconnect without replacing the current draft
   if(path==='/vehicle-catalog'){loads++;if(loads===1)throw new TypeError('offline');return {version:1,makes:[{name:'Toyota',models:['Hilux']}]} as never;}
   return original(path,options);
  });
- await mount();await click('Nueva orden');expect(loads).toBe(1);
+ await mount();await newDailyOrder();expect(loads).toBe(1);
  await act(async()=>{window.dispatchEvent(new Event('online'));for(let i=0;i<30;i++)await Promise.resolve();});
  expect(loads).toBe(2);await input('[data-field="make"]','to');
  await act(async()=>{container.querySelector<HTMLInputElement>('[data-field="make"]')!.focus();});
@@ -937,7 +961,7 @@ it('reloads catalog suggestions on reconnect without replacing the current draft
 
 it('only applies a PWA update after the pending draft is safely synchronized',async()=>{
  const {announceUpdate}=await import('./pwa-update');const update=vi.fn(async()=>{});announceUpdate(update);
- await mount();await click('Nueva orden');await input('[data-field="customerName"]','Borrador pendiente');
+ await mount();await newDailyOrder();await input('[data-field="customerName"]','Borrador pendiente');
  const original=vi.mocked(api).getMockImplementation()!;let offline=true;
  vi.mocked(api).mockImplementation(async(path,options)=>{if(offline && options?.method==='PUT')throw new TypeError('offline');return original(path,options);});
  await click('Actualizar aplicación');expect(update).not.toHaveBeenCalled();expect(disk?.draft.customerName).toBe('Borrador pendiente');
@@ -974,7 +998,7 @@ it.each(['typing','selected'] as const)('cancels customer-change after %s and re
  expect(button('Cambiar cliente manteniendo este vehículo')).toBeTruthy();
  expect(container.querySelector('[aria-label="Cambio de cliente"]')).toBeNull();
  await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
- await click('Cambiar cliente manteniendo este vehículo');await click('Inicio');await click('Nueva orden');
+ await click('Cambiar cliente manteniendo este vehículo');await click('Inicio');await newDailyOrder();
  expect(container.querySelector('[aria-label="Cambio de cliente"]')).toBeNull();expect(text()).not.toContain('Vehículo XYZ987 conservado');
 });
 
@@ -999,7 +1023,7 @@ it.each(['ADMIN','MECHANIC'] as const)('%s confirms one owner transfer after sel
  expect(button('Cambiar cliente manteniendo este vehículo')).toBeUndefined();expect(button('Actualizar dueño a Nuevo cliente')).toBeUndefined();expect(transferred).toBe(true);expect(container.querySelector('[aria-label="Cambio de cliente"]')).toBeNull();expect(text()).not.toContain('Este vehículo está registrado');
  expect(vi.mocked(api).mock.calls.filter(([,o])=>o?.body?.toString().includes('transfer-owner'))).toHaveLength(1);
  await click('Inicio');expect(notices()).not.toContain('Dueño actual actualizado');
- await click('Nueva orden');await input('.lookup input','Nuevo');await click('Buscar');await click('Nuevo cliente · 111222333');
+ await newDailyOrder();await input('.lookup input','Nuevo');await click('Buscar');await click('Nuevo cliente · 111222333');
  expect(vi.mocked(api).mock.calls.some(([path])=>path==='/vehicles?customerId='+customer.id)).toBe(true);expect(button('XYZ987')).toBeTruthy();await click('XYZ987');
  expect(disk?.draft).toMatchObject({customerId:customer.id,vehicleId,plate:'XYZ987'});
 });
@@ -1007,7 +1031,7 @@ it.each(['ADMIN','MECHANIC'] as const)('%s confirms one owner transfer after sel
 it('lower close banner resets on leaving the editor and opening a different order',async()=>{
  const initial=seed();initial.draft.mileage=null;orders.set(initial.id,clone(initial));disk!.draft=clone(initial.draft);disk!.order=clone(initial);records.set(initial.id,clone(disk!));
  await mount();await click('Órdenes abiertas');await click('Continuar');await click('Cerrar orden');expect(container.querySelector('.close-errors')).toBeTruthy();
- await click('Inicio');expect(container.querySelector('.close-errors')).toBeNull();await click('Nueva orden');expect(container.querySelector('.close-errors')).toBeNull();expect(disk?.id).not.toBe(initial.id);
+ await click('Inicio');expect(container.querySelector('.close-errors')).toBeNull();await newDailyOrder();expect(container.querySelector('.close-errors')).toBeNull();expect(disk?.id).not.toBe(initial.id);
 });
 
 it.each(['plate','customer'] as const)('new order loads email and latest mileage through %s search',async(mode)=>{
@@ -1018,7 +1042,7 @@ it.each(['plate','customer'] as const)('new order loads email and latest mileage
    if(path.startsWith('/vehicles')) return {vehicles:[{id:'v',ownerId:'c',plate:'XYZ987',make:'Honda',model:'Civic',year:2022,lastMileage:54321,owner:{id:'c',fullName:'Existente',identification:'987654321',phone:'87654321',email:'latest@example.com'}}]} as never;
    return result;
  });
- await mount();await click('Nueva orden');await input('.lookup input',mode==='plate'?'XYZ987':'Existente');await click('Buscar');
+ await mount();await newDailyOrder();await input('.lookup input',mode==='plate'?'XYZ987':'Existente');await click('Buscar');
  if(mode==='customer') {await click('Existente · 987654321');expect(disk?.draft.email).toBe('latest@example.com');}
  await click('XYZ987');expect(disk?.draft.email).toBe('latest@example.com');expect(disk?.draft.mileage).toBe(54321);
  expect(container.querySelector<HTMLInputElement>('[data-field=email]')!.value).toBe('latest@example.com');
@@ -1033,7 +1057,7 @@ it.each([null, 45678] as const)('plate lookup restores previous km without repla
    if(path.startsWith('/vehicles?q=XYZ987')) return await new Promise<unknown>(resolve=>{resolveLookup=resolve;}) as never;
    return original(path,options);
  });
- await mount();await click('Nueva orden');await input('[data-field=plate]','XYZ987');
+ await mount();await newDailyOrder();await input('[data-field=plate]','XYZ987');
  if(entered!==null) await input('[data-field=mileage]',String(entered));
  await act(async()=>{resolveLookup({vehicles:[{id:'v',ownerId:'c',plate:'XYZ987',make:'Honda',model:'Civic',year:2022,lastMileage:20000}]});for(let i=0;i<30;i++)await Promise.resolve();});
  expect(disk?.draft.mileage).toBe(entered??20000);
@@ -1049,7 +1073,7 @@ it('new order search is visible and usable before the initial server save comple
    if(path.startsWith('/orders/') && options?.method==='PUT' && !started){started=true;await pending;}
    return original(path,options);
  });
- await mount();await click('Nueva orden');expect(started).toBe(true);
+ await mount();await newDailyOrder();expect(started).toBe(true);
  const lookup=container.querySelector('.lookup')!;
  expect(lookup).toBeTruthy();expect(lookup.closest('[hidden]')).toBeNull();
  expect(container.querySelector<HTMLInputElement>('.lookup input')!.disabled).toBe(false);
@@ -1110,7 +1134,7 @@ it.each(['transfer','keep'] as const)('normal close explicitly resolves a differ
  await click('Confirmar');expect(orders.get(initial.id)!.status).toBe('CLOSED');
  expect(ownerId).toBe(decision==='transfer'?customerId:oldOwnerId);
  expect(orders.get(initial.id)!.draft.ownerResolution).toBeUndefined();
- await click('Inicio');await click('Nueva orden');
+ await click('Inicio');await newDailyOrder();
  await input('.lookup input','Cliente');await click('Buscar');await click('Cliente de prueba ·');
  if(decision==='transfer') {expect(button('ABC123 ·')).toBeTruthy();await click('ABC123 ·');expect(container.querySelector<HTMLInputElement>('[data-field=plate]')!.value).toBe('ABC123');}
  else expect(button('ABC123 ·')).toBeUndefined();
@@ -1170,6 +1194,7 @@ it.each(['editor', 'open list'])('cancels an unsubmitted historical draft from t
     session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,
   });
   await mount();
+  await click('Nueva orden');
   await click('Orden anterior');
   const id = disk!.id;
   if (source === 'open list') await click('Órdenes abiertas');

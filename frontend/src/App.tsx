@@ -42,7 +42,7 @@ export function App() {
   const [conflict, setConflict] = useState<RecordState['conflict']>();
   const [catalog, setCatalog] = useState<VehicleCatalog>({makes:[]});
   const [page, setPage] = useState<
-    'dashboard' | 'editor' | 'open' | 'history' | 'legacy' | 'users'
+    'dashboard' | 'new-order' | 'editor' | 'open' | 'history' | 'legacy' | 'users'
   >('dashboard');
   const [ownerRevision, setOwnerRevision] = useState(0);
   const [selectedMechanic, setSelectedMechanic] = useState('');
@@ -601,7 +601,7 @@ export function App() {
               >
                 Historial
               </button>
-              <button className="quiet" onClick={() => void navigate('legacy')}>Historial anterior</button>
+              <button className="quiet" onClick={() => void navigate('legacy')}>Historial J5 antiguo</button>
               {session.role === 'ADMIN' && (
                 <button
                   className="quiet"
@@ -611,7 +611,7 @@ export function App() {
                 </button>
               )}
             </nav>
-            {editorAccess !== 'ready' && ['dashboard', 'open', 'history', 'editor'].includes(page) && (
+            {editorAccess !== 'ready' && ['dashboard', 'new-order', 'open', 'history', 'editor'].includes(page) && (
               <div className="editor-access-notice">
                 <p role="status">{editorMessages[editorAccess]}</p>
                 {(editorAccess === 'occupied' || editorAccess === 'error') && (
@@ -619,16 +619,17 @@ export function App() {
                 )}
               </div>
             )}
-            {page === 'dashboard' && (
+            {(page === 'dashboard' || page === 'new-order') && (
               <Dashboard
                 session={session}
                 ready={editorReady && !busy}
-                onNew={() => void newOrder()}
+                choosingOrder={page === 'new-order'}
+                onNew={() => void (page === 'dashboard' && session.role === 'ADMIN' ? navigate('new-order') : newOrder())}
                 onBackfill={() => void newOrder(true)}
                 onPage={(next) => void navigate(next)}
               />
             )}
-            {page === 'dashboard' && backfillStartError && (
+            {page === 'new-order' && backfillStartError && (
               <div role="dialog" aria-label="Orden anterior" className="confirmation">
                 <p role="alert">No se pudo abrir el borrador en este dispositivo.</p>
                 <button onClick={() => void newOrder(true)}>Reintentar</button>
