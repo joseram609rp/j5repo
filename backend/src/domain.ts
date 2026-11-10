@@ -44,6 +44,8 @@ export type Order = {
   taxRate?: number;
   closedAt?: string | null;
   openedAt?: string;
+  orderDate?: string;
+  isBackfilled?: boolean;
   mechanicName?: string;
 };
 export type Customer = {

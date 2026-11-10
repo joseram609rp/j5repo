@@ -1,10 +1,12 @@
-import { customerSchema, vehicleSchema, mileageSchema, itemSchema, paymentMethodSchema } from '../../backend/src/validation';
+import { customerSchema, vehicleSchema, mileageSchema, itemSchema, paymentMethodSchema, validBackfillDate } from '../../backend/src/validation';
 import type { Draft } from './autosave';
-export type Section = 'Datos del cliente' | 'Datos del vehículo' | 'Trabajos realizados' | 'Observaciones generales' | 'Pago y factura';
+export type Section = 'Fecha del trabajo' | 'Datos del cliente' | 'Datos del vehículo' | 'Trabajos realizados' | 'Observaciones generales' | 'Pago y factura';
 export type FieldError = {field:string; section:Section; message:string};
 export function fieldErrors(d:Draft): FieldError[] {
  const errors:FieldError[]=[];
  const add=(field:string,section:Section,message:string)=>errors.push({field,section,message});
+ if(d.workDate !== undefined && !validBackfillDate(d.workDate))
+  add('workDate','Fecha del trabajo','Elige una fecha válida anterior a hoy en Costa Rica.');
  const customer=customerSchema.safeParse({fullName:d.customerName,identification:d.identification ?? '',phone:d.phone ?? '',email:d.email ?? ''});
  const messages:Record<string,string>={fullName:'Escribe el nombre completo.',identification:'La cédula debe tener 9 dígitos (física) o 10 dígitos (jurídica).',phone:'El teléfono debe tener exactamente 8 dígitos.',email:'Escribe un correo válido o deja el campo vacío.'};
  if(!customer.success) for(const issue of customer.error.issues) {const key=String(issue.path[0]);add(key==='fullName'?'customerName':key,'Datos del cliente',messages[key]!);}

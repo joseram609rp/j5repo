@@ -2,6 +2,7 @@ import { draftSchema } from '../../backend/src/validation';
 import { openDB } from 'idb';
 import { api, ApiError } from './api';
 export type Draft = {
+  workDate?: string;
   paymentMethod?: 'SINPE' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CASH' | 'BANK_TRANSFER';
   electronicInvoice?: boolean;
   mechanicId?: string;
@@ -31,6 +32,8 @@ export type Order = {
   mechanicName?: string;
   displayOrderId?: string;
   openedAt?: string;
+  orderDate?: string;
+  isBackfilled?: boolean;
   closedAt?: string | null;
   totalAmount?: number;
   subtotalAmount?: number;
@@ -204,7 +207,7 @@ export class Autosave {
       if (this.state.version === before || (this.state.order?.status as string) !== 'VOID') throw new Error('ACTION_REJECTED');
       return this.state.order;
     }
-    await this.flush();
+    if (this.state.draft.workDate === undefined || replaying) await this.flush();
     const beforeVersion = this.state.version;
     if (replaying) {
       if (
@@ -327,6 +330,8 @@ export class Autosave {
         !this.stopped && !this.detached &&
         (this.state.pending || this.state.savedRevision < this.state.revision)
       ) {
+        // Historical drafts remain local until the user confirms a complete close.
+        if (this.state.draft.workDate !== undefined && !this.state.pending && !this.state.draft.action) return;
         if (
           !this.state.pending &&
           !draftSchema.safeParse(this.state.draft).success

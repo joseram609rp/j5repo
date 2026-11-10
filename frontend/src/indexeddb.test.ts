@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import 'fake-indexeddb/auto';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { openDB } from 'idb';
 import { Autosave, fresh, storage } from './autosave';
 it('IndexedDB persists user-scoped pending payload/key and recovers the exact close after restart', async () => {
@@ -105,4 +105,34 @@ it('independent autosave queues persist different payloads and idempotency keys 
  expect(one?.pending?.draft.notes).toBe('A');expect(two?.pending?.draft.notes).toBe('B');
  expect(one?.pending?.key).not.toBe(two?.pending?.key);
  await first.pause();await second.pause();
+});
+
+it('keeps historical edits local and retries a confirmed close with the same persisted key and date', async () => {
+  const user = crypto.randomUUID();
+  const record = fresh();
+  record.draft.workDate = '2024-02-29';
+  record.revision = 1;
+  let calls = 0;
+  const offline = async () => { calls++; throw new TypeError('response lost'); };
+  const service = new Autosave(record, user, 'csrf', () => {}, () => {}, storage.write, offline);
+  await service.edit({ ...record.draft, notes: 'local' });
+  await service.sync();
+  expect(calls).toBe(0);
+  expect((await storage.read(user, record.id))?.draft.workDate).toBe('2024-02-29');
+  await expect(service.action('close')).rejects.toThrow('SYNC_REQUIRED');
+  await service.pause();
+  const recovered = (await storage.read(user, record.id))!;
+  const pending = structuredClone(recovered.pending);
+  expect(pending).toMatchObject({ version: null, draft: { workDate: '2024-02-29', action: 'close', notes: 'local' } });
+
+  const send = vi.fn(async () => ({
+    id: record.id, version: '1', status: 'CLOSED' as const, mechanicId: user, isBackfilled: true, orderDate: '2024-02-29',
+    draft: { ...recovered.draft, action: undefined },
+  }));
+  const resumed = new Autosave(recovered, user, 'csrf', () => {}, () => {}, storage.write, send);
+  await resumed.sync();
+  expect(send).toHaveBeenCalledExactlyOnceWith(record.id, pending);
+  const saved = (await storage.read(user, record.id))!;
+  expect(saved.pending).toBeUndefined();
+  expect(saved.order).toMatchObject({ status: 'CLOSED', isBackfilled: true, orderDate: '2024-02-29' });
 });

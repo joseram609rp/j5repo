@@ -175,11 +175,13 @@ export function OrderList({
                 .join(' · ') || 'Vehículo pendiente'}
             </p>
             <p>Mecánico: {order.mechanicName}</p>
-            <p>
+            {order.isBackfilled || order.draft.workDate !== undefined ? (
+              <p>Registro anterior · Fecha del trabajo: {order.orderDate || order.draft.workDate || 'Pendiente'}</p>
+            ) : <p>
               Apertura:{' '}
               {order.openedAt &&
                 new Date(order.openedAt).toLocaleString('es-CR')}
-            </p>
+            </p>}
             <p className="total">{formatCRC(order.totalAmount ?? 0)}</p>
             {localOrders.some(local => local.id === order.id) && (
               <p className="status">Cambios guardados en este dispositivo; pendientes de sincronizar.</p>

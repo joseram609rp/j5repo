@@ -105,6 +105,7 @@ beforeEach(() => {
         const old = orders.get(id);
         const o: Order = {
           id,
+          ...(d.workDate ? { orderDate: d.workDate, isBackfilled: true } : {}),
           draft: d,
           version: String(puts),
           status:
@@ -243,6 +244,7 @@ it.each(['ADMIN', 'MECHANIC'] as const)(
     await mount();
     expect(button('Nueva orden')).toBeTruthy();
     expect(!!button('Usuarios')).toBe(role === 'ADMIN');
+    expect(!!button('Registrar orden anterior')).toBe(role === 'ADMIN');
     expect(
       container.querySelector('section.editor')?.hasAttribute('hidden'),
     ).toBe(true);
@@ -272,6 +274,45 @@ it('Nueva orden preserves a legacy local draft and creates a different order', a
   expect(puts).toBe(1);
   expect(disk?.draft.notes).toBe('');
 });
+it('keeps the historical date and notices in the local editor, then registers directly as CLOSED', async () => {
+  vi.mocked(bootstrapSession).mockResolvedValue({
+    session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,
+  });
+  await mount();
+  await click('Registrar orden anterior');
+  const localId = disk!.id;
+  expect(container.querySelector('#work-date')?.getAttribute('type')).toBe('date');
+  expect(container.querySelector('button[aria-label="Abrir calendario"]')).toBeTruthy();
+  await click('Registrar orden anterior');
+  expect(text()).toContain('Elige una fecha válida anterior a hoy en Costa Rica.');
+  expect(puts).toBe(0);
+  await click('Inicio');
+  expect(text()).not.toContain('Elige una fecha válida anterior a hoy en Costa Rica.');
+
+  // Reopen the completed IndexedDB fixture in a fresh app instance.
+  await act(async () => root.unmount());
+  disk!.draft = { ...complete, workDate: '2024-02-29' };
+  records.set(localId, clone(disk!));
+  root = createRoot(container);
+  await mount();
+  await click('Órdenes abiertas');
+  await click('Continuar');
+  expect(container.querySelector<HTMLInputElement>('#work-date')?.value).toBe('2024-02-29');
+  await click('Registrar orden anterior');
+  expect(container.querySelector('[role=dialog]')?.textContent).toContain('¿Registrar como cerrada la orden del 2024-02-29?');
+  expect(puts).toBe(0);
+  await click('Confirmar');
+  expect(puts).toBe(1);
+  expect(orders.get(localId)).toMatchObject({ status: 'CLOSED', orderDate: '2024-02-29', isBackfilled: true });
+  expect(text()).toContain('Fecha del trabajo: 2024-02-29');
+  expect(text()).not.toMatch(/Apertura:|Cierre:/);
+  expect(button('Reabrir orden')).toBeUndefined();
+  await click('Historial');
+  expect(text()).not.toContain('Orden anterior registrada correctamente.');
+  await historySearch();
+  expect(text()).toContain('Registro anterior · Fecha del trabajo: 2024-02-29');
+});
+
 it('validates missing fields inline and in summary without closing', async () => {
   await mount();
   await click('Nueva orden');
