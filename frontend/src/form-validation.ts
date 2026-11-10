@@ -29,6 +29,10 @@ export function visibleErrors(d:Draft,touched:ReadonlySet<string>,closing=false)
 export function formatMileage(value:number | null | undefined) {
  return typeof value==='number' && Number.isInteger(value) && value>=0 ? new Intl.NumberFormat('en-US').format(value)+' km' : '';
 }
+export function formatRegistrationDate(timestamp: string) {
+ return new Intl.DateTimeFormat('es-CR', { dateStyle: 'medium', timeZone: 'America/Costa_Rica' }).format(new Date(timestamp));
+}
+
 export function formatCRC(value:number) {
  return '₡ ' + new Intl.NumberFormat('es-CR',{minimumFractionDigits:Number.isInteger(value)?0:2,maximumFractionDigits:2}).format(value);
 }

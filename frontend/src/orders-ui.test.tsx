@@ -305,12 +305,15 @@ it('keeps the historical date and notices in the local editor, then registers di
   expect(puts).toBe(1);
   expect(orders.get(localId)).toMatchObject({ status: 'CLOSED', orderDate: '2024-02-29', isBackfilled: true });
   expect(text()).toContain('Fecha del trabajo: 2024-02-29');
+  expect(text()).toContain('Registrada en J5:');
   expect(text()).not.toMatch(/Apertura:|Cierre:/);
   expect(button('Reabrir orden')).toBeUndefined();
   await click('Historial');
   expect(text()).not.toContain('Orden anterior registrada correctamente.');
   await historySearch();
   expect(text()).toContain('Registro anterior · Fecha del trabajo: 2024-02-29');
+  expect(text()).toContain('Estado: CERRADA');
+  expect(text()).toContain('Registrada en J5:');
 });
 
 it('validates missing fields inline and in summary without closing', async () => {

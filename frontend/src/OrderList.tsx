@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { api } from './api';
-import { formatCRC } from './form-validation';
+import { formatCRC, formatRegistrationDate } from './form-validation';
 import { storage, type Order } from './autosave';
 
 const historyDate = z.iso.date().refine((value) => value.slice(0, 4) !== '0000');
@@ -176,7 +176,11 @@ export function OrderList({
             </p>
             <p>Mecánico: {order.mechanicName}</p>
             {order.isBackfilled || order.draft.workDate !== undefined ? (
-              <p>Registro anterior · Fecha del trabajo: {order.orderDate || order.draft.workDate || 'Pendiente'}</p>
+              <>
+                <p>Registro anterior · Fecha del trabajo: {order.orderDate || order.draft.workDate || 'Pendiente'}</p>
+                {order.status === 'CLOSED' && <p>Estado: CERRADA</p>}
+                {order.openedAt && <p>Registrada en J5: {formatRegistrationDate(order.openedAt)}</p>}
+              </>
             ) : <p>
               Apertura:{' '}
               {order.openedAt &&
