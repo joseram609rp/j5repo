@@ -12,7 +12,7 @@ import { Dashboard } from './Dashboard';
 import { OrderList } from './OrderList';
 import { EntitySearch } from './EntitySearch';
 import { Users } from './Users';
-import { visibleErrors, formatCRC, formatMileage, formatRegistrationDate } from './form-validation';
+import { visibleErrors, formatCRC, formatMileage, formatRegistrationDate, formatWorkDate } from './form-validation';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { api, onBackendSuccess } from './api';
 import { loginErrorMessage } from './login-error';
@@ -684,8 +684,8 @@ export function App() {
           )}
           {sessionStatus === 'authenticated' && historical && order && (
             <>
-              <p>Registro anterior{order?.orderDate && ` · Fecha del trabajo: ${order.orderDate}`}</p>
-              {order?.openedAt && <p>Registrada en J5: {formatRegistrationDate(order.openedAt)}</p>}
+              {order.orderDate && <p>Trabajo realizado el {formatWorkDate(order.orderDate)}</p>}
+              {order.openedAt && <p>Orden ingresada en J5 el {formatRegistrationDate(order.openedAt)}</p>}
             </>
           )}
           {sessionStatus === 'authenticated' && order && !historical && (
