@@ -50,7 +50,6 @@ export function App() {
   const [editorAccess, setEditorAccess] = useState<EditorAccess>('checking');
   const editorLock = useRef<ReturnType<typeof startEditorLock> | null>(null);
   const editorSession = useRef<Session | null>(null);
-  const workDateInput = useRef<HTMLInputElement>(null);
   const [backfillStartError, setBackfillStartError] = useState(false);
   const [closing, setClosing] = useState(false);
   const [closeOwner,setCloseOwner]=useState<{vehicleId:string;customerId:string;expectedOwnerId:string;ownerName:string;decision:'transfer'|'keep'} | null>(null);
@@ -610,7 +609,7 @@ export function App() {
               />
             )}
             {page === 'dashboard' && backfillStartError && (
-              <div role="dialog" aria-label="Registrar orden anterior" className="confirmation">
+              <div role="dialog" aria-label="Orden anterior" className="confirmation">
                 <p role="alert">No se pudo abrir el borrador en este dispositivo.</p>
                 <button onClick={() => void newOrder(true)}>Reintentar</button>
                 <button className="quiet" onClick={() => setBackfillStartError(false)}>Cancelar</button>
@@ -652,7 +651,7 @@ export function App() {
           <div className="card-top">
             <h2>
               {sessionStatus === 'authenticated'
-                ? (order?.displayOrderId ?? (historical ? 'Registrar orden anterior' : 'Orden local'))
+                ? (order?.displayOrderId ?? (historical ? 'Orden anterior' : 'Orden local'))
                 : 'Iniciar sesión'}
             </h2>
           </div>
@@ -661,7 +660,7 @@ export function App() {
               {order?.status === 'VOID' ? 'CANCELADA' : order?.status === 'CLOSED' ? 'CERRADA' : historical ? 'BORRADOR' : 'ABIERTA'}
             </div>
           )}
-          {sessionStatus === 'authenticated' && historical && (
+          {sessionStatus === 'authenticated' && historical && order && (
             <>
               <p>Registro anterior{order?.orderDate && ` · Fecha del trabajo: ${order.orderDate}`}</p>
               {order?.openedAt && <p>Registrada en J5: {formatRegistrationDate(order.openedAt)}</p>}
@@ -787,29 +786,17 @@ export function App() {
                     {historical && !order && (
                       <div>
                         <label htmlFor="work-date">Fecha del trabajo</label>
-                        <div className="year-field">
-                          <input
-                            id="work-date"
-                            ref={workDateInput}
-                            type="date"
-                            data-field="workDate"
-                            min="0001-01-01"
-                            max={latestBackfillDate()}
-                            required
-                            value={draft.workDate ?? ''}
-                            onChange={e => edit('workDate', e.target.value)}
-                            {...accessibility('workDate')}
-                          />
-                          <button type="button" className="quiet" aria-label="Abrir calendario" onClick={() => {
-                            const input = workDateInput.current;
-                            if (!input) return;
-                            input.focus();
-                            try {
-                              if (input.showPicker) input.showPicker();
-                              else input.click();
-                            } catch { input.click(); }
-                          }}>📅</button>
-                        </div>
+                        <input
+                          id="work-date"
+                          type="date"
+                          data-field="workDate"
+                          min="0001-01-01"
+                          max={latestBackfillDate()}
+                          required
+                          value={draft.workDate ?? ''}
+                          onChange={e => edit('workDate', e.target.value)}
+                          {...accessibility('workDate')}
+                        />
                         {validation('workDate')}
                       </div>
                     )}
@@ -1139,7 +1126,7 @@ export function App() {
                         }
                       }}
                     >
-                      {historical ? 'Registrar orden anterior' : 'Cerrar orden'}
+                      {historical ? 'Guardar orden cerrada' : 'Cerrar orden'}
                     </button>
                   )}
                   {order?.status === 'OPEN' && !conflict && (session.role === 'ADMIN' || order.mechanicId === session.userId) && (

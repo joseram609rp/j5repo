@@ -18,10 +18,12 @@ export function Dashboard({
       <h2>Inicio</h2>
       <div className="modules">
         <button disabled={!ready} onClick={onNew}>
-          Nueva orden<span>Crear nueva orden</span>
+          Nueva orden<span>Abrir una orden de trabajo</span>
         </button>
         {session.role === 'ADMIN' && (
-          <button disabled={!ready} onClick={onBackfill}>Registrar orden anterior</button>
+          <button disabled={!ready} onClick={onBackfill}>
+            Orden anterior<span>Registrar un trabajo ya realizado</span>
+          </button>
         )}
         <button onClick={() => onPage('open')}>Órdenes abiertas</button>
         <button onClick={() => onPage('history')}>Historial</button>

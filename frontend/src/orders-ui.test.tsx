@@ -244,7 +244,7 @@ it.each(['ADMIN', 'MECHANIC'] as const)(
     await mount();
     expect(button('Nueva orden')).toBeTruthy();
     expect(!!button('Usuarios')).toBe(role === 'ADMIN');
-    expect(!!button('Registrar orden anterior')).toBe(role === 'ADMIN');
+    expect(!!button('Orden anterior')).toBe(role === 'ADMIN');
     expect(
       container.querySelector('section.editor')?.hasAttribute('hidden'),
     ).toBe(true);
@@ -279,11 +279,13 @@ it('keeps the historical date and notices in the local editor, then registers di
     session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,
   });
   await mount();
-  await click('Registrar orden anterior');
+  await click('Orden anterior');
   const localId = disk!.id;
   expect(container.querySelector('#work-date')?.getAttribute('type')).toBe('date');
-  expect(container.querySelector('button[aria-label="Abrir calendario"]')).toBeTruthy();
-  await click('Registrar orden anterior');
+  expect(container.querySelectorAll('section.editor input[type="date"]')).toHaveLength(1);
+  expect(container.querySelector('button[aria-label="Abrir calendario"]')).toBeNull();
+  expect(text()).not.toContain('Registro anterior');
+  await click('Guardar orden cerrada');
   expect(text()).toContain('Elige una fecha válida anterior a hoy en Costa Rica.');
   expect(puts).toBe(0);
   await click('Inicio');
@@ -298,7 +300,7 @@ it('keeps the historical date and notices in the local editor, then registers di
   await click('Órdenes abiertas');
   await click('Continuar');
   expect(container.querySelector<HTMLInputElement>('#work-date')?.value).toBe('2024-02-29');
-  await click('Registrar orden anterior');
+  await click('Guardar orden cerrada');
   expect(container.querySelector('[role=dialog]')?.textContent).toContain('¿Registrar como cerrada la orden del 2024-02-29?');
   expect(puts).toBe(0);
   await click('Confirmar');
