@@ -213,3 +213,33 @@ it('after reassignment the previous mechanic cannot close; ADMIN retains that pe
  expect((await mutate(id,{...billingDraft,action:'assign-mechanic',mechanicId:other})).status).toBe(200);repo.accounts.get(userId)!.role='MECHANIC';
  expect((await mutate(id,{...billingDraft,action:'close'})).status).toBe(403);repo.accounts.get(userId)!.role='ADMIN';expect((await mutate(id,{...billingDraft,action:'close'})).status).toBe(200);
 });
+
+it('requires ADMIN and valid prior work date, closes directly and replays a lost confirmation once', async () => {
+  const { repo, mutate, call } = setup();
+  const id = randomUUID(), key = randomUUID();
+  const payload = { ...billingDraft, workDate: '1969-12-30', action: 'close' };
+  expect((await mutate(id, payload)).status).toBe(403);
+  repo.accounts.get(userId)!.role = 'ADMIN';
+  for (const change of [
+    { workDate: '9999-12-31' }, { workDate: '2025-02-29' }, { workDate: '' },
+    { action: undefined }, { paymentMethod: undefined },
+  ]) {
+    expect((await mutate(id, { ...payload, ...change })).status).toBe(400);
+    expect(repo.orders.has(id)).toBe(false);
+  }
+  const current = await repo.saveOrder(randomUUID(), userId, { ...billingDraft, notes: '', recommendations: '' });
+  expect((await mutate(current.id, payload)).status).toBe(400);
+  expect(repo.orders.get(current.id)).toEqual(current);
+
+  const saved = await mutate(id, payload, undefined, key);
+  expect(saved.status).toBe(200);
+  const order = await saved.json();
+  expect(order).toMatchObject({ status: 'CLOSED', isBackfilled: true, orderDate: payload.workDate });
+  expect(order.openedAt.slice(0, 10)).not.toBe(payload.workDate);
+  expect(order.closedAt.slice(0, 10)).not.toBe(payload.workDate);
+  expect(await (await mutate(id, payload, '', key)).json()).toEqual(order);
+  expect((await mutate(id, payload, '')).status).toBe(400);
+  expect((await mutate(id, { ...billingDraft, action: 'reopen' })).status).toBe(409);
+  expect(repo.audits.filter(a => a.entityId === id).map(a => a.action)).toEqual(['ORDER_BACKFILLED']);
+  expect((await (await call('/orders?status=CLOSED&from=' + payload.workDate)).json()).orders).toEqual([order]);
+});

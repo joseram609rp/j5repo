@@ -89,10 +89,14 @@ type OrderRow = {
   closed_at: Date | null;
   draft_data: string;
   created_at: Date;
+  order_date: Date;
+  is_backfilled: boolean;
   mechanic_name?: string;
 };
 function order(r: OrderRow): Order {
   return {
+    orderDate: r.order_date.toISOString().slice(0, 10),
+    isBackfilled: r.is_backfilled,
     openedAt: r.created_at.toISOString(),
     mechanicName: r.mechanic_name,
     displayOrderId: r.display_order_id,
@@ -317,7 +321,7 @@ export class SqlUnit implements UnitOfWork {
       COALESCE(recent.email,NULLIF(LTRIM(RTRIM(c.email)),'')) AS email
       FROM dbo.Customers c
       OUTER APPLY (SELECT TOP (1) NULLIF(LTRIM(RTRIM(JSON_VALUE(o.draft_data,'$.email'))),'') AS email
-        FROM dbo.Orders o WHERE o.customer_id=c.id AND o.status='CLOSED'
+        FROM dbo.Orders o WHERE o.customer_id=c.id AND o.status='CLOSED' AND o.is_backfilled=0
         ORDER BY o.closed_at DESC,o.created_at DESC,o.id DESC) recent
       WHERE c.identification=@search OR CHARINDEX(@search COLLATE Latin1_General_100_CI_AI,c.full_name COLLATE Latin1_General_100_CI_AI)>0 ORDER BY c.full_name,c.id`,
         { search },
@@ -340,9 +344,9 @@ export class SqlUnit implements UnitOfWork {
       COALESCE(recentCustomer.email,NULLIF(LTRIM(RTRIM(c.email)),'')) AS email,recentVehicle.mileage AS lastMileage
       FROM dbo.Vehicles v JOIN dbo.Customers c ON c.id=v.owner_id
       OUTER APPLY (SELECT TOP (1) NULLIF(LTRIM(RTRIM(JSON_VALUE(o.draft_data,'$.email'))),'') AS email
-        FROM dbo.Orders o WHERE o.customer_id=c.id AND o.status='CLOSED'
+        FROM dbo.Orders o WHERE o.customer_id=c.id AND o.status='CLOSED' AND o.is_backfilled=0
         ORDER BY o.closed_at DESC,o.created_at DESC,o.id DESC) recentCustomer
-      OUTER APPLY (SELECT TOP (1) o.mileage FROM dbo.Orders o WHERE o.vehicle_id=v.id AND o.mileage IS NOT NULL
+      OUTER APPLY (SELECT TOP (1) o.mileage FROM dbo.Orders o WHERE o.vehicle_id=v.id AND o.mileage IS NOT NULL AND o.is_backfilled=0
         ORDER BY o.created_at DESC,o.id DESC) recentVehicle
       WHERE (@customerId IS NULL OR v.owner_id=@customerId) AND (@search='' OR v.plate_normalized=@search)
       ORDER BY v.plate_normalized`,
@@ -390,6 +394,7 @@ export class SqlUnit implements UnitOfWork {
     }
   }
   private async saveOrderData(id: string, userId: string, draft: Draft, previous?: Order): Promise<Order> {
+    const backfill = draft.workDate !== undefined;
     if (draft.action === 'close') {
       const actor = await this.userById(userId);
       if (previous && actor?.role !== 'ADMIN' && previous.mechanicId !== userId) throw new HttpError(403, 'ASSIGNED_MECHANIC_REQUIRED');
@@ -423,7 +428,7 @@ export class SqlUnit implements UnitOfWork {
     if (assignedMechanic !== (previous?.mechanicId ?? userId)) {
       const actor = await this.userById(userId);
       if (actor?.role !== 'ADMIN') throw new HttpError(403, 'ADMIN_REQUIRED');
-      if (previous?.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');
+      if (!backfill && previous?.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');
       const target = await this.userById(assignedMechanic);
       if (!target?.active) throw new HttpError(400, 'INVALID_MECHANIC');
     }
@@ -553,7 +558,7 @@ export class SqlUnit implements UnitOfWork {
       const currentOwner=v!.owner_id.toLowerCase();
       if(resolution && (resolution.vehicleId.toLowerCase()!==vehicleId.toLowerCase() || resolution.customerId.toLowerCase()!==customerId.toLowerCase() || resolution.expectedOwnerId.toLowerCase()!==currentOwner))
         throw new HttpError(409,'OWNER_DECISION_STALE');
-      if(currentOwner!==customerId.toLowerCase()) {
+      if(!backfill && currentOwner!==customerId.toLowerCase()) {
         if(!resolution) throw new HttpError(409,'OWNER_DECISION_REQUIRED');
         if(resolution.decision==='transfer') {
           await this.query('UPDATE dbo.Vehicles SET owner_id=@owner WHERE id=@id',{owner:customerId,id:vehicleId});
@@ -591,7 +596,7 @@ export class SqlUnit implements UnitOfWork {
       });
       await this.audit(userId, 'VEHICLE_OWNER_CHANGED', vehicleId);
     }
-    if (vehicleId && draft.action === 'close' && draft.model) {
+    if (!backfill && vehicleId && draft.action === 'close' && draft.model) {
       await this.query(
         'UPDATE dbo.Vehicles SET model=@model WHERE id=@id AND model IS NULL',
         { id: vehicleId, model: draft.model.trim() },
@@ -628,10 +633,9 @@ export class SqlUnit implements UnitOfWork {
               ? 'CLOSED'
               : (previous?.status ?? 'OPEN');
     await this.query("EXEC sys.sp_set_session_context @key=N'j5_mechanic_reassignment',@value=@allow", { allow: actor?.role === 'ADMIN' && previous?.status === 'OPEN' });
-    const { action: _, ownerResolution: _ownerResolution, mechanicId: _mechanic, ...data } = draft;
+    const { action: _, ownerResolution: _ownerResolution, mechanicId: _mechanic, workDate, ...data } = draft;
     const params: Params = {
       id,
-      userId,
       assignedMechanic,
       taxRate,
       customerId,
@@ -653,8 +657,9 @@ export class SqlUnit implements UnitOfWork {
       // Serialize allocation before INSERT row locks; the trigger also protects direct SQL inserts.
       await this.query("DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'j5:daily-orders',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=4000; IF @r<0 THROW 51011,'Daily order allocation unavailable',1;");
       await this.query(
-        'INSERT dbo.Orders(id,customer_id,vehicle_id,mechanic_id,draft_data,customer_name_snapshot,plate_snapshot,mileage,notes,recommendations,tax_rate) VALUES(@id,@customerId,@vehicleId,@userId,@data,@name,@plate,@mileage,@notes,@recommendations,@taxRate)',
-        params,
+        `INSERT dbo.Orders(id,customer_id,vehicle_id,mechanic_id,draft_data,customer_name_snapshot,plate_snapshot,mileage,notes,recommendations,tax_rate${backfill ? ',order_date,is_backfilled' : ''})
+        VALUES(@id,@customerId,@vehicleId,@assignedMechanic,@data,@name,@plate,@mileage,@notes,@recommendations,@taxRate${backfill ? ',CONVERT(date,@workDate,23),1' : ''})`,
+        { ...params, ...(backfill ? { workDate } : {}) },
       );
     }
     await this.query('DELETE dbo.OrderItems WHERE order_id=@id', { id });
@@ -687,7 +692,7 @@ export class SqlUnit implements UnitOfWork {
     await this.query("EXEC sys.sp_set_session_context @key=N'j5_mechanic_reassignment',@value=NULL");
     // Update the current contact only after a successful validated close.
     // Historical contact remains in each order's draft_data snapshot.
-    if (action === 'close' && customerId && customer.success) {
+    if (!backfill && action === 'close' && customerId && customer.success) {
       await this.query('UPDATE dbo.Customers SET full_name=@name,phone=@phone,email=@email WHERE id=@id AND identification=@identification', {
         id: customerId, identification: customer.data.identification, name: customer.data.fullName,
         phone: customer.data.phone, email: customer.data.email || null,

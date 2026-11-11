@@ -107,7 +107,7 @@ export class FakeRepository implements Repository, UnitOfWork {
       if (o.status !== status) return false;
       if (status === 'CLOSED' && dates) {
         if (!o.openedAt) return false;
-        const businessDate = new Date(Date.parse(o.openedAt) - 6 * 3600000).toISOString().slice(0, 10);
+        const businessDate = o.orderDate ?? new Date(Date.parse(o.openedAt) - 6 * 3600000).toISOString().slice(0, 10);
         if (businessDate < dates.from || businessDate > dates.to) return false;
       }
       return !search ||
@@ -129,6 +129,10 @@ export class FakeRepository implements Repository, UnitOfWork {
   async saveOrder(id: string, userId: string, draft: Draft, previous?: Order) {
     const order: Order = {
       id,
+      ...(draft.workDate ? {
+        isBackfilled: true,
+        orderDate: draft.workDate,
+      } : {}),
       openedAt: previous?.openedAt ?? new Date(this.clock).toISOString(),
       displayOrderId:
         previous?.displayOrderId ??

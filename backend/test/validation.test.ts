@@ -1,3 +1,4 @@
+import { validBackfillDate } from '../src/validation.js';
 import { describe,it,expect } from 'vitest';
 import { customerSchema,vehicleSchema,itemSchema,draftSchema,canClose,totalAmount,fullNameSchema,amounts } from '../src/validation.js';
 const customer={fullName:'Cliente',identification:'123456789',phone:'88888888',email:' EMAIL@example.com '};
@@ -53,4 +54,13 @@ it.each(['123456789','3101234567','0123456789'])('accepts physical/legal identif
 it.each(['12345678','12345678901','12345678a','123456789a','12345678９'])('rejects invalid identification %s in drafts and closing',identification=>{
  expect(draftSchema.safeParse({...draft,identification}).success).toBe(false);
  expect(canClose({...draft,identification})).toBe(false);
+});
+
+it('enforces the Costa Rica midnight boundary for prior work dates', () => {
+  const before = new Date('2026-11-10T05:59:59.999Z');
+  const midnight = new Date('2026-11-10T06:00:00.000Z');
+  expect(validBackfillDate('2026-11-09', before)).toBe(false);
+  expect(validBackfillDate('2026-11-09', midnight)).toBe(true);
+  expect(validBackfillDate('2026-11-10', midnight)).toBe(false);
+  expect(validBackfillDate('0000-01-01', midnight)).toBe(false);
 });

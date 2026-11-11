@@ -2,6 +2,7 @@ import { draftSchema } from '../../backend/src/validation';
 import { openDB } from 'idb';
 import { api, ApiError } from './api';
 export type Draft = {
+  workDate?: string;
   paymentMethod?: 'SINPE' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CASH' | 'BANK_TRANSFER';
   electronicInvoice?: boolean;
   mechanicId?: string;
@@ -31,6 +32,8 @@ export type Order = {
   mechanicName?: string;
   displayOrderId?: string;
   openedAt?: string;
+  orderDate?: string;
+  isBackfilled?: boolean;
   closedAt?: string | null;
   totalAmount?: number;
   subtotalAmount?: number;
@@ -51,10 +54,15 @@ export type RecordState = {
   revision: number;
   savedRevision: number;
   order?: Order;
+  cancelled?: boolean;
   pending?: Mutation;
   conflict?: { remote: Order };
   recoveryCopies?: { draft: Draft; pending?: Mutation; version: string | null; savedAt: number }[];
 };
+export function canCancelBackfill(record: RecordState) {
+  return record.draft.workDate !== undefined && !record.order && !record.version &&
+    !record.cancelled && !record.pending && !record.draft.action && !record.conflict;
+}
 const db = () =>
   openDB('j5-drafts-v1', 1, {
     upgrade(database) {
@@ -157,8 +165,19 @@ export class Autosave {
       .then(() => this.persist(this.user, snapshot));
     return this.queue;
   }
+  async cancelBackfill() {
+    if (this.detached || !canCancelBackfill(this.state)) throw new Error('ORDER_LOCKED');
+    clearTimeout(this.timer);
+    this.state.cancelled = true;
+    try {
+      await this.write();
+    } catch (error) {
+      delete this.state.cancelled;
+      throw error;
+    }
+  }
   async edit(draft: Draft) {
-    if (this.detached) throw new Error('EDITOR_DETACHED');
+    if (this.detached || this.state.cancelled) throw new Error('EDITOR_DETACHED');
     if (this.state.conflict) throw new Error('ORDER_CONFLICT');
     if (
       this.state.pending?.draft.action ||
@@ -204,7 +223,7 @@ export class Autosave {
       if (this.state.version === before || (this.state.order?.status as string) !== 'VOID') throw new Error('ACTION_REJECTED');
       return this.state.order;
     }
-    await this.flush();
+    if (this.state.draft.workDate === undefined || replaying) await this.flush();
     const beforeVersion = this.state.version;
     if (replaying) {
       if (
@@ -319,7 +338,7 @@ export class Autosave {
     return this.active;
   }
   private async runSync() {
-    if (this.syncing || this.stopped || this.detached) return;
+    if (this.syncing || this.stopped || this.detached || this.state.cancelled) return;
     this.syncing = true;
     try {
       await this.queue;
@@ -327,6 +346,8 @@ export class Autosave {
         !this.stopped && !this.detached &&
         (this.state.pending || this.state.savedRevision < this.state.revision)
       ) {
+        // Historical drafts remain local until the user confirms a complete close.
+        if (this.state.draft.workDate !== undefined && !this.state.pending && !this.state.draft.action) return;
         if (
           !this.state.pending &&
           !draftSchema.safeParse(this.state.draft).success

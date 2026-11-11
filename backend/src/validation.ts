@@ -14,7 +14,18 @@ export const customerSchema = z.object({ fullName: fullNameSchema, identificatio
 export const vehicleSchema = z.object({ make: makeSchema, model: modelSchema, year: yearSchema, plate: plateSchema, ownerId: z.uuid() }).strict();
 // Blank values survive OPEN autosaves; all nonblank values must be valid.
 const blankOr = <T extends z.ZodType>(schema: T) => z.union([z.literal(''), schema]);
+const workDateSchema = z.iso.date().refine(date => !date.startsWith('0000'));
+
+export function latestBackfillDate(now = new Date()) {
+ return new Date(now.getTime() - 30 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+export function validBackfillDate(date: string, now = new Date()) {
+ return workDateSchema.safeParse(date).success && date <= latestBackfillDate(now);
+}
+
 export const draftSchema = z.object({
+ workDate: workDateSchema.optional(),
  customerName: blankOr(fullNameSchema), plate: blankOr(plateSchema),
  identification: blankOr(identificationSchema).optional(), phone: blankOr(phoneSchema).optional(), email: emailSchema.optional(),
  make: blankOr(makeSchema).optional(), model: blankOr(modelSchema).optional(), year: yearSchema.nullable().optional(),

@@ -29,7 +29,7 @@ export function LegacyHistory() {
   catch {if(current===generation.current)setError('No se pudo cargar el detalle. Intenta de nuevo.');}
   finally {if(current===generation.current)setBusy(false);}
  }
- return <section className="legacy-history" aria-label="Historial anterior"><h1>Historial anterior</h1><p>Archivo de consulta. Estos registros no se utilizan para crear órdenes, clientes ni vehículos actuales. Requiere conexión.</p>
+ return <section className="legacy-history" aria-label="Historial J5 antiguo"><h1>Historial J5 antiguo</h1><p>Archivo de consulta. Estos registros no se utilizan para crear órdenes, clientes ni vehículos actuales. Requiere conexión.</p>
  <form onSubmit={e=>{e.preventDefault();void load(1,true);}}><label>Placa, cliente o trabajo<input value={q} maxLength={200} onChange={e=>setQ(e.target.value)}/></label><label>Desde<input type="date" value={from} onChange={e=>setFrom(e.target.value)}/></label><label>Hasta<input type="date" value={to} min={from} onChange={e=>setTo(e.target.value)}/></label><button disabled={busy}>Buscar</button></form>
  {busy&&<p role="status">Consultando…</p>}{error&&<p role="alert">{error}</p>}
  {results&&<>
