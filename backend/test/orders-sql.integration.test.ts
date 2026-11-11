@@ -629,3 +629,46 @@ it.skipIf(!enabled).each(['','AB','ABC!123','ABC🚘','ABCDEFGHIJKLM'])('SQL clo
   await tx.query("UPDATE dbo.Orders SET plate_snapshot=@plate,status='CLOSED',closed_at=SYSUTCDATETIME() WHERE id=@id",{id:open.id,plate});
  },undefined,true)).rejects.toMatchObject({number:51004});
 },60000);
+
+it.skipIf(!enabled)('SQL backfills append to the work date, preserve existing IDs and roll back the allocation (test DB only)', async () => {
+  const repo = new SqlRepository();
+  const adminId = randomUUID();
+  const workDate = '2000-01-01';
+  await repo.runSql(async tx => {
+    await tx.insertUser({
+      id: adminId, username: 'historical-' + randomUUID().slice(0, 8),
+      fullName: 'Historical fixture', passwordHash: 'unused', role: 'ADMIN', active: true,
+    });
+    const draft: Draft = {
+      customerName: 'Historical fixture', identification: String(randomInt(100000000, 999999999)),
+      phone: '88888888', plate: 'H' + randomUUID().replaceAll('-', '').slice(0, 11).toUpperCase(),
+      make: 'Toyota', model: 'Corolla', year: 1995, mileage: 100, notes: '', recommendations: '',
+      paymentMethod: 'CASH', electronicInvoice: false, items: [{ description: 'Servicio', price: 100 }],
+      action: 'close', workDate,
+    };
+    const existing = async () => (await tx.query<{ id: string; display_order_id: string; daily_order_number: string }>(
+      'SELECT id,display_order_id,daily_order_number FROM dbo.Orders WHERE order_date=CONVERT(date,@workDate,23) ORDER BY daily_order_number',
+      { workDate },
+    )).recordset;
+    const baseline = await existing();
+    const maximum = BigInt(baseline.at(-1)?.daily_order_number ?? 0);
+    const expectedId = (offset: bigint) => 'OT-20000101-' + String(maximum + offset).padStart(2, '0');
+    const first = await tx.saveOrder(randomUUID(), adminId, draft);
+    expect(first).toMatchObject({ status: 'CLOSED', isBackfilled: true, orderDate: workDate, displayOrderId: expectedId(1n), totalAmount: 113 });
+    expect(first.openedAt?.slice(0, 10)).not.toBe(workDate);
+    expect(first.closedAt?.slice(0, 10)).not.toBe(workDate);
+
+    const rolledBackId = randomUUID();
+    await tx.query('SAVE TRANSACTION backfill_test');
+    const discarded = await tx.saveOrder(rolledBackId, adminId, draft);
+    expect(discarded.displayOrderId).toBe(expectedId(2n));
+    await tx.query('ROLLBACK TRANSACTION backfill_test');
+    expect(await tx.order(rolledBackId)).toBeUndefined();
+
+    const second = await tx.saveOrder(randomUUID(), adminId, draft);
+    expect(second.displayOrderId).toBe(expectedId(2n));
+    expect((await existing()).slice(0, -2)).toEqual(baseline);
+    const history = await tx.listOrders('CLOSED', draft.plate, undefined, { from: workDate, to: workDate });
+    expect(new Set(history.map(order => order.id))).toEqual(new Set([first.id, second.id]));
+  }, undefined, true);
+}, 60000);

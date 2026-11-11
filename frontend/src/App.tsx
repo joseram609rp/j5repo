@@ -6,18 +6,19 @@ import { applyUpdate, onUpdateAvailable, updateAvailable } from './pwa-update';
 import { loadVehicleCatalog, normalizeCatalog, type VehicleCatalog } from './vehicle-catalog';
 import { SyncStatus } from './SyncStatus';
 import { SessionGate } from './SessionGate';
-import { amounts } from '../../backend/src/validation';
+import { amounts, latestBackfillDate } from '../../backend/src/validation';
 import { bootstrapSession, type SessionStatus } from './bootstrap';
 import { Dashboard } from './Dashboard';
 import { OrderList } from './OrderList';
 import { EntitySearch } from './EntitySearch';
 import { Users } from './Users';
-import { visibleErrors, formatCRC, formatMileage } from './form-validation';
+import { visibleErrors, formatCRC, formatMileage, formatRegistrationDate, formatWorkDate } from './form-validation';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { api, onBackendSuccess } from './api';
 import { loginErrorMessage } from './login-error';
 import {
   Autosave,
+  canCancelBackfill,
   fresh,
   storage,
   type Draft,
@@ -41,15 +42,17 @@ export function App() {
   const [conflict, setConflict] = useState<RecordState['conflict']>();
   const [catalog, setCatalog] = useState<VehicleCatalog>({makes:[]});
   const [page, setPage] = useState<
-    'dashboard' | 'editor' | 'open' | 'history' | 'legacy' | 'users'
+    'dashboard' | 'new-order' | 'editor' | 'open' | 'history' | 'legacy' | 'users'
   >('dashboard');
   const [ownerRevision, setOwnerRevision] = useState(0);
   const [selectedMechanic, setSelectedMechanic] = useState('');
-  const [mechanics, setMechanics] = useState<{id: string; fullName: string; role: string}[]>([]);
+  const [mechanicRoster, setMechanicRoster] = useState<{id: string; fullName: string; role: string; active: boolean}[]>([]);
+  const mechanics = mechanicRoster.filter(user => user.active);
   const [order, setOrder] = useState<Order | null>(null);
   const [editorAccess, setEditorAccess] = useState<EditorAccess>('checking');
   const editorLock = useRef<ReturnType<typeof startEditorLock> | null>(null);
   const editorSession = useRef<Session | null>(null);
+  const [backfillStartError, setBackfillStartError] = useState(false);
   const [closing, setClosing] = useState(false);
   const [closeOwner,setCloseOwner]=useState<{vehicleId:string;customerId:string;expectedOwnerId:string;ownerName:string;decision:'transfer'|'keep'} | null>(null);
 
@@ -62,6 +65,7 @@ export function App() {
   const [bootstrapError, setBootstrapError] = useState(false);
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [draft, setDraft] = useState<Draft | null>(null);
+  const historical = !!order?.isBackfilled || draft?.workDate !== undefined;
   const [globalMessage, setGlobalMessage] = useState('');
   const [healthMessage, setHealthMessage] = useState('');
   useEffect(() => onBackendSuccess(() => setHealthMessage('')), []);
@@ -80,6 +84,7 @@ export function App() {
   function clearNotice() {
     noticeGeneration.current++;
     setNotice(null);
+    setBackfillStartError(false);
   }
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -94,13 +99,14 @@ export function App() {
   const saver = useRef<Autosave | null>(null);
   const creating = useRef(false);
   useEffect(() => {
-    if (session?.role !== 'ADMIN' || page !== 'editor' || order?.status !== 'OPEN') return;
+    const assigningMechanic = page === 'editor' && (order?.status === 'OPEN' || (historical && !order));
+    if (session?.role !== 'ADMIN' || (page !== 'open' && !assigningMechanic)) return;
     let current = true;
     void api<{users: {id: string; fullName: string; role: string; active: boolean}[]}>('/admin/users')
-      .then(data => { if (current) setMechanics(data.users.filter(u => u.active && ['ADMIN', 'MECHANIC'].includes(u.role))); })
-      .catch(() => { if (current) setMessage('No se pudieron cargar los mecánicos. Reabre la orden para reintentar.'); });
+      .then(data => { if (current) setMechanicRoster(data.users.filter(u => ['ADMIN', 'MECHANIC'].includes(u.role))); })
+      .catch(() => { if (current && assigningMechanic) setMessage('No se pudieron cargar los mecánicos. Reabre la orden para reintentar.'); });
     return () => { current = false; };
-  }, [session, page, order?.id, order?.status]);
+  }, [session, page, editorId, historical, order?.id, order?.status]);
   useEffect(() => { setSelectedMechanic(order?.mechanicId ?? ''); }, [order?.id, order?.mechanicId]);
   useEffect(() => {
     if (page !== 'editor' || !order || order.status !== 'OPEN') return;
@@ -253,7 +259,7 @@ export function App() {
         setOrder(service.state.order ?? null);
         setConflict(service.state.conflict ? {...service.state.conflict} : undefined);
         if (service.state.conflict || !service.state.pending && !service.state.draft.action)
-          setConfirmAction(null);
+          setConfirmAction(current => current === 'void' && canCancelBackfill(service.state) ? current : null);
         setDraft({ ...service.state.draft });
       },
       () => {
@@ -272,6 +278,7 @@ export function App() {
     setOrder(record.order ?? null);
     setTouched(new Set());
     setClosing(false);
+    setCloseOwner(null);
     setConfirmAction(
       record.conflict ? null : record.pending?.draft.action === 'void' ? 'void' : record.pending?.draft.action === 'close'
         ? 'close'
@@ -304,19 +311,22 @@ export function App() {
     if (next !== page) clearNotice();
     setPage(next);
   }
-  async function newOrder() {
+  async function newOrder(backfill = false) {
     const controller = editorLock.current;
     const lease = controller?.lease;
-    if (!session || !lease || busy || creating.current || confirmAction) return;
+    if (!session || !lease || busy || creating.current || confirmAction || (backfill && session.role !== 'ADMIN')) return;
     creating.current = true;
+    setBackfillStartError(false);
     setBusy(true);
     try {
       await controller.write(lease, () => storage.read(session.userId));
       const record = fresh();
       record.revision = 1;
+      if (backfill) record.draft.workDate = '';
       await attach(record, lease, true);
     } catch {
-      setMessage(
+      if (backfill) setBackfillStartError(true);
+      else setMessage(
         'No se pudo abrir la orden. Tu borrador local está conservado.',
       );
     } finally {
@@ -334,7 +344,7 @@ export function App() {
       if (editing && lease) {
         const local = saver.current?.state.id === selected.id
           ? saver.current.state : await controller.write(lease, () => storage.read(session.userId, selected.id));
-        if (controller.lease !== lease) return;
+        if (controller.lease !== lease || local?.cancelled) return;
         if (local?.id === selected.id && (local.pending || local.savedRevision < local.revision || !local.version)) {
           await attach(local, lease);
           return;
@@ -371,14 +381,29 @@ export function App() {
     }
   }
   async function performAction() {
-    const lease = editorLock.current?.lease;
-    if (!lease || !confirmAction || !order || !session || busy) return;
+    const controller = editorLock.current;
+    const lease = controller?.lease;
+    if (!lease || !confirmAction || !session || busy) return;
     const action = confirmAction;
+    const localDraft = saver.current;
+    const cancelDraft = action === 'void' && !order && session.role === 'ADMIN' &&
+      localDraft && localDraft.state.id === editorId && canCancelBackfill(localDraft.state);
+    if (!order && !cancelDraft && !(action === 'close' && draft?.workDate !== undefined)) return;
     setBusy(true);
     try {
+      if (cancelDraft) {
+        await controller.write(lease, () => localDraft.cancelBackfill());
+        if (controller.lease !== lease) return;
+        clearNotice();
+        setConfirmAction(null);
+        setDraft(null);
+        setEditorId(null);
+        setPage('open');
+        return;
+      }
       // History pauses the previous saver, including when it owns this same order.
       // Keep only a pending reopen receipt; otherwise attach a fresh active editor.
-      if (action === 'reopen' && (saver.current?.state.id !== order.id || saver.current.state.pending?.draft.action !== 'reopen'))
+      if (action === 'reopen' && order && (saver.current?.state.id !== order.id || saver.current.state.pending?.draft.action !== 'reopen'))
         await attach({
           id: order.id,
           draft: order.draft,
@@ -407,13 +432,17 @@ export function App() {
         action === 'void'
           ? 'Orden cancelada. Se conserva su información.'
           : action === 'close'
-          ? 'Orden cerrada correctamente.'
+          ? saved?.isBackfilled ? 'Orden anterior registrada correctamente.' : 'Orden cerrada correctamente.'
           : action === 'reopen'
             ? 'Orden reabierta.'
             : 'Dueño actual actualizado. El historial anterior se conserva.',
       });
     } catch (error) {
       if (editorLock.current?.lease !== lease) return;
+      if (cancelDraft) {
+        setMessage('No se pudo cancelar el borrador en este dispositivo. Volvé a intentar.');
+        return;
+      }
       if (!saver.current?.state.pending) setConfirmAction(null);
       if(error instanceof Error && error.message==='OWNER_TRANSFER_NOT_APPLIED') {
         setMessage('El dueño registrado del vehículo no cambió. Busca el vehículo por placa y confirma Actualizar dueño antes de crear otra orden.');
@@ -500,6 +529,7 @@ export function App() {
   const errors = draft ? visibleErrors(draft, touched, closing) : [];
   const readOnly =
     !editorReady ||
+    (historical && session?.role !== 'ADMIN') ||
     (!!order && order.status !== 'OPEN') ||
     !!confirmAction ||
     !!conflict ||
@@ -573,7 +603,7 @@ export function App() {
               >
                 Historial
               </button>
-              <button className="quiet" onClick={() => void navigate('legacy')}>Historial anterior</button>
+              <button className="quiet" onClick={() => void navigate('legacy')}>Historial J5 antiguo</button>
               {session.role === 'ADMIN' && (
                 <button
                   className="quiet"
@@ -583,7 +613,7 @@ export function App() {
                 </button>
               )}
             </nav>
-            {editorAccess !== 'ready' && ['dashboard', 'open', 'history', 'editor'].includes(page) && (
+            {editorAccess !== 'ready' && ['dashboard', 'new-order', 'open', 'history', 'editor'].includes(page) && (
               <div className="editor-access-notice">
                 <p role="status">{editorMessages[editorAccess]}</p>
                 {(editorAccess === 'occupied' || editorAccess === 'error') && (
@@ -591,26 +621,39 @@ export function App() {
                 )}
               </div>
             )}
-            {page === 'dashboard' && (
+            {(page === 'dashboard' || page === 'new-order') && (
               <Dashboard
                 session={session}
                 ready={editorReady && !busy}
-                onNew={() => void newOrder()}
+                choosingOrder={page === 'new-order'}
+                onNew={() => void (page === 'dashboard' && session.role === 'ADMIN' ? navigate('new-order') : newOrder())}
+                onBackfill={() => void newOrder(true)}
                 onPage={(next) => void navigate(next)}
               />
+            )}
+            {page === 'new-order' && backfillStartError && (
+              <div role="dialog" aria-label="Orden anterior" className="confirmation">
+                <p role="alert">No se pudo abrir el borrador en este dispositivo.</p>
+                <button onClick={() => void newOrder(true)}>Reintentar</button>
+                <button className="quiet" onClick={() => setBackfillStartError(false)}>Cancelar</button>
+              </div>
             )}
             {(page === 'open' || page === 'history') && (
               <OrderList
                 key={page}
                 userId={session.userId}
+                userName={session.fullName || session.username}
+                mechanicRoster={mechanicRoster}
                 role={session.role}
                 canEdit={editorReady && !busy}
                 onCancel={async selected => {
                   const lease = editorLock.current?.lease;
                   if (!lease) return;
                   await openOrder(selected);
-                  const current = saver.current?.state.order;
-                  if (editorLock.current?.lease === lease && current?.id === selected.id && current.status === 'OPEN' && (session.role === 'ADMIN' || current.mechanicId === session.userId)) setConfirmAction('void');
+                  const record = saver.current?.state;
+                  if (editorLock.current?.lease !== lease || record?.id !== selected.id) return;
+                  if (record.order?.status === 'OPEN' && (session.role === 'ADMIN' || record.order.mechanicId === session.userId) ||
+                      session.role === 'ADMIN' && canCancelBackfill(record)) setConfirmAction('void');
                 }}
                 status={page === 'open' ? 'OPEN' : 'CLOSED'}
                 onOpen={(o) => void openOrder(o)}
@@ -635,16 +678,22 @@ export function App() {
           <div className="card-top">
             <h2>
               {sessionStatus === 'authenticated'
-                ? (order?.displayOrderId ?? 'Orden local')
+                ? (order?.displayOrderId ?? (historical ? 'Orden anterior' : 'Orden local'))
                 : 'Iniciar sesión'}
             </h2>
           </div>
           {sessionStatus === 'authenticated' && (
             <div className={`badge order-state order-state--${(order?.status ?? 'OPEN').toLowerCase()}`} role="status" aria-label="Estado de la orden">
-              {order?.status === 'VOID' ? 'CANCELADA' : order?.status === 'CLOSED' ? 'CERRADA' : 'ABIERTA'}
+              {order?.status === 'VOID' ? 'CANCELADA' : order?.status === 'CLOSED' ? 'CERRADA' : historical ? 'BORRADOR' : 'ABIERTA'}
             </div>
           )}
-          {sessionStatus === 'authenticated' && order && (
+          {sessionStatus === 'authenticated' && historical && order && (
+            <>
+              {order.orderDate && <p>Trabajo realizado el {formatWorkDate(order.orderDate)}</p>}
+              {order.openedAt && <p>Orden ingresada en J5 el {formatRegistrationDate(order.openedAt)}</p>}
+            </>
+          )}
+          {sessionStatus === 'authenticated' && order && !historical && (
             <p>
               Apertura:{' '}
               {order.openedAt
@@ -748,7 +797,7 @@ export function App() {
                   {conflict && saver.current && <ConflictReview key={editorId+':'+conflict.remote.version} record={saver.current.state} busy={busy || !editorReady} onResolve={(version,selected)=>void resolveConflict(version,selected)} />}
                   {!!saver.current?.state.recoveryCopies?.length && <button type="button" className="quiet" onClick={()=>{if(saver.current)downloadRecovery(saver.current.state);}}>Descargar copias de recuperación</button>}
                   {editorReady && (!order || order.status === 'OPEN') && !conflict && (
-                    <div hidden={!!confirmAction || busy}><EntitySearch key={`${page}:${editorId}`} ownerRevision={ownerRevision} draft={draft} onSelect={saveDraft} allowTransfer={(session.role === 'ADMIN' || session.role === 'MECHANIC')} onTransfer={() => {
+                    <div hidden={!!confirmAction || busy}><EntitySearch key={`${page}:${editorId}`} ownerRevision={ownerRevision} draft={draft} onSelect={saveDraft} allowTransfer={!historical && (session.role === 'ADMIN' || session.role === 'MECHANIC')} onTransfer={() => {
                       const service = saver.current;
                       if (!editorLock.current?.lease || !service) return;
                       setBusy(true);
@@ -761,6 +810,23 @@ export function App() {
                     }} /></div>
                   )}
                   <fieldset disabled={readOnly}>
+                    {historical && !order && (
+                      <div>
+                        <label htmlFor="work-date">Fecha del trabajo</label>
+                        <input
+                          id="work-date"
+                          type="date"
+                          data-field="workDate"
+                          min="0001-01-01"
+                          max={latestBackfillDate()}
+                          required
+                          value={draft.workDate ?? ''}
+                          onChange={e => edit('workDate', e.target.value)}
+                          {...accessibility('workDate')}
+                        />
+                        {validation('workDate')}
+                      </div>
+                    )}
                     <h3>Datos del cliente</h3>
                     <label>
                       Nombre completo
@@ -900,6 +966,14 @@ export function App() {
                         {validation('year')}
                       </div>
                     </div>
+                    {historical && !order && session.role === 'ADMIN' && (
+                      <label>Mecánico asignado
+                        <select value={draft.mechanicId ?? session.userId} onChange={e => edit('mechanicId', e.target.value)}>
+                          {!mechanics.some(u => u.id === session.userId) && <option value={session.userId}>{session.fullName ?? session.username}</option>}
+                          {mechanics.map(u => <option key={u.id} value={u.id}>{u.fullName} ({u.role})</option>)}
+                        </select>
+                      </label>
+                    )}
                     {session.role === 'ADMIN' && order?.status === 'OPEN' && <label>Mecánico asignado
                       <select aria-label="Mecánico asignado" value={selectedMechanic} onChange={e => setSelectedMechanic(e.target.value)}>
                         {!mechanics.some(u => u.id === order.mechanicId) && <option value={order.mechanicId}>{order.mechanicName}</option>}
@@ -907,12 +981,12 @@ export function App() {
                       </select>
                     <button type="button" disabled={readOnly || !selectedMechanic || selectedMechanic === order.mechanicId} onClick={() => void updateMechanic()}>Actualizar mecánico</button>
                     </label>}
-                    <p>
+                    {(!historical || order) && <p>
                       Mecánico:{' '}
                       {order?.mechanicName ??
                         session.fullName ??
                         session.username}
-                    </p>
+                    </p>}
                     <h3>Trabajos realizados · CRC</h3>
                     {validation('items')}
                     {(draft.items ?? []).map((item, index) => (
@@ -1005,9 +1079,6 @@ export function App() {
                         <option value="">Selecciona Sí o No</option><option value="true">Sí</option><option value="false">No</option>
                       </select>{validation('electronicInvoice')}
                     </label>
-                    <small>
-                      El servidor calcula el total oficial al guardar.
-                    </small>
                     <label>
                       Observaciones generales (opcional)
                       <textarea
@@ -1049,6 +1120,11 @@ export function App() {
                         if (!editorLock.current?.lease || !service) return;
                         setClosing(true);
                         if (visibleErrors(draft, touched, true).length === 0) {
+                          if (historical) {
+                            setCloseOwner(null);
+                            setConfirmAction('close');
+                            return;
+                          }
                           setBusy(true);
                           void service
                             .flush()
@@ -1074,14 +1150,15 @@ export function App() {
                         }
                       }}
                     >
-                      Cerrar orden
+                      {historical ? 'Guardar orden cerrada' : 'Cerrar orden'}
                     </button>
                   )}
-                  {order?.status === 'OPEN' && !conflict && (session.role === 'ADMIN' || order.mechanicId === session.userId) && (
+                  {!conflict && ((order?.status === 'OPEN' && (session.role === 'ADMIN' || order.mechanicId === session.userId)) ||
+                    (!order && session.role === 'ADMIN' && saver.current?.state.id === editorId && canCancelBackfill(saver.current.state))) && (
                     <button type="button" className="danger" disabled={!editorReady || busy || !!confirmAction} onClick={() => setConfirmAction('void')}>Cancelar orden</button>
                   )}
                   </div>
-                  {order?.status === 'CLOSED' && !conflict && session.role === 'ADMIN' && (
+                  {order?.status === 'CLOSED' && !historical && !conflict && session.role === 'ADMIN' && (
                     <button
                       type="button"
                       disabled={!editorReady || busy}
@@ -1099,9 +1176,11 @@ export function App() {
                     >
                       <p>
                         {confirmAction === 'void'
-                          ? `¿Cancelar la orden ${order?.displayOrderId}? Esta acción la quitará de órdenes abiertas.`
+                          ? order
+                            ? `¿Cancelar la orden ${order.displayOrderId}? Esta acción la quitará de órdenes abiertas.`
+                            : '¿Cancelar este borrador de orden anterior? Se quitará de Órdenes abiertas.'
                           : confirmAction === 'close'
-                          ? `¿Cerrar la orden ${order?.displayOrderId ?? 'local'}?`
+                          ? historical ? `¿Registrar como cerrada la orden del ${draft.workDate}?` : `¿Cerrar la orden ${order?.displayOrderId ?? 'local'}?`
                           : confirmAction === 'reopen'
                             ? `¿Reabrir la orden ${order?.displayOrderId}?`
                             : `¿Asignar el vehículo ${draft.plate} a ${draft.customerName} (${draft.identification})? Las órdenes anteriores conservan su cliente.`}

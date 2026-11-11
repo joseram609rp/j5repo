@@ -6,7 +6,7 @@ import {
   timingSafeEqual,
 } from 'node:crypto';
 import { z } from 'zod';
-import { fullNameSchema, canClose } from './validation.js';
+import { fullNameSchema, canClose, validBackfillDate } from './validation.js';
 import { config } from './config.js';
 import {
   draftSchema,
@@ -379,6 +379,15 @@ export function createApi(
               const id = uuid.parse(orderRoute[1]);
               let draft = draftSchema.parse(input);
               const existing = await tx.order(id);
+              const workDate = draft.workDate;
+              const backfill = workDate !== undefined;
+              if (workDate !== undefined) {
+                if (user.role !== 'ADMIN') throw new HttpError(403, 'ADMIN_REQUIRED');
+                if (existing || draft.action !== 'close' || draft.ownerResolution)
+                  throw new HttpError(400, 'INVALID_BACKFILL_ACTION');
+                if (!validBackfillDate(workDate)) throw new HttpError(400, 'INVALID_WORK_DATE');
+              }
+              if (existing?.isBackfilled) throw new HttpError(409, 'ORDER_NOT_OPEN');
               const expected = request.headers.get('if-match');
               if (existing && expected === null)
                 throw new HttpError(428, 'VERSION_REQUIRED');
@@ -413,7 +422,7 @@ export function createApi(
                 throw new HttpError(403, 'ASSIGNED_MECHANIC_REQUIRED');
               if (
                 draft.action === 'close' &&
-                (!existing || existing.status !== 'OPEN' || !canClose(draft))
+                ((!backfill && existing?.status !== 'OPEN') || !canClose(draft))
               )
                 throw new HttpError(400, 'ORDER_INCOMPLETE');
               if (
@@ -426,7 +435,7 @@ export function createApi(
                 throw new HttpError(400, 'OWNER_TRANSFER_INCOMPLETE');
               if (draft.mechanicId && (draft.action === 'assign-mechanic' || draft.mechanicId !== existing?.mechanicId)) {
                 if (user.role !== 'ADMIN') throw new HttpError(403, 'ADMIN_REQUIRED');
-                if (!existing || existing.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');
+                if (!backfill && existing?.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');
                 const target = await tx.userById(draft.mechanicId);
                 if (!target?.active || !['MECHANIC', 'ADMIN'].includes(target.role)) throw new HttpError(400, 'INVALID_MECHANIC');
               }
@@ -445,7 +454,7 @@ export function createApi(
                 await tx.audit(user.id, 'ORDER_MECHANIC_CHANGED', id);
               await tx.audit(
                 user.id,
-                draft.action === 'void' ? 'ORDER_VOIDED' : existing ? 'ORDER_UPDATED' : 'ORDER_CREATED',
+                backfill ? 'ORDER_BACKFILLED' : draft.action === 'void' ? 'ORDER_VOIDED' : existing ? 'ORDER_UPDATED' : 'ORDER_CREATED',
                 id,
               );
               response = result(saved, 200, {
