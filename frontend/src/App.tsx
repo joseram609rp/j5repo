@@ -46,7 +46,8 @@ export function App() {
   >('dashboard');
   const [ownerRevision, setOwnerRevision] = useState(0);
   const [selectedMechanic, setSelectedMechanic] = useState('');
-  const [mechanics, setMechanics] = useState<{id: string; fullName: string; role: string}[]>([]);
+  const [mechanicRoster, setMechanicRoster] = useState<{id: string; fullName: string; role: string; active: boolean}[]>([]);
+  const mechanics = mechanicRoster.filter(user => user.active);
   const [order, setOrder] = useState<Order | null>(null);
   const [editorAccess, setEditorAccess] = useState<EditorAccess>('checking');
   const editorLock = useRef<ReturnType<typeof startEditorLock> | null>(null);
@@ -98,11 +99,12 @@ export function App() {
   const saver = useRef<Autosave | null>(null);
   const creating = useRef(false);
   useEffect(() => {
-    if (session?.role !== 'ADMIN' || page !== 'editor' || (order?.status !== 'OPEN' && !(historical && !order))) return;
+    const assigningMechanic = page === 'editor' && (order?.status === 'OPEN' || (historical && !order));
+    if (session?.role !== 'ADMIN' || (page !== 'open' && !assigningMechanic)) return;
     let current = true;
     void api<{users: {id: string; fullName: string; role: string; active: boolean}[]}>('/admin/users')
-      .then(data => { if (current) setMechanics(data.users.filter(u => u.active && ['ADMIN', 'MECHANIC'].includes(u.role))); })
-      .catch(() => { if (current) setMessage('No se pudieron cargar los mecánicos. Reabre la orden para reintentar.'); });
+      .then(data => { if (current) setMechanicRoster(data.users.filter(u => ['ADMIN', 'MECHANIC'].includes(u.role))); })
+      .catch(() => { if (current && assigningMechanic) setMessage('No se pudieron cargar los mecánicos. Reabre la orden para reintentar.'); });
     return () => { current = false; };
   }, [session, page, editorId, historical, order?.id, order?.status]);
   useEffect(() => { setSelectedMechanic(order?.mechanicId ?? ''); }, [order?.id, order?.mechanicId]);
@@ -640,6 +642,8 @@ export function App() {
               <OrderList
                 key={page}
                 userId={session.userId}
+                userName={session.fullName || session.username}
+                mechanicRoster={mechanicRoster}
                 role={session.role}
                 canEdit={editorReady && !busy}
                 onCancel={async selected => {

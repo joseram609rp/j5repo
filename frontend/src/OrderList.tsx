@@ -10,6 +10,8 @@ export function OrderList({
   status,
   onOpen,
   userId,
+  userName,
+  mechanicRoster = [],
   role,
   onCancel,
   canEdit = true,
@@ -18,6 +20,8 @@ export function OrderList({
   onCancel?: (order: Order) => void;
   canEdit?: boolean;
   userId?: string;
+  userName?: string;
+  mechanicRoster?: { id: string; fullName: string }[];
   status: 'OPEN' | 'CLOSED';
   onOpen: (order: Order) => void;
 }) {
@@ -41,7 +45,7 @@ export function OrderList({
     let current = true;
     void storage.list(userId).then(records => {
       if(current) setLocalOrders(records.filter(r => !r.cancelled && r.order?.status !== 'CLOSED' && r.order?.status !== 'VOID' && (!r.version || r.pending || r.savedRevision < r.revision)).map(r => ({
-        ...(r.order ?? {status: 'OPEN' as const, mechanicId: userId}), id: r.id, draft: r.draft, version: r.version ?? '', canCancelDraft: canCancelBackfill(r),
+        ...(r.order ?? {status: 'OPEN' as const, mechanicId: r.draft.mechanicId ?? userId}), id: r.id, draft: r.draft, version: r.version ?? '', canCancelDraft: canCancelBackfill(r),
       })));
     }).catch(() => { if(current) setError(true); });
   return () => { current = false; };
@@ -166,38 +170,50 @@ export function OrderList({
       )}
       <div className="order-list">
         {visible.map((order) => {
+          const local = localOrders.find(draft => draft.id === order.id);
           const workDate = order.orderDate || order.draft.workDate;
+          const historical = order.isBackfilled || order.draft.workDate !== undefined;
+          const localDraft = !order.version && historical;
+          const mechanicName = order.mechanicName || mechanicRoster.find(user => user.id === order.mechanicId)?.fullName ||
+            (order.mechanicId === userId ? userName : undefined);
           return (
             <article className="order-card" key={order.id}>
-              <h3>{order.displayOrderId ?? "Orden local pendiente de sincronizar"}</h3>
+              <h3>{order.displayOrderId ?? (localDraft ? 'Borrador de orden anterior' : 'Borrador de orden')}</h3>
               <p>{order.draft.customerName || 'Cliente pendiente'}</p>
               <p>
                 {[order.draft.make, order.draft.model, order.draft.plate]
                   .filter(Boolean)
                   .join(' · ') || 'Vehículo pendiente'}
               </p>
-              <p>Mecánico: {order.mechanicName}</p>
-              {order.isBackfilled || order.draft.workDate !== undefined ? (
+              <p>Mecánico: {mechanicName || 'Nombre no disponible'}</p>
+              {historical ? (
                 <>
                   <p>{workDate ? `Trabajo realizado el ${formatWorkDate(workDate)}` : 'Fecha del trabajo pendiente'}</p>
                   {order.status === 'CLOSED' && <p>Estado: CERRADA</p>}
                   {order.openedAt && <p>Orden ingresada en J5 el {formatRegistrationDate(order.openedAt)}</p>}
                 </>
-              ) : <p>
-                Apertura:{' '}
-                {order.openedAt &&
-                  new Date(order.openedAt).toLocaleString('es-CR')}
-              </p>}
+              ) : (
+                <>
+                  {order.openedAt && <p>Apertura: {new Date(order.openedAt).toLocaleString('es-CR')}</p>}
+                  {order.status === 'CLOSED' && order.closedAt && (
+                    <p>Cierre: {new Date(order.closedAt).toLocaleString('es-CR')}</p>
+                  )}
+                </>
+              )}
               <p className="total">{formatCRC(order.totalAmount ?? 0)}</p>
-              {localOrders.some(local => local.id === order.id) && (
-                <p className="status">Cambios guardados en este dispositivo; pendientes de sincronizar.</p>
+              {local && (
+                <p className="status">
+                  {localDraft && local.canCancelDraft
+                    ? 'Guardado en este dispositivo. Elegí Continuar para terminar la orden.'
+                    : 'Cambios guardados en este dispositivo. Pendientes de enviarse a J5.'}
+                </p>
               )}
               <button disabled={loading || (status === 'OPEN' && !canEdit)} onClick={() => onOpen(order)}>
                 {status === 'OPEN' ? 'Continuar' : 'Ver detalle'}
               </button>
               {order.status === 'OPEN' && onCancel && (order.version
                 ? role === 'ADMIN' || order.mechanicId === userId
-                : role === 'ADMIN' && 'canCancelDraft' in order && order.canCancelDraft === true) && (
+                : role === 'ADMIN' && local?.canCancelDraft) && (
                 <button className="quiet" disabled={loading || !canEdit} onClick={() => onCancel(order)}>Cancelar orden</button>
               )}
             </article>

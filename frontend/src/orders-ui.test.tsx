@@ -1220,3 +1220,33 @@ it.each(['editor', 'open list'])('cancels an unsubmitted historical draft from t
   expect(text()).toContain('No hay órdenes abiertas');
   expect(button('Cancelar orden')).toBeUndefined();
 });
+
+it('shows opening and closing dates on the daily order history card', async () => {
+  seed('CLOSED');
+  await mount();
+  await click('Historial');
+  await historySearch();
+  const card = container.querySelector('.order-card');
+  expect(card?.textContent).toContain('Apertura:');
+  expect(card?.textContent).toContain('Cierre: ' + new Date('2026-10-05T11:00:00Z').toLocaleString('es-CR'));
+});
+
+it('shows the assigned mechanic on an existing historical draft in the open list', async () => {
+  vi.mocked(bootstrapSession).mockResolvedValue({
+    session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,
+  });
+  const mechanicId = crypto.randomUUID();
+  const implementation = vi.mocked(api).getMockImplementation()!;
+  vi.mocked(api).mockImplementation(async (path, options) => path === '/admin/users'
+    ? { users: [{ id: mechanicId, fullName: 'Mecánico asignado de prueba', role: 'MECHANIC', active: false }] } as never
+    : implementation(path, options));
+  disk = fresh();
+  disk.draft.workDate = '2024-02-29';
+  disk.draft.mechanicId = mechanicId;
+  await mount();
+  await click('Órdenes abiertas');
+  const card = container.querySelector('.order-card');
+  expect(card?.textContent).toContain('Mecánico: Mecánico asignado de prueba');
+  expect(card?.textContent).toContain('Borrador de orden anterior');
+  expect(card?.textContent).toContain('Elegí Continuar para terminar la orden.');
+});
