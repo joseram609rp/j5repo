@@ -1,4 +1,4 @@
-import { draftSchema } from '../../backend/src/validation';
+import { canClose, draftSchema, validBackfillDate } from '../../backend/src/validation';
 import { openDB } from 'idb';
 import { api, ApiError } from './api';
 import { publishDraftChange } from './draft-changes';
@@ -61,6 +61,24 @@ export type RecordState = {
   conflict?: { remote: Order };
   recoveryCopies?: { draft: Draft; pending?: Mutation; version: string | null; savedAt: number }[];
 };
+export type CloseRevision = Pick<RecordState, 'localRevision' | 'revision' | 'version'>;
+
+export function matchesCloseRevision(state: RecordState, reviewed: CloseRevision) {
+  return state.localRevision === reviewed.localRevision && state.revision === reviewed.revision &&
+    state.version === reviewed.version && (!state.order || state.order.version === reviewed.version);
+}
+
+export class CloseReviewChanged extends Error {}
+
+function offline() {
+  return typeof navigator !== 'undefined' && navigator.onLine === false;
+}
+
+export function validCloseDraft(draft: Draft) {
+  const parsed = draftSchema.safeParse(draft);
+  return parsed.success && canClose(parsed.data) &&
+    (draft.workDate === undefined || validBackfillDate(draft.workDate));
+}
 export class LocalConflict extends Error {
   constructor() { super('LOCAL_CONFLICT'); }
 }
@@ -292,7 +310,18 @@ export class Autosave {
     if (this.localConflict || this.storageFailed || this.state.pending || this.state.savedRevision < this.state.revision)
       throw new Error('SYNC_REQUIRED');
   }
-  async action(action: NonNullable<Draft['action']>, ownerResolution?: Draft['ownerResolution']) {
+  async verifyCloseRevision(reviewed: CloseRevision) {
+    await this.settleLocal();
+    const state = this.state;
+    const current = await storage.read(this.user, state.id);
+    if (this.detached || this.background || this.localConflict || this.storageFailed ||
+      state !== this.state || state.cancelled || state.conflict || state.pending || state.draft.action ||
+      !matchesCloseRevision(state, reviewed) || current?.localRevision !== reviewed.localRevision ||
+      (state.draft.workDate === undefined
+        ? state.order?.status !== 'OPEN' || !state.version || state.savedRevision !== state.revision
+        : !!state.order || !!state.version)) throw new CloseReviewChanged();
+  }
+  async action(action: NonNullable<Draft['action']>, ownerResolution?: Draft['ownerResolution'], reviewed?: CloseRevision) {
     if (this.detached || this.localConflict || this.state.cancelled) throw new Error('EDITOR_DETACHED');
     const replaying =
       this.state.pending?.draft.action === action ||
@@ -309,7 +338,15 @@ export class Autosave {
       if (this.state.version === before || (this.state.order?.status as string) !== 'VOID') throw new Error('ACTION_REJECTED');
       return this.state.order;
     }
-    if (this.state.draft.workDate === undefined || replaying) await this.flush(true);
+    if (reviewed && action === 'close') {
+      if (replaying) throw new CloseReviewChanged();
+      if (offline()) throw new Error('SYNC_REQUIRED');
+      if (reviewed.version) await this.refresh();
+      await this.verifyCloseRevision(reviewed);
+      if (!validCloseDraft(this.state.draft)) throw new CloseReviewChanged();
+      if (offline()) throw new Error('SYNC_REQUIRED');
+      // edit/write uses the checked local revision as a CAS before sending with If-Match.
+    } else if (this.state.draft.workDate === undefined || replaying) await this.flush(true);
     const beforeVersion = this.state.version;
     if (replaying) {
       if (
@@ -508,6 +545,10 @@ export class Autosave {
         await this.write();
         if (this.detached || this.background || this.localConflict) return;
         const mutation = this.state.pending;
+        if (mutation.draft.action === 'close' && offline()) {
+          this.report('El cierre está guardado en este dispositivo. Se necesita conexión para recuperar el resultado.');
+          return;
+        }
         if (!draftSchema.safeParse(mutation.draft).success) {
           delete this.state.pending;
           await this.write();
@@ -556,7 +597,7 @@ export class Autosave {
         if (this.localConflict || this.storageFailed) return;
         this.report(
           ['OWNER_DECISION_REQUIRED','OWNER_DECISION_STALE'].includes(error.code)
-            ? 'Confirma quién será el dueño del vehículo al cerrar. El dueño registrado puede haber cambiado; vuelve a pulsar Cerrar orden.'
+            ? 'Confirma quién será el dueño del vehículo al cerrar. El dueño registrado puede haber cambiado. Abre una nueva vista previa.'
             : 'La acción fue rechazada. Revisa los datos y los permisos.',
         );
       } else if (error instanceof ApiError && error.status === 401) {
@@ -568,7 +609,7 @@ export class Autosave {
       ) {
         this.stopped = true;
         const priorMechanic = this.state.order?.mechanicId;
-        await this.refresh(true, error.status === 412).catch(() => undefined);
+        await this.refresh(true, error.status === 412 && this.state.pending?.draft.action !== 'close').catch(() => undefined);
         if (this.localConflict || this.storageFailed) return;
         if (this.stopped && this.state.order) {
           this.state.conflict = { remote: structuredClone(this.state.order) };

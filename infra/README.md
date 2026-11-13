@@ -1,24 +1,20 @@
-# Azure: preparación de DEV y producción
+# Despliegue en Azure
 
-Arquitectura prevista: Azure Static Web Apps Free para frontend/PWA y Managed Azure Functions v4 Node 22 para /api, con Azure SQL Free/serverless. No existe workflow ni evidencia versionada de despliegue DEV; la revisión del repo no comprueba recursos del tenant Azure.
+GitHub Actions compila y despliega J5 en Azure Static Web Apps mediante [Azure Static Web Apps CI/CD](../.github/workflows/azure-static-web-apps-nice-pond-067481c10.yml). Un push a `dev` despliega el entorno de pruebas y un push a `prod` despliega producción. Un PR hacia `prod` genera un entorno temporal que se cierra al cerrar el PR.
 
-## Deployment DEV
+El workflow instala dependencias con el lockfile del workspace, compila `frontend/dist` y publica la API de `backend` como Managed Azure Functions v4 con Node 22. El navegador consume `/api` en el mismo origen. El archivo `frontend/public/staticwebapp.config.json` selecciona el runtime y los encabezados de seguridad.
 
-1. Validar código/SQL con los comandos del README y migraciones 001–015. Separar identidad DDL de runtime.
-2. Compilar frontend/dist y backend/dist/functions.js; probar host Functions con backend/host.json. Empaquetar dependencias productivas sin enlaces pnpm al workspace; nunca incluir .env/local.settings ni tooling de pruebas.
-3. Configurar SWA con frontend y API backend, /api del mismo origen y frontend/public/staticwebapp.config.json. El archivo selecciona apiRuntime node:22 y headers CSP/nosniff/referrer-policy.
-4. Configurar APP_ORIGIN al origen HTTPS exacto y NODE_ENV=production; SQL_* solo en settings del backend. Para Managed Functions en SWA Free, usar credenciales SQL de permisos mínimos en application settings; Managed Identity para la API no está disponible en este modo. SQL_AUTH_MODE=default requiere un host con identidad habilitada. Configurar firewall y verificar conexión real.
-5. Probar login, cookie Secure/HttpOnly/SameSite, CSRF/Origin, CSP, auth/roles, PWA, offline/conflictos y cold start SQL desde el dominio final.
-6. Probar teléfono y tablet reales: teclado, rotación, scroll, botones, instalación/actualización PWA y recuperación tras pérdida de conexión.
+## Configuración
 
-Functions registra transporte authLevel=anonymous; la API aplica sesión, CSRF y roles. No equivale a acceso anónimo a datos. Health es público y devuelve únicamente estado/modo.
+Configurar `APP_ORIGIN` para el origen HTTPS autorizado y mantener `SQL_*` exclusivamente en la configuración de la API. En Managed Functions con SWA Free, usar credenciales SQL restringidas para el runtime. Separar los permisos de ejecución de los permisos DDL para migraciones. El despliegue del código no aplica migraciones SQL.
 
-## Paso a producción
+El transporte de Functions usa `authLevel=anonymous`. La API aplica sesión, CSRF y roles. `GET /api/health` es público y devuelve el estado del servicio.
 
-main expresa intención estable; dev integra trabajo mediante PR y QA DEV. Antes de promoción: decidir alojamiento/identidad y validar permisos mínimos, límites compartidos si hay múltiples instancias, respaldo/restauración y política de retención compatibles con cola offline. No publicar secretos en VITE_* ni en artifacts. Audit tiene pendientes de tooling/dependencias detallados en [security-review](../docs/security-review.md); evaluar antes de exponer entornos de desarrollo.
+## Verificación y promoción
 
-No se crearon recursos, workflows, reglas de branches ni despliegues durante esta revisión. [Arquitectura](../docs/architecture.md) y [resultados](../docs/verification.md).
+1. Ejecutar `pnpm check` y abrir el PR hacia `dev`.
+2. Tras el merge, comprobar el resultado de **Build and Deploy** para el commit de `dev` en GitHub Actions. Abrir la URL del despliegue, verificar que carga la aplicación y comprobar `GET /api/health`.
+3. Probar en DEV el acceso, la vista previa de ambas modalidades, la edición en otra pestaña y la recuperación de conexión. Usar datos de prueba en un destino SQL autorizado para QA.
+4. Abrir el PR de `dev` a `prod` y revisar su despliegue temporal. Tras el merge, comprobar **Build and Deploy** para el commit de `prod` y repetir las comprobaciones de carga y salud en producción.
 
-## Límite de identidad del plan
-
-Managed Azure Functions de SWA no admiten Managed Identity ni referencias Key Vault para la API. Bring-your-own Functions sí lo permite, pero su integración con SWA requiere Standard. Antes de producción decidir entre seguir en Free con credencial SQL restringida/rotada o cambiar alojamiento para identidad administrada. No se cambió ni contrató un plan. Fuentes oficiales: [comparación de API](https://learn.microsoft.com/en-us/azure/static-web-apps/apis-functions), [FAQ de identidad](https://learn.microsoft.com/en-us/azure/static-web-apps/faq) y [bring-your-own Functions](https://learn.microsoft.com/en-us/azure/static-web-apps/functions-bring-your-own).
+[Arquitectura](../docs/architecture.md) · [Seguridad](../docs/security-review.md)
