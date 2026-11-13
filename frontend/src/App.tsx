@@ -312,7 +312,8 @@ export function App() {
         setNotice(text && !service.localConflict ? { page: 'editor', orderId: record.id, message: text, retryable: retry } : null);
         setOrder(service.state.order ?? null);
         setConflict(service.state.conflict ? {...service.state.conflict} : undefined);
-        if (service.localConflict) setConfirmAction(null);
+        if (service.state.cancelled) { setClosing(false); setCloseOwner(null); setConfirmAction(null); setTouched(new Set()); }
+        else if (service.localConflict) setConfirmAction(null);
         else if (service.state.conflict || !service.state.pending && !service.state.draft.action)
           setConfirmAction(current => current === 'void' && canCancelBackfill(service.state) ? current : null);
         setDraft({ ...service.state.draft });
@@ -608,7 +609,7 @@ export function App() {
   const canFinish = !order || session?.role === 'ADMIN' || order.mechanicId === session?.userId;
   const taxRate = order && order.status !== 'OPEN' ? order.taxRate ?? 0 : 13;
   const totals = amounts(draft?.items, taxRate);
-  const errors = draft ? visibleErrors(draft, touched, closing) : [];
+  const errors = draft && !saver.current?.state.cancelled ? visibleErrors(draft, touched, closing) : [];
   const cancelledDraft = !!saver.current?.state.cancelled;
   const readOnly =
     cancelledDraft ||
@@ -1187,14 +1188,14 @@ export function App() {
                       />
                     </label>
                   </fieldset>
-                  {editor && closing && (!order || order.status === 'OPEN') && visibleErrors(draft, touched, true).length > 0 && (
+                  {!cancelledDraft && editor && closing && (!order || order.status === 'OPEN') && visibleErrors(draft, touched, true).length > 0 && (
                     <div className="close-errors confirmation" role="alert">
                       <p>Para cerrar la orden, completa:</p>
                       <ul>{visibleErrors(draft, touched, true).map(error => <li key={error.field}>{error.section}: {error.message}</li>)}</ul>
                     </div>
                   )}
                   <div className="order-actions">
-                  {(!order || order.status === 'OPEN') && !conflict && canFinish && (
+                  {!cancelledDraft && (!order || order.status === 'OPEN') && !conflict && canFinish && (
                     <button
                       type="button"
                       className="danger"

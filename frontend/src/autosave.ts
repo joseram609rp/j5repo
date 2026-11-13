@@ -293,7 +293,7 @@ export class Autosave {
       throw new Error('SYNC_REQUIRED');
   }
   async action(action: NonNullable<Draft['action']>, ownerResolution?: Draft['ownerResolution']) {
-    if (this.detached || this.localConflict) throw new Error('EDITOR_DETACHED');
+    if (this.detached || this.localConflict || this.state.cancelled) throw new Error('EDITOR_DETACHED');
     const replaying =
       this.state.pending?.draft.action === action ||
       this.state.draft.action === action;

@@ -1288,3 +1288,22 @@ it('settles local writes before logout and recovers the draft on login', async (
   expect(container.querySelector<HTMLInputElement>('[data-field=identification]')?.value).toBe('42');
   expect(records.get(id)?.draft.identification).toBe('42');
 });
+
+it('removes historical close controls and validation after cancellation in another tab', async () => {
+ vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
+ await mount(); await click('Nueva orden'); await click('Orden anterior');
+ await click('Guardar orden cerrada');
+ expect(container.querySelector('.close-errors')).toBeTruthy();
+ const cancelled = {...clone(disk!), cancelled:true, localRevision:(disk!.localRevision ?? 0)+1};
+ disk=cancelled; records.set(cancelled.id,clone(cancelled));
+ await act(async()=>{
+   window.dispatchEvent(new StorageEvent('storage',{key:draftChangeKey}));
+   for(let i=0;i<30;i++) await Promise.resolve();
+ });
+ expect(container.querySelector('.badge')?.textContent).toBe('CANCELADA');
+ expect(button('Guardar orden cerrada')).toBeUndefined();
+ expect(button('Cancelar orden')).toBeUndefined();
+ expect(container.querySelector('.close-errors')).toBeNull();
+ expect(container.querySelector('fieldset')?.disabled).toBe(true);
+ expect(puts).toBe(0);
+});
