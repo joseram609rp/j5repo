@@ -36,7 +36,7 @@ export function OrderPreview({ draft, businessDate, taxRate, busy, stale, pendin
           <p>Resumen para revisión. No es un comprobante fiscal ni una factura electrónica.</p>
         </div>
       </div>
-      {stale && <p className="confirmation" role="alert">
+      {stale && !busy && <p className="confirmation" role="alert">
         La orden cambió desde que abriste la vista previa. Vuelve al formulario y abre una nueva vista previa para revisar los datos antes de cerrar.
       </p>}
       <dl className="order-preview__details">

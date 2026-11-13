@@ -402,11 +402,14 @@ it('waits for autosave and owner lookup, preserves offline data, and submits one
   const original = vi.mocked(api).getMockImplementation()!;
   let releaseSave!: () => void;
   let releaseOwner!: () => void;
+  let releaseClose!: () => void;
   let ownerChecked = false;
   const save = new Promise<void>(resolve => { releaseSave = resolve; });
   const owner = new Promise<void>(resolve => { releaseOwner = resolve; });
+  const close = new Promise<void>(resolve => { releaseClose = resolve; });
   vi.mocked(api).mockImplementation(async (path, options = {}) => {
     if (options.method === 'PUT' && !JSON.parse(options.body as string).action) await save;
+    if (options.method === 'PUT' && JSON.parse(options.body as string).action === 'close') await close;
     if (path === '/vehicles?q=ABC123') { ownerChecked = true; await owner; }
     return original(path, options);
   });
@@ -428,6 +431,9 @@ it('waits for autosave and owner lookup, preserves offline data, and submits one
   online.mockRestore();
   const confirm = button('Confirmar y cerrar orden');
   await act(async () => { confirm.click(); confirm.click(); });
+  expect(button('Procesando…').disabled).toBe(true);
+  expect(notices()).not.toContain('La orden cambió desde que abriste la vista previa');
+  await act(async () => { releaseClose(); });
   expect(puts).toBe(2);
   expect(orders.get(order.id)?.status).toBe('CLOSED');
 });
