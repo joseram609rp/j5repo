@@ -210,7 +210,7 @@ export function InvoiceTracking({ session }: { session: Session }) {
   return (
     <section className="card" aria-labelledby="invoice-heading">
       <h2 id="invoice-heading" ref={heading} tabIndex={-1}>Facturas electrónicas</h2>
-      <div role="group" aria-label="Estado de la factura">
+      <div className="invoice-tabs" role="group" aria-label="Estado de la factura">
         <button type="button" aria-pressed={state === 'pending'} onClick={() => switchState('pending')}>Pendientes</button>{' '}
         <button type="button" aria-pressed={state === 'issued'} onClick={() => switchState('issued')}>Emitidas</button>
       </div>
@@ -237,7 +237,7 @@ export function InvoiceTracking({ session }: { session: Session }) {
         <button type="button" onClick={refresh}>Reintentar</button>
       </div>}
       {!loading && page && <>
-        {!page.entries.length && <p role="status">No se encontraron facturas.</p>}
+        {!page.entries.length && <p role="status">{state === 'pending' ? 'No hay facturas pendientes que coincidan con esta consulta.' : 'No hay facturas emitidas que coincidan con esta consulta.'}</p>}
         <ul className="invoice-results">
           {page.entries.map(entry => <li key={entry.id} className="card">
             <h3>{entry.orderNumber}</h3>
