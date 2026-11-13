@@ -1,6 +1,6 @@
 # Azure SQL
 
-18 migraciones (001–018); API usa SQL real. No hay migraciones automáticas al iniciar el runtime. La configuración de destino se mantiene local, sin credenciales en documentación.
+19 migraciones (001–019); API usa SQL real. No hay migraciones automáticas al iniciar el runtime. La configuración de destino se mantiene local, sin credenciales en documentación.
 
 ## Historia de esquema
 
@@ -24,6 +24,9 @@
 | 016_customer_identification_legal | Admite cédulas jurídicas de 10 dígitos |
 | 017_legacy_archive | Tablas e índices para consultar el archivo histórico |
 | 018_backfilled_orders | Marca órdenes anteriores y exige una fecha de trabajo anterior al registro |
+| 019_order_invoice_tracking | Crea dbo.OrderInvoiceTracking con FK a Orders, estado de emisión y rowversion |
+
+Una orden cerrada que requiere factura se considera pendiente si carece de fila de seguimiento. La migración 019 crea la tabla vacía. Las marcas se guardan por separado de las órdenes.
 
 `pnpm db:migrate` obtiene applock exclusivo, comprueba archivos/checksums SHA-256 normalizados por saltos de línea y aplica pendientes transaccionalmente. SchemaMigrations registra nombre/checksum/fecha. Rechaza migraciones históricas ausentes o alteradas. No editar archivos aplicados: añadir una nueva migración. El backfill de 011 cambia identificadores visibles/rowversions, conserva UUID y snapshots y puede requerir revisar borradores offline; no crea alias para números antiguos.
 

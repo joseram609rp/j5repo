@@ -434,8 +434,22 @@ nav {
   margin-top: .75rem;
 }
 .invoice-results a {
-  display: inline-block;
-  margin: .5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 13px 20px;
+  border-radius: 9px;
+  background: var(--primary);
+  color: white;
+  font-weight: 650;
+  text-decoration: none;
+}
+.invoice-results a:visited {
+  color: white;
+}
+.invoice-results button:hover {
+  background: var(--primary);
 }
 dialog.invoice-dialog {
   width: min(30rem, calc(100% - 2rem));
