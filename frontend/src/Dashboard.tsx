@@ -1,4 +1,5 @@
 import type { Session } from './session';
+import { InvoiceCount } from './InvoiceTracking';
 
 export function Dashboard({
   session,
@@ -13,7 +14,7 @@ export function Dashboard({
   choosingOrder: boolean;
   onNew: () => void;
   onBackfill: () => void;
-  onPage: (page: 'dashboard' | 'open' | 'history' | 'users') => void;
+  onPage: (page: 'dashboard' | 'open' | 'history' | 'users' | 'invoices') => void;
 }) {
   const admin = session.role === 'ADMIN';
 
@@ -44,9 +45,10 @@ export function Dashboard({
         </button>
         <button onClick={() => onPage('open')}>Órdenes abiertas</button>
         <button onClick={() => onPage('history')}>Historial</button>
-        {admin && (
+        {admin && <>
+          <button onClick={() => onPage('invoices')}>Facturas electrónicas<InvoiceCount key={session.userId} /></button>
           <button onClick={() => onPage('users')}>Usuarios</button>
-        )}
+        </>}
       </div>
     </section>
   );

@@ -10,13 +10,14 @@ import { onDraftChange } from './draft-changes';
 import { amounts, latestBackfillDate } from '../../backend/src/validation';
 import { bootstrapSession, type SessionStatus } from './bootstrap';
 import { Dashboard } from './Dashboard';
+import { InvoiceTracking } from './InvoiceTracking';
 import { OrderList } from './OrderList';
 import { OrderPreview } from './OrderPreview';
 import { EntitySearch } from './EntitySearch';
 import { Users } from './Users';
 import { visibleErrors, formatCRC, formatMileage, formatRegistrationDate, formatWorkDate } from './form-validation';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { api, onBackendSuccess } from './api';
+import { api, ApiError, onBackendSuccess } from './api';
 import { loginErrorMessage } from './login-error';
 import {
   Autosave,
@@ -36,14 +37,21 @@ import {
 import { trackActivity, type Session } from './session';
 import './style.css';
 
+function invoiceOrderId() {
+  return typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('invoiceOrder');
+}
+
 export function App() {
   const [hasUpdate, setHasUpdate] = useState(updateAvailable);
   useEffect(()=>onUpdateAvailable(()=>setHasUpdate(true)),[]);
   const [conflict, setConflict] = useState<RecordState['conflict']>();
   const [catalog, setCatalog] = useState<VehicleCatalog>({makes:[]});
   const [page, setPage] = useState<
-    'dashboard' | 'new-order' | 'editor' | 'open' | 'history' | 'legacy' | 'users'
-  >('dashboard');
+    'dashboard' | 'new-order' | 'editor' | 'open' | 'history' | 'legacy' | 'users' | 'invoices' | 'invoice-order'
+  >(() => invoiceOrderId() === null ? 'dashboard' : 'invoice-order');
+  const invoiceDetail = page === 'invoice-order';
+  const [invoiceDetailError, setInvoiceDetailError] = useState('');
+  const [invoiceDetailRevision, setInvoiceDetailRevision] = useState(0);
   const [ownerRevision, setOwnerRevision] = useState(0);
   const [selectedMechanic, setSelectedMechanic] = useState('');
   const [mechanicRoster, setMechanicRoster] = useState<{id: string; fullName: string; role: string; active: boolean}[]>([]);
@@ -70,6 +78,29 @@ export function App() {
   >(null);
   const [session, setSession] = useState<Session | null>(null);
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>('checking');
+  useEffect(() => {
+    if (!invoiceDetail || sessionStatus !== 'authenticated' || session?.role !== 'ADMIN') return;
+    const id = invoiceOrderId();
+    if (!id || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) {
+      setInvoiceDetailError('El enlace de la orden es inválido.');
+      return;
+    }
+    const controller = new AbortController();
+    setInvoiceDetailError('');
+    void api<Order>('/admin/invoice-tracking/orders/' + id, { signal: controller.signal }).then(remote => {
+      if (controller.signal.aborted) return;
+      setOrder(remote);
+      setDraft(remote.draft);
+    }).catch(error => {
+      if (controller.signal.aborted) return;
+      setInvoiceDetailError(error instanceof ApiError && error.status === 404
+        ? 'La orden ya no está cerrada, no requiere factura electrónica o no existe.'
+        : error instanceof ApiError && error.status === 403
+          ? 'Esta sección es exclusiva para administradores.'
+          : 'No se pudo consultar la orden.');
+    });
+    return () => controller.abort();
+  }, [invoiceDetail, sessionStatus, session, invoiceDetailRevision]);
   const [bootstrapError, setBootstrapError] = useState(false);
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -210,11 +241,13 @@ export function App() {
     setConflict(undefined);
     setDraft(null);
     setOrder(null);
-    setPage('dashboard');
+    setPage(invoiceOrderId() === null ? 'dashboard' : 'invoice-order');
     setSession(null);
     setSessionStatus('anonymous');
     setTouched(new Set());
-    setLoginMessage('La sesión terminó. Vuelve a entrar para recuperar tu borrador.');
+    setLoginMessage(invoiceOrderId() === null
+      ? 'La sesión terminó. Vuelve a entrar para recuperar tu borrador.'
+      : 'La sesión terminó. Volvé a entrar para consultar la orden.');
   }
   useLayoutEffect(() => {
     if (!session) return;
@@ -259,7 +292,7 @@ export function App() {
       setLoginMessage('');
       setSessionStatus('authenticated');
       setPassword('');
-      setPage('dashboard');
+      setPage(invoiceOrderId() === null ? 'dashboard' : 'invoice-order');
     } catch (error) {
       setLoginMessage(loginErrorMessage(error));
     } finally {
@@ -378,6 +411,13 @@ export function App() {
     }
     // A draft may continue synchronizing after leaving the editor.
     if (next !== page) clearNotice();
+    if (invoiceDetail && next !== page) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('invoiceOrder');
+      window.history.replaceState(window.history.state, '', url);
+      setOrder(null);
+      setDraft(null);
+    }
     setPage(next);
   }
   async function newOrder(backfill = false) {
@@ -714,7 +754,7 @@ export function App() {
     !!conflict ||
     busy ||
     !!saver.current?.state.pending?.draft.action;
-  const editor = page === 'editor';
+  const editor = page === 'editor' || (invoiceDetail && session?.role === 'ADMIN' && !!order && !!draft);
   const recovery = !saver.current && terminalRecovery?.id === editorId ? terminalRecovery :
     saver.current?.unsavedLocally || saver.current?.state.recoveryCopies?.length ? saver.current?.state : undefined;
   function validation(field: string) {
@@ -786,6 +826,7 @@ export function App() {
                 Historial
               </button>
               <button className="quiet" onClick={() => void navigate('legacy')}>Historial J5 antiguo</button>
+              {session.role === 'ADMIN' && <button className="quiet" onClick={() => void navigate('invoices')}>Facturas electrónicas</button>}
               {session.role === 'ADMIN' && (
                 <button
                   className="quiet"
@@ -832,6 +873,14 @@ export function App() {
               />
             )}
             {page === 'legacy' && <LegacyHistory />}
+            {page === 'invoices' && session.role === 'ADMIN' && <InvoiceTracking key={session.userId} session={session} />}
+            {invoiceDetail && !editor && <section className="card" aria-label="Detalle de factura electrónica">
+              {session.role !== 'ADMIN' ? <p role="alert">Esta sección es exclusiva para administradores.</p>
+                : invoiceDetailError ? <>
+                  <p role="alert">{invoiceDetailError}</p>
+                  <button type="button" onClick={() => setInvoiceDetailRevision(value => value + 1)}>Reintentar</button>
+                </> : <p role="status">Consultando la orden…</p>}
+            </section>}
             {page === 'users' && session.role === 'ADMIN' && (
               <Users session={session} />
             )}
@@ -1328,7 +1377,7 @@ export function App() {
                     <button type="button" className="danger" disabled={busy || !!confirmAction || !!saver.current?.localConflict} onClick={() => setConfirmAction('void')}>Cancelar orden</button>
                   )}
                   </div>
-                  {order?.status === 'CLOSED' && !historical && !conflict && session.role === 'ADMIN' && (
+                  {!invoiceDetail && order?.status === 'CLOSED' && !historical && !conflict && session.role === 'ADMIN' && (
                     <button
                       type="button"
                       disabled={busy || !!saver.current?.localConflict}
@@ -1355,6 +1404,9 @@ export function App() {
                             ? `¿Reabrir la orden ${order?.displayOrderId}?`
                             : `¿Asignar el vehículo ${draft.plate} a ${draft.customerName} (${draft.identification})? Las órdenes anteriores conservan su cliente.`}
                       </p>
+                      {confirmAction === 'reopen' && order?.draft.electronicInvoice === true && (
+                        <p>Si la factura electrónica ya está marcada como emitida, conservará esa marca al reabrir la orden.</p>
+                      )}
                       <p>Total: {formatCRC(totals.total)}</p>
                       <button
                         type="button"

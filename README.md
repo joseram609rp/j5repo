@@ -64,7 +64,7 @@ Nunca colocar secretos en `VITE_*`: cualquier valor incorporado al frontend qued
 
 ## Base de datos
 
-Existen **18 migraciones, 001–018**. El runner usa transacción, applock y checksums SHA-256; rechaza historia ausente o alterada. Agregar migraciones nuevas para cambios futuros, sin editar las aplicadas.
+Existen **19 migraciones, 001–019**. El runner usa transacción, applock y checksums SHA-256; rechaza historia ausente o alterada. Agregar migraciones nuevas para cambios futuros, sin editar las aplicadas.
 
 Los hitos son core/rowversion (001), recibos y auditoría (002), guards históricos/totales (003), modelo del vehículo (004), notas de cierre (005, requisito retirado por 007), selección corregible en OPEN (006), notas opcionales y año >=1950 (007), reasignación (008), pago/IVA/notas por trabajo (009), catálogo (010), numeración diaria (011), lockout (012), placas flexibles (013), constraint de username (014), guard flexible de placa al cerrar (015), cédulas jurídicas (016), archivo histórico (017) y órdenes anteriores (018). [Detalle y permisos](database/README.md).
 
@@ -111,6 +111,12 @@ API devuelve catálogo activo dinámico; 57/986 son invariantes del seed/cleanup
 Moneda CRC. Cada trabajo lleva descripción, precio sin IVA y observación opcional; notas/recomendaciones generales también son opcionales. IVA 13%, redondeado por línea a centavos; SQL calcula subtotal, impuesto y total oficiales. Totales/tasa del cliente no se aceptan como autoridad. Importes históricos previos a 009 mantienen su tasa original.
 
 Pago: SINPE, tarjeta de crédito, tarjeta de débito, efectivo o transferencia bancaria (`SINPE`, `CREDIT_CARD`, `DEBIT_CARD`, `CASH`, `BANK_TRANSFER`). Factura electrónica exige elegir Sí/No al cerrar; el booleano registra el requerimiento y **no emite facturas ni integra un proveedor**.
+
+## Facturas electrónicas
+
+Solo ADMIN puede acceder al módulo y ver el contador de Pendientes en Inicio. Pendientes lista las órdenes cerradas que requieren factura electrónica, de la más antigua a la más reciente. Emitidas exige al menos un filtro. Ambas secciones combinan placa, cédula registrada en la orden, número OT y fechas del trabajo.
+
+**Abrir orden** abre el detalle de Historial en otra pestaña, en solo lectura. **Marcar como emitida** y **Volver a pendiente** requieren confirmación. La marca se conserva si se reabre la orden. La factura se emite en el sistema externo.
 
 ## Autosave, offline y concurrencia
 

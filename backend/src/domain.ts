@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { InvoiceCursor, InvoiceFilters, InvoicePage, InvoiceState } from './invoice-types.js';
 export const IDLE_MS = 7_200_000;
 export const usernameSchema = z
   .string()
@@ -98,6 +99,9 @@ export interface UnitOfWork {
     before?: string,
     dates?: { from: string; to: string },
   ): Promise<Order[]>;
+  invoiceOrders(state: InvoiceState, filters: InvoiceFilters, cursor?: InvoiceCursor): Promise<InvoicePage>;
+  pendingInvoiceCount(): Promise<number>;
+  setInvoiceState(id: string, issued: boolean, version: string | null, orderVersion: string): Promise<void>;
   findCustomers(search: string): Promise<Customer[]>;
   findVehicles(search: string, customerId?: string): Promise<Vehicle[]>;
   order(id: string): Promise<Order | undefined>;

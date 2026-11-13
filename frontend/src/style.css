@@ -423,6 +423,42 @@ nav {
   margin-top: 20px;
   border-radius: 12px;
 }
+.invoice-filters {
+  margin: 1rem 0;
+}
+.invoice-results {
+  list-style: none;
+  padding: 0;
+}
+.invoice-results li + li {
+  margin-top: .75rem;
+}
+.invoice-results a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 13px 20px;
+  border-radius: 9px;
+  background: var(--primary);
+  color: white;
+  font-weight: 650;
+  text-decoration: none;
+}
+.invoice-results a:visited {
+  color: white;
+}
+.invoice-results button:hover {
+  background: var(--primary);
+}
+dialog.invoice-dialog {
+  width: min(30rem, calc(100% - 2rem));
+  margin: auto;
+  color: inherit;
+}
+.invoice-dialog::backdrop {
+  background: rgba(16, 24, 40, .55);
+}
 .confirmation button {
   margin-right: 12px;
 }
@@ -663,3 +699,4 @@ header .tag {
   gap: 12px;
   margin: 16px 0;
 }
+.invoice-tabs button[aria-pressed="false"] { background: #f0f1eb; color: #17324d; border: 2px solid #d5d9d0; } .invoice-tabs button[aria-pressed="true"] { background: #0847ad; color: white; border: 2px solid #0847ad; box-shadow: 0 3px 0 #052b69; }
