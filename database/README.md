@@ -1,6 +1,6 @@
 # Azure SQL
 
-15 migraciones (001–015); API usa SQL real. No hay migraciones automáticas al iniciar el runtime. La configuración de destino se mantiene local, sin credenciales en documentación.
+18 migraciones (001–018); API usa SQL real. No hay migraciones automáticas al iniciar el runtime. La configuración de destino se mantiene local, sin credenciales en documentación.
 
 ## Historia de esquema
 
@@ -21,6 +21,9 @@
 | 013_flexible_plates | Placa normalizada alfanumérica de 3..12 caracteres |
 | 014_username_check_pattern | Constraint ASCII correcto y unicidad canónica preservada |
 | 015_flexible_order_plate_guard | Trigger de cierre consistente con placa flexible |
+| 016_customer_identification_legal | Admite cédulas jurídicas de 10 dígitos |
+| 017_legacy_archive | Tablas e índices para consultar el archivo histórico |
+| 018_backfilled_orders | Marca órdenes anteriores y exige una fecha de trabajo anterior al registro |
 
 `pnpm db:migrate` obtiene applock exclusivo, comprueba archivos/checksums SHA-256 normalizados por saltos de línea y aplica pendientes transaccionalmente. SchemaMigrations registra nombre/checksum/fecha. Rechaza migraciones históricas ausentes o alteradas. No editar archivos aplicados: añadir una nueva migración. El backfill de 011 cambia identificadores visibles/rowversions, conserva UUID y snapshots y puede requerir revisar borradores offline; no crea alias para números antiguos.
 
@@ -32,10 +35,10 @@ Separar cuenta DDL y runtime. Migraciones necesitan crear/modificar tablas, cons
 
 ## Verificación y operaciones
 
-`pnpm --filter @j5/backend db:verify` inspecciona metadata, 15 migraciones, constraints trusted, índices, triggers y catálogo 57/986 sin duplicados/huérfanos; no lista PII ni hashes. El runner de migraciones es quien valida checksums, no db:verify.
+`pnpm --filter @j5/backend db:verify` inspecciona metadata, migraciones registradas, constraints trusted, índices, triggers y catálogo 57/986 sin duplicados/huérfanos; no lista PII ni hashes. El runner de migraciones es quien valida checksums, no db:verify.
 
 `pnpm test:sql` ejecuta fixtures dentro de rollback-only, secuencialmente. SQL sequences pueden consumir números aunque las filas reviertan; no asumir que una prueba deja todos los contadores sin huecos. No demuestra COMMIT ambiguo ni carga de producción.
 
 El runtime abre transacciones SERIALIZABLE; autoriza, muta, audita y guarda receipt juntos. Savepoint de orden revierte rechazo de negocio antes de guardar el error idempotente. Rowversion protege cambios concurrentes. Retención de sesiones/receipts/auditoría no está automatizada; acordar política compatible con pendientes offline antes de purgar receipts.
 
-[Cleanup DEV/QA](../clean%20up/README.md) conserva ADMIN, historia de migraciones y catálogo completo. No ejecutar en producción ni como migración. [Verificación actual](../docs/verification.md).
+[Cleanup DEV/QA](../clean%20up/README.md) corresponde al esquema 001–015 y rechaza el esquema actual. [Verificación actual](../docs/verification.md).
