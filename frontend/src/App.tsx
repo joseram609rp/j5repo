@@ -11,6 +11,7 @@ import { amounts, latestBackfillDate } from '../../backend/src/validation';
 import { bootstrapSession, type SessionStatus } from './bootstrap';
 import { Dashboard } from './Dashboard';
 import { OrderList } from './OrderList';
+import { OrderPreview } from './OrderPreview';
 import { EntitySearch } from './EntitySearch';
 import { Users } from './Users';
 import { visibleErrors, formatCRC, formatMileage, formatRegistrationDate, formatWorkDate } from './form-validation';
@@ -19,11 +20,15 @@ import { api, onBackendSuccess } from './api';
 import { loginErrorMessage } from './login-error';
 import {
   Autosave,
+  CloseReviewChanged,
   LocalConflict,
   canCancelBackfill,
   draftUpgradeMessage,
   fresh,
+  matchesCloseRevision,
   storage,
+  validCloseDraft,
+  type CloseRevision,
   type Draft,
   type Order,
   type RecordState,
@@ -48,6 +53,17 @@ export function App() {
   const [backfillStartError, setBackfillStartError] = useState(false);
   const [closing, setClosing] = useState(false);
   const [closeOwner,setCloseOwner]=useState<{vehicleId:string;customerId:string;expectedOwnerId:string;ownerName:string;decision:'transfer'|'keep'} | null>(null);
+  const [preview, setPreview] = useState<{
+    draft: Draft; revision: CloseRevision; businessDate?: string; stale?: boolean;
+  } | null>(null);
+  const previewButton = useRef<HTMLButtonElement>(null);
+  const restorePreviewFocus = useRef(false);
+  useLayoutEffect(() => {
+    if (!preview && restorePreviewFocus.current) {
+      restorePreviewFocus.current = false;
+      previewButton.current?.focus();
+    }
+  }, [preview]);
 
   const [confirmAction, setConfirmAction] = useState<
     'close' | 'reopen' | 'transfer-owner' | 'void' | null
@@ -65,7 +81,7 @@ export function App() {
   const [healthMessage, setHealthMessage] = useState('');
   useEffect(() => onBackendSuccess(() => setHealthMessage('')), []);
   const [editorId, setEditorId] = useState<string | null>(null);
-  useEffect(() => { setClosing(false); setCloseOwner(null); }, [page, editorId]);
+  useEffect(() => { setClosing(false); setCloseOwner(null); setPreview(null); }, [page, editorId]);
   const [notice, setNotice] = useState<{ page: typeof page; orderId: string | null; message: string; retryable: boolean } | null>(null);
   const noticeGeneration = useRef(0);
   const generation = noticeGeneration.current;
@@ -299,6 +315,7 @@ export function App() {
     }
     if (activeSession.current !== session) return;
     clearNotice();
+    setPreview(null);
     setTerminalRecovery(undefined);
     setEditorId(record.id);
     const serviceGeneration = noticeGeneration.current;
@@ -451,9 +468,62 @@ export function App() {
       setBusy(false);
     }
   }
-  async function performAction() {
-    if (!confirmAction || !session || activeSession.current !== session || busy || orderOperation.current) return;
-    const action = confirmAction;
+  async function openPreview() {
+    const service = saver.current;
+    if (!service || !session || activeSession.current !== session || busy || orderOperation.current) return;
+    setClosing(true);
+    if (service.state.pending?.draft.action || service.state.draft.action) return;
+    if (visibleErrors(service.state.draft, touched, true).length) return;
+    if (!validCloseDraft(service.state.draft)) {
+      setMessage('Revisa los datos de la orden y el total antes de continuar.');
+      return;
+    }
+    const backfill = service.state.draft.workDate !== undefined;
+    orderOperation.current = true;
+    setBusy(true);
+    try {
+      if (backfill) await service.settleLocal();
+      else await service.flush(true);
+      const { draft: current, localRevision, revision, version, order: saved } = service.state;
+      const reviewed = { localRevision, revision, version };
+      await service.verifyCloseRevision(reviewed);
+      if (!validCloseDraft(current)) return;
+      let owner: typeof closeOwner = null;
+      if (!backfill) {
+        const lookup = await api<{ vehicles: { id: string; ownerId: string; owner?: { fullName: string } }[] }>(
+          `/vehicles?q=${encodeURIComponent(current.plate)}`,
+        );
+        const vehicle = lookup.vehicles.find(v => !current.vehicleId || v.id.toLowerCase() === current.vehicleId.toLowerCase());
+        if (current.vehicleId && (!vehicle || !current.customerId)) throw new Error('OWNER_LOOKUP_REQUIRED');
+        if (vehicle && current.customerId && vehicle.ownerId.toLowerCase() !== current.customerId.toLowerCase()) {
+          owner = { vehicleId: vehicle.id, customerId: current.customerId, expectedOwnerId: vehicle.ownerId,
+            ownerName: vehicle.owner?.fullName ?? 'dueño actual', decision: 'transfer' };
+        }
+        await service.verifyCloseRevision(reviewed);
+      }
+      if (saver.current !== service || activeSession.current !== session) return;
+      setCloseOwner(owner);
+      setPreview({ draft: structuredClone(current), revision: reviewed, businessDate: saved?.orderDate });
+      setClosing(false);
+    } catch (error) {
+      if (saver.current !== service || activeSession.current !== session) return;
+      if (error instanceof CloseReviewChanged) {
+        await service.refreshLocal(() => saver.current === service).catch(() => undefined);
+        if (activeSession.current !== session) return;
+        setMessage('La orden cambió o tiene cambios pendientes. Revisa los datos y vuelve a abrir la vista previa.');
+      } else {
+        setMessage(backfill ? 'No se pudo preparar la vista previa. Revisa que el borrador esté guardado.'
+          : 'No se pudo preparar la vista previa. Sincroniza la orden y comprueba la conexión para verificar el dueño del vehículo.');
+      }
+    } finally {
+      orderOperation.current = false;
+      setBusy(false);
+    }
+  }
+  async function performAction(reviewed?: CloseRevision) {
+    if (!session || activeSession.current !== session || busy || orderOperation.current) return;
+    const action = reviewed ? 'close' : confirmAction;
+    if (!action || (reviewed && previewStale)) return;
     const localDraft = saver.current;
     const cancelDraft = action === 'void' && !order && session.role === 'ADMIN' &&
       localDraft && localDraft.state.id === editorId && canCancelBackfill(localDraft.state);
@@ -490,7 +560,9 @@ export function App() {
       }
       const service = saver.current;
       if (activeSession.current !== session || !service) return;
-      const saved = await service.action(action, action==='close' && closeOwner ? {decision:closeOwner.decision,vehicleId:closeOwner.vehicleId,customerId:closeOwner.customerId,expectedOwnerId:closeOwner.expectedOwnerId} : undefined);
+      if (action === 'close' && !reviewed &&
+        service.state.pending?.draft.action !== 'close' && service.state.draft.action !== 'close') return;
+      const saved = await service.action(action, action==='close' && closeOwner ? {decision:closeOwner.decision,vehicleId:closeOwner.vehicleId,customerId:closeOwner.customerId,expectedOwnerId:closeOwner.expectedOwnerId} : undefined, reviewed);
       if (activeSession.current !== session) return;
       if (action === 'transfer-owner') {
         const currentDraft=service.state.draft;
@@ -500,7 +572,7 @@ export function App() {
         if(!vehicle || vehicle.ownerId.toLowerCase()!==currentDraft.customerId?.toLowerCase()) throw new Error('OWNER_TRANSFER_NOT_APPLIED');
         setOwnerRevision(n => n + 1);
       }
-      if (action === 'close') setClosing(false);
+      if (action === 'close') { setClosing(false); setPreview(null); }
       setOrder(saved ?? null);
       setDraft(service.state.draft);
       setConfirmAction(null);
@@ -515,6 +587,21 @@ export function App() {
       });
     } catch (error) {
       if (activeSession.current !== session) return;
+      if (reviewed && error instanceof CloseReviewChanged) {
+        await localDraft?.refreshLocal(() => saver.current === localDraft).catch(() => undefined);
+        setPreview(previous => previous && { ...previous, stale: true });
+        return;
+      }
+      if (reviewed && error instanceof Error && error.message === 'SYNC_REQUIRED' && !navigator.onLine &&
+        !localDraft?.state.pending?.draft.action) {
+        setMessage('Sin conexión. La orden sigue guardada en este dispositivo. Conéctate para confirmar el cierre.');
+        return;
+      }
+      if (reviewed) {
+        if (localDraft?.state.pending?.draft.action === 'close' && !localDraft.state.conflict && !localDraft.localConflict)
+          setConfirmAction('close');
+        else setPreview(null);
+      }
       if (cancelDraft) {
         setMessage('No se pudo cancelar el borrador en este dispositivo. Volvé a intentar.');
         return;
@@ -566,7 +653,7 @@ export function App() {
     finally { setBusy(false); }
   }
   function saveDraft(next: Draft) {
-    if (!saver.current || saver.current.localConflict || busy || confirmAction || conflict || (order && order.status !== 'OPEN')) return;
+    if (!saver.current || saver.current.localConflict || busy || preview || confirmAction || conflict || (order && order.status !== 'OPEN')) return;
     setDraft(next);
     void saver.current
       ?.edit(next)
@@ -611,6 +698,13 @@ export function App() {
   const totals = amounts(draft?.items, taxRate);
   const errors = draft && !saver.current?.state.cancelled ? visibleErrors(draft, touched, closing) : [];
   const cancelledDraft = !!saver.current?.state.cancelled;
+  const previewPending = confirmAction === 'close' && saver.current?.state.pending?.draft.action === 'close';
+  const previewStale = !!preview && !previewPending && (
+    preview.stale || !saver.current || saver.current.localConflict || cancelledDraft || !!conflict ||
+    !!saver.current.state.pending || !!saver.current.state.draft.action ||
+    (order ? order.status !== 'OPEN' || !canFinish : !historical) ||
+    !matchesCloseRevision(saver.current.state, preview.revision)
+  );
   const readOnly =
     cancelledDraft ||
     !!saver.current?.localConflict ||
@@ -752,7 +846,7 @@ export function App() {
           }
         >
           {(sessionStatus !== 'authenticated' || editor) && <>
-          <div className="card-top">
+          {!preview && <><div className="card-top">
             <h2>
               {sessionStatus === 'authenticated'
                 ? (order?.displayOrderId ?? (historical ? 'Orden anterior' : 'Orden local'))
@@ -784,6 +878,7 @@ export function App() {
               )}
             </p>
           )}
+          </>}
           <SessionGate
             status={sessionStatus}
             checking={
@@ -849,7 +944,30 @@ export function App() {
               </form>
             }
             authenticated={
-              draft && session ? (
+              preview && session ? (
+                <OrderPreview
+                  draft={preview.draft}
+                  businessDate={preview.businessDate}
+                  taxRate={13}
+                  busy={busy}
+                  stale={previewStale}
+                  pending={previewPending}
+                  onEdit={() => {
+                    restorePreviewFocus.current = true;
+                    setCloseOwner(null);
+                    setPreview(null);
+                  }}
+                  onConfirm={() => void performAction(previewPending ? undefined : preview.revision)}
+                >
+                  {closeOwner && <fieldset className="close-owner" disabled={busy}>
+                    <legend>Dueño de {preview.draft.plate}</legend>
+                    <p>Actualmente está registrado a nombre de {closeOwner.ownerName}. Elegí cómo cerrar esta orden:</p>
+                    <label><input type="radio" name="close-owner" value="transfer" checked={closeOwner.decision==='transfer'} onChange={()=>setCloseOwner({...closeOwner,decision:'transfer'})}/>Asignar el vehículo a {preview.draft.customerName} al cerrar. Aparecerá en su próxima orden.</label>
+                    <label><input type="radio" name="close-owner" value="keep" checked={closeOwner.decision==='keep'} onChange={()=>setCloseOwner({...closeOwner,decision:'keep'})}/>Conservar a {closeOwner.ownerName} como dueño. {preview.draft.customerName} será solo el cliente de esta orden.</label>
+                    <p>Las órdenes anteriores conservan su cliente original.</p>
+                  </fieldset>}
+                </OrderPreview>
+              ) : draft && session ? (
                 <form
                   noValidate
                   onSubmit={(e) => e.preventDefault()}
@@ -1197,45 +1315,12 @@ export function App() {
                   <div className="order-actions">
                   {!cancelledDraft && (!order || order.status === 'OPEN') && !conflict && canFinish && (
                     <button
+                      ref={previewButton}
                       type="button"
-                      className="danger"
                       disabled={busy || !!confirmAction || !!saver.current?.localConflict}
-                      onClick={() => {
-                        const service = saver.current;
-                        if (!service) return;
-                        setClosing(true);
-                        if (visibleErrors(draft, touched, true).length === 0) {
-                          if (historical) {
-                            setCloseOwner(null);
-                            setConfirmAction('close');
-                            return;
-                          }
-                          setBusy(true);
-                          void service
-                            .flush(true)
-                            .then(async () => {
-                              if (saver.current !== service) return;
-                              const current=service.state.draft;
-                              const lookup=await api<{vehicles:{id:string;ownerId:string;owner?:{fullName:string}}[]}>(`/vehicles?q=${encodeURIComponent(current.plate)}`);
-                              if (saver.current !== service) return;
-                              const vehicle=lookup.vehicles.find(v=>!current.vehicleId || v.id.toLowerCase()===current.vehicleId.toLowerCase());
-                              // Require the resolved persisted identities when a known vehicle is involved.
-                              if(current.vehicleId && (!vehicle || !current.customerId)) throw new Error('OWNER_LOOKUP_REQUIRED');
-                              setCloseOwner(vehicle && current.customerId && vehicle.ownerId.toLowerCase()!==current.customerId.toLowerCase()
-                                ? {vehicleId:vehicle.id,customerId:current.customerId,expectedOwnerId:vehicle.ownerId,ownerName:vehicle.owner?.fullName ?? 'dueño actual',decision:'transfer'} : null);
-                              setOrder(service.state.order ?? null);
-                              setConfirmAction('close');
-                            })
-                            .catch(() =>
-                              setMessage(
-                                'No se pudo preparar el cierre. Sincroniza la orden y comprueba la conexión para verificar el dueño del vehículo.',
-                              ),
-                            )
-                            .finally(() => setBusy(false));
-                        }
-                      }}
+                      onClick={() => void openPreview()}
                     >
-                      {historical ? 'Guardar orden cerrada' : 'Cerrar orden'}
+                      Vista previa de orden
                     </button>
                   )}
                   {!conflict && ((order?.status === 'OPEN' && (session.role === 'ADMIN' || order.mechanicId === session.userId)) ||
@@ -1270,13 +1355,6 @@ export function App() {
                             ? `¿Reabrir la orden ${order?.displayOrderId}?`
                             : `¿Asignar el vehículo ${draft.plate} a ${draft.customerName} (${draft.identification})? Las órdenes anteriores conservan su cliente.`}
                       </p>
-                      {confirmAction==='close' && closeOwner && <fieldset className="close-owner" disabled={busy}>
-                        <legend>Dueño de {draft.plate}</legend>
-                        <p>Actualmente está registrado a nombre de {closeOwner.ownerName}. Elegí cómo cerrar esta orden:</p>
-                        <label><input type="radio" name="close-owner" value="transfer" checked={closeOwner.decision==='transfer'} onChange={()=>setCloseOwner({...closeOwner,decision:'transfer'})}/>Asignar el vehículo a {draft.customerName} al cerrar. Aparecerá en su próxima orden.</label>
-                        <label><input type="radio" name="close-owner" value="keep" checked={closeOwner.decision==='keep'} onChange={()=>setCloseOwner({...closeOwner,decision:'keep'})}/>Conservar a {closeOwner.ownerName} como dueño. {draft.customerName} será solo el cliente de esta orden.</label>
-                        <p>Las órdenes anteriores conservan su cliente original.</p>
-                      </fieldset>}
                       <p>Total: {formatCRC(totals.total)}</p>
                       <button
                         type="button"

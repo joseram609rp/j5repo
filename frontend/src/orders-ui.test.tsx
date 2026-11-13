@@ -8,6 +8,7 @@ import { draftChangeKey } from './draft-changes';
 import { api, ApiError } from './api';
 import { amounts } from '../../backend/src/validation';
 import { bootstrapSession } from './bootstrap';
+import { formatCRC } from './form-validation';
 import { fresh, storage, type Order, type RecordState } from './autosave';
 import { trackActivity, type Session } from './session';
 vi.mock('./api', async (importOriginal) => ({
@@ -98,6 +99,7 @@ beforeEach(() => {
         const old = orders.get(id);
         const o: Order = {
           id,
+          orderDate: old?.orderDate,
           ...(d.workDate ? { orderDate: d.workDate, isBackfilled: true } : {}),
           draft: d,
           version: String(puts),
@@ -302,7 +304,7 @@ it('keeps the historical date and notices in the local editor, then registers di
   expect(container.querySelectorAll('section.editor input[type="date"]')).toHaveLength(1);
   expect(container.querySelector('button[aria-label="Abrir calendario"]')).toBeNull();
   expect(text()).not.toContain('Registro anterior');
-  await click('Guardar orden cerrada');
+  await click('Vista previa de orden');
   expect(text()).toContain('Elige una fecha válida anterior a hoy en Costa Rica.');
   expect(puts).toBe(0);
   await click('Inicio');
@@ -317,10 +319,11 @@ it('keeps the historical date and notices in the local editor, then registers di
   await click('Órdenes abiertas');
   await click('Continuar');
   expect(container.querySelector<HTMLInputElement>('#work-date')?.value).toBe('2024-02-29');
-  await click('Guardar orden cerrada');
-  expect(container.querySelector('[role=dialog]')?.textContent).toContain('¿Registrar como cerrada la orden del 2024-02-29?');
+  await click('Vista previa de orden');
+  expect(container.querySelector('.order-preview')?.textContent).toContain('29 de febrero de 2024');
+  expect(container.querySelector('.order-preview')?.textContent).not.toMatch(/Apertura:|Cierre:|OT-/);
   expect(puts).toBe(0);
-  await click('Confirmar');
+  await click('Confirmar y cerrar orden');
   expect(puts).toBe(1);
   expect(orders.get(localId)).toMatchObject({ status: 'CLOSED', orderDate: '2024-02-29', isBackfilled: true });
   expect(text()).toContain('Trabajo realizado el 29 de febrero de 2024');
@@ -335,10 +338,104 @@ it('keeps the historical date and notices in the local editor, then registers di
   expect(text()).toContain('Orden ingresada en J5 el 5 de octubre de 2026');
 });
 
+it('shows the business date and rounded totals, and returns to the same draft without closing', async () => {
+  const order = seed();
+  orders.set(order.id, { ...order, orderDate: '2026-10-03' });
+  await mount(); await click('Órdenes abiertas'); await click('Continuar');
+  await input('[data-field=item-0-price]', '1000.05');
+  await click('Vista previa de orden');
+  const summary = container.querySelector('.order-preview')!;
+  expect(summary.textContent).toContain('3 de octubre de 2026');
+  expect(summary.textContent).toContain('Efectivo');
+  expect(summary.textContent).toContain('No es un comprobante fiscal ni una factura electrónica.');
+  expect([...summary.querySelectorAll('.order-preview__totals dd')].map(el => el.textContent))
+    .toEqual([1000.05, 130.01, 1130.06].map(formatCRC));
+  expect(document.activeElement?.id).toBe('order-preview-title');
+  expect(orders.get(order.id)?.status).toBe('OPEN');
+  await click('Volver a editar');
+  expect(container.querySelector<HTMLInputElement>('[data-field=item-0-price]')?.value).toBe('1000.05');
+  expect(document.activeElement).toBe(button('Vista previa de orden'));
+});
+
+it.each(['daily', 'historical'] as const)('invalidates a %s preview after an IndexedDB change in another tab', async kind => {
+  const historical = kind === 'historical';
+  vi.mocked(bootstrapSession).mockResolvedValue({
+    session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,
+  });
+  if (!historical) seed();
+  await mount();
+  if (historical) {
+    await click('Nueva orden'); await click('Orden anterior');
+    disk!.draft = { ...clone(complete), workDate: '2024-02-29' };
+    records.set(disk!.id, clone(disk!));
+    await click('Inicio');
+  }
+  await click('Órdenes abiertas'); await click('Continuar'); await click('Vista previa de orden');
+  const current = clone(disk!);
+  current.draft.items = [{ description: 'Precio actualizado', price: 2000 }];
+  current.localRevision = (current.localRevision ?? 0) + 1;
+  current.revision++;
+  records.set(current.id, current);
+  await act(async () => { window.dispatchEvent(new StorageEvent('storage', { key: draftChangeKey })); });
+  expect(button('Confirmar y cerrar orden').disabled).toBe(true);
+  expect(notices()).toContain('La orden cambió desde que abriste la vista previa');
+  expect(puts).toBe(0);
+  await click('Volver a editar'); await click('Vista previa de orden');
+  expect(container.querySelector('.order-preview')?.textContent).toContain('Precio actualizado');
+  await click('Inicio');
+  expect(notices()).not.toContain('La orden cambió desde que abriste la vista previa');
+});
+
+it('blocks confirmation when the ETag changed without a tab notification', async () => {
+  const order = seed();
+  await mount(); await click('Órdenes abiertas'); await click('Continuar'); await click('Vista previa de orden');
+  orders.set(order.id, { ...order, version: 'updated', draft: { ...order.draft, items: [{ description: 'Actualizado', price: 200 }] } });
+  await click('Confirmar y cerrar orden');
+  expect(puts).toBe(0);
+  expect(button('Confirmar y cerrar orden').disabled).toBe(true);
+  await click('Volver a editar'); await click('Vista previa de orden');
+  expect(container.querySelector('.order-preview')?.textContent).toContain('Actualizado');
+});
+
+it('waits for autosave and owner lookup, preserves offline data, and submits one close on double click', async () => {
+  const order = seed();
+  const original = vi.mocked(api).getMockImplementation()!;
+  let releaseSave!: () => void;
+  let releaseOwner!: () => void;
+  let ownerChecked = false;
+  const save = new Promise<void>(resolve => { releaseSave = resolve; });
+  const owner = new Promise<void>(resolve => { releaseOwner = resolve; });
+  vi.mocked(api).mockImplementation(async (path, options = {}) => {
+    if (options.method === 'PUT' && !JSON.parse(options.body as string).action) await save;
+    if (path === '/vehicles?q=ABC123') { ownerChecked = true; await owner; }
+    return original(path, options);
+  });
+  await mount(); await click('Órdenes abiertas'); await click('Continuar');
+  ownerChecked = false;
+  await input('[data-field=item-0-price]', '250');
+  await click('Vista previa de orden');
+  expect(ownerChecked).toBe(false);
+  expect(container.querySelector('.order-preview')).toBeNull();
+  await act(async () => { releaseSave(); });
+  expect(ownerChecked).toBe(true);
+  expect(container.querySelector('.order-preview')).toBeNull();
+  await act(async () => { releaseOwner(); });
+  expect(container.querySelector('.order-preview')?.textContent).toContain(formatCRC(282.5));
+  const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+  await click('Confirmar y cerrar orden');
+  expect(puts).toBe(1);
+  expect(notices()).toContain('Sin conexión');
+  online.mockRestore();
+  const confirm = button('Confirmar y cerrar orden');
+  await act(async () => { confirm.click(); confirm.click(); });
+  expect(puts).toBe(2);
+  expect(orders.get(order.id)?.status).toBe('CLOSED');
+});
+
 it('validates missing fields inline and in summary without closing', async () => {
   await mount();
   await newDailyOrder();
-  await click('Cerrar orden');
+  await click('Vista previa de orden');
   expect(text()).toContain('Revisa estos datos');
   expect(text()).toContain('Agrega al menos un trabajo');
   expect(container.querySelector('[role=dialog]')).toBeNull();
@@ -351,11 +448,9 @@ it('lists OPEN, resumes, confirms closure, locks CLOSED and finds history detail
   expect(text()).toContain('Cliente de prueba');
   await click('Continuar');
   expect(text()).toContain('128,400 km');
-  await click('Cerrar orden');
-  expect(container.querySelector('[role=dialog]')?.textContent).toContain(
-    '¿Cerrar la orden OT-2026-000007?',
-  );
-  await click('Confirmar');
+  await click('Vista previa de orden');
+  expect(container.querySelector('.order-preview')?.textContent).toContain('Frenos');
+  await click('Confirmar y cerrar orden');
   expect(disk?.order?.status).toBe('CLOSED');
   expect(container.querySelector('fieldset')?.disabled).toBe(true);
   expect(button('Reabrir orden')).toBeUndefined();
@@ -390,8 +485,8 @@ it('ADMIN reopens the same paused editor after closing and visiting history', as
   disk!.draft = clone(initial.draft); disk!.order = clone(initial);
   vi.mocked(bootstrapSession).mockResolvedValue({ session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true });
   await mount(); await click('Órdenes abiertas'); await click('Continuar');
-  expect([...container.querySelectorAll('.order-actions button')].map(b => b.textContent?.trim())).toEqual(['Cerrar orden', 'Cancelar orden']);
-  await click('Cerrar orden'); await click('Confirmar');
+  expect([...container.querySelectorAll('.order-actions button')].map(b => b.textContent?.trim())).toEqual(['Vista previa de orden', 'Cancelar orden']);
+  await click('Vista previa de orden'); await click('Confirmar y cerrar orden');
   await click('Historial'); await historySearch(); await click('Ver detalle');
   expect(container.querySelector('fieldset')?.disabled).toBe(true);
   await click('Reabrir orden'); await click('Confirmar');
@@ -669,10 +764,10 @@ it('ADMIN can select an active mechanic and owner update is explicitly labeled',
  expect(button('Actualizar dueño a Cliente de prueba')).toBeUndefined(); // selected customer is already the owner
  expect(container.querySelector('[aria-label="Cambio de cliente"]')).toBeTruthy();
 });
-it('notes empty still opens the close confirmation', async()=>{
+it('opens the preview with empty notes', async()=>{
  const selected=seed(); selected.draft.notes=''; disk!.draft.notes=''; records.set(selected.id,clone(disk!));
- await mount();await click('Órdenes abiertas');await click('Continuar');await click('Cerrar orden');
- expect(container.querySelector('[role=dialog]')).toBeTruthy();
+ await mount();await click('Órdenes abiertas');await click('Continuar');await click('Vista previa de orden');
+ expect(container.querySelector('.order-preview')).toBeTruthy();
 });
 
 it('history searches on submit and loads the next page using the last server UUID',async()=>{
@@ -767,17 +862,17 @@ it('list hides cancellation for orders assigned to another mechanic',async()=>{
 
 
 it('refetch removes close permission from the previous mechanic',async()=>{
- const initial=seed();await mount();await click('Órdenes abiertas');await click('Continuar');expect(button('Cerrar orden')).toBeTruthy();
+ const initial=seed();await mount();await click('Órdenes abiertas');await click('Continuar');expect(button('Vista previa de orden')).toBeTruthy();
  orders.set(initial.id,{...initial,mechanicId:crypto.randomUUID(),mechanicName:'Nuevo',version:'new'});
  await act(async()=>{window.dispatchEvent(new Event('focus'));for(let i=0;i<30;i++)await Promise.resolve();});
- expect(button('Cerrar orden')).toBeUndefined();expect(container.querySelector('fieldset')?.disabled).toBe(false);
+ expect(button('Vista previa de orden')).toBeUndefined();expect(container.querySelector('fieldset')?.disabled).toBe(false);
 });
 it('payment and electronic invoice require an explicit choice; No is valid; all observations are optional',async()=>{
  const initial=seed();delete initial.draft.paymentMethod;delete initial.draft.electronicInvoice;initial.draft.notes='';initial.draft.recommendations='';orders.set(initial.id,clone(initial));disk!.draft=clone(initial.draft);disk!.order=clone(initial);records.set(initial.id,clone(disk!));
- await mount();await click('Órdenes abiertas');await click('Continuar');await click('Cerrar orden');
+ await mount();await click('Órdenes abiertas');await click('Continuar');await click('Vista previa de orden');
  expect(container.querySelector('.close-errors')?.textContent).toContain('Selecciona el método de pago.');expect(container.querySelector('[role=dialog]')).toBeNull();expect(text()).toContain('Selecciona el método de pago.');expect(text()).toContain('Indica si requiere factura electrónica');expect(text()).not.toContain('Escribe las observaciones');
  const select=async(field:string,value:string)=>act(async()=>{const e=container.querySelector<HTMLSelectElement>(`[data-field=${field}]`)!;e.value=value;e.dispatchEvent(new Event('change',{bubbles:true}));});
- await select('paymentMethod','SINPE');await select('electronicInvoice','false');expect(container.querySelector('.close-errors')).toBeNull();await click('Cerrar orden');expect(container.querySelector('[role=dialog]')).toBeTruthy();await click('Confirmar');
+ await select('paymentMethod','SINPE');await select('electronicInvoice','false');expect(container.querySelector('.close-errors')).toBeNull();await click('Vista previa de orden');expect(container.querySelector('.order-preview')).toBeTruthy();await click('Confirmar y cerrar orden');
  expect(disk?.order?.status).toBe('CLOSED');expect(disk?.draft.paymentMethod).toBe('SINPE');expect(disk?.draft.electronicInvoice).toBe(false);expect(disk?.draft.notes).toBe('');expect(disk?.draft.recommendations).toBe('');
 });
 it('line IVA and subtotal/final totals recalculate while optional item notes persist',async()=>{
@@ -790,11 +885,11 @@ it('line IVA and subtotal/final totals recalculate while optional item notes per
 // Inspect all status nodes, including the hidden editor, to catch retained ghost messages.
 const notices = () => [...container.querySelectorAll('[role=status], [role=alert], .status')].map(e => e.textContent).join(' ');
 it.each([
- ['Cerrar orden', 'Orden cerrada correctamente.'],
+ ['Vista previa de orden', 'Orden cerrada correctamente.'],
  ['Cancelar orden', 'Orden cancelada. Se conserva su información.'],
 ])('%s notice belongs only to its terminal order', async (action, message) => {
  const first=seed(); await mount(); await click('Órdenes abiertas'); await click('Continuar');
- await click(action); await click('Confirmar'); expect(notices()).toContain(message);
+ await click(action); await click(action === 'Vista previa de orden' ? 'Confirmar y cerrar orden' : 'Confirmar'); expect(notices()).toContain(message);
  await click('Inicio'); expect(notices()).not.toContain(message);
  await newDailyOrder(); expect(disk!.id).not.toBe(first.id); expect(notices()).not.toContain(message);
  await click('Historial'); expect(notices()).not.toContain(message);
@@ -1050,7 +1145,7 @@ it.each(['ADMIN','MECHANIC'] as const)('%s confirms one owner transfer after sel
 
 it('lower close banner resets on leaving the editor and opening a different order',async()=>{
  const initial=seed();initial.draft.mileage=null;orders.set(initial.id,clone(initial));disk!.draft=clone(initial.draft);disk!.order=clone(initial);records.set(initial.id,clone(disk!));
- await mount();await click('Órdenes abiertas');await click('Continuar');await click('Cerrar orden');expect(container.querySelector('.close-errors')).toBeTruthy();
+ await mount();await click('Órdenes abiertas');await click('Continuar');await click('Vista previa de orden');expect(container.querySelector('.close-errors')).toBeTruthy();
  await click('Inicio');expect(container.querySelector('.close-errors')).toBeNull();await newDailyOrder();expect(container.querySelector('.close-errors')).toBeNull();expect(disk?.id).not.toBe(initial.id);
 });
 
@@ -1147,11 +1242,11 @@ it.each(['transfer','keep'] as const)('normal close explicitly resolves a differ
   }
   return original(path,options);
  });
- await mount();await click('Órdenes abiertas');await click('Continuar');await click('Cerrar orden');
- const dialog=container.querySelector('[role=dialog]')!;
+ await mount();await click('Órdenes abiertas');await click('Continuar');await click('Vista previa de orden');
+ const dialog=container.querySelector('.order-preview')!;
  expect(dialog.textContent).toContain('Dueña anterior');expect(dialog.textContent).toContain('Asignar el vehículo a Cliente de prueba al cerrar');
  if(decision==='keep')await act(async()=>{container.querySelector<HTMLInputElement>('input[name=close-owner][value=keep]')!.click();});
- await click('Confirmar');expect(orders.get(initial.id)!.status).toBe('CLOSED');
+ await click('Confirmar y cerrar orden');expect(orders.get(initial.id)!.status).toBe('CLOSED');
  expect(ownerId).toBe(decision==='transfer'?customerId:oldOwnerId);
  expect(orders.get(initial.id)!.draft.ownerResolution).toBeUndefined();
  await click('Inicio');await newDailyOrder();
@@ -1170,11 +1265,11 @@ it('a concurrent owner change rejects close and asks for a fresh owner decision 
   if(options.method==='PUT' && JSON.parse(options.body as string).action==='close'){calls++;throw new ApiError(409,'OWNER_DECISION_STALE');}
   return original(path,options);
  });
- await mount();await click('Órdenes abiertas');await click('Continuar');await click('Cerrar orden');await click('Confirmar');
+ await mount();await click('Órdenes abiertas');await click('Continuar');await click('Vista previa de orden');await click('Confirmar y cerrar orden');
  expect(calls).toBe(1);expect(orders.get(initial.id)!.status).toBe('OPEN');
  expect(text()).toContain('Confirma quién será el dueño');expect(container.querySelector('[role=dialog]')).toBeNull();
  expect(disk!.pending).toBeUndefined();expect(disk!.draft.ownerResolution).toBeUndefined();
- await click('Cerrar orden');expect(container.querySelector('[role=dialog]')).toBeTruthy();
+ await click('Vista previa de orden');expect(container.querySelector('.order-preview')).toBeTruthy();
 });
 
 it('login retains credentials while waiting and after service failure, with no extra Mostrar button',async()=>{
@@ -1292,7 +1387,7 @@ it('settles local writes before logout and recovers the draft on login', async (
 it('removes historical close controls and validation after cancellation in another tab', async () => {
  vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
  await mount(); await click('Nueva orden'); await click('Orden anterior');
- await click('Guardar orden cerrada');
+ await click('Vista previa de orden');
  expect(container.querySelector('.close-errors')).toBeTruthy();
  const cancelled = {...clone(disk!), cancelled:true, localRevision:(disk!.localRevision ?? 0)+1};
  disk=cancelled; records.set(cancelled.id,clone(cancelled));
@@ -1301,7 +1396,7 @@ it('removes historical close controls and validation after cancellation in anoth
    for(let i=0;i<30;i++) await Promise.resolve();
  });
  expect(container.querySelector('.badge')?.textContent).toBe('CANCELADA');
- expect(button('Guardar orden cerrada')).toBeUndefined();
+ expect(button('Vista previa de orden')).toBeUndefined();
  expect(button('Cancelar orden')).toBeUndefined();
  expect(container.querySelector('.close-errors')).toBeNull();
  expect(container.querySelector('fieldset')?.disabled).toBe(true);
