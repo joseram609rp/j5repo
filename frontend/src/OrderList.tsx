@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { api } from './api';
 import { formatCRC, formatRegistrationDate, formatWorkDate } from './form-validation';
-import { canCancelBackfill, storage, type Order } from './autosave';
+import { canCancelBackfill, draftUpgradeMessage, storage, type Order } from './autosave';
+import { onDraftChange } from './draft-changes';
 
 const historyDate = z.iso.date().refine((value) => value.slice(0, 4) !== '0000');
 
@@ -26,6 +27,8 @@ export function OrderList({
   onOpen: (order: Order) => void;
 }) {
   const [localOrders, setLocalOrders] = useState<(Order & { canCancelDraft: boolean })[]>([]);
+  const [localError, setLocalError] = useState('');
+  const [localRevision, setLocalRevision] = useState(0);
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [appliedDates, setAppliedDates] = useState({ from: '', to: '' });
@@ -43,13 +46,16 @@ export function OrderList({
   useEffect(() => {
     if (status !== 'OPEN' || !userId) return;
     let current = true;
+    setLocalError('');
     void storage.list(userId).then(records => {
       if(current) setLocalOrders(records.filter(r => !r.cancelled && r.order?.status !== 'CLOSED' && r.order?.status !== 'VOID' && (!r.version || r.pending || r.savedRevision < r.revision)).map(r => ({
         ...(r.order ?? {status: 'OPEN' as const, mechanicId: r.draft.mechanicId ?? userId}), id: r.id, draft: r.draft, version: r.version ?? '', canCancelDraft: canCancelBackfill(r),
       })));
-    }).catch(() => { if(current) setError(true); });
+    }).catch(error => {
+      if (current) setLocalError(draftUpgradeMessage(error) ?? 'No se pudieron consultar los borradores en este dispositivo.');
+    });
   return () => { current = false; };
-  }, [status, userId, reload]);
+  }, [status, userId, reload, localRevision]);
   useEffect(() => {
     let current = true;
     if (status === 'CLOSED' && !hasHistorySearch) {
@@ -58,6 +64,7 @@ export function OrderList({
     }
     setLoading(true);
     setError(false);
+    if (!cursor) setOrders([]);
     const params = new URLSearchParams({ status, q: applied });
     if (cursor) params.set('before', cursor);
     if (status === 'CLOSED') {
@@ -84,12 +91,24 @@ export function OrderList({
   useEffect(() => {
     if (status !== 'OPEN') return;
     const refresh = () => { if (document.visibilityState !== 'hidden') { setCursor(undefined); setReload(n => n + 1); } };
+    let timerAfterSave: ReturnType<typeof setTimeout>;
+    const stop = onDraftChange(() => {
+      setLocalRevision(value => value + 1);
+      clearTimeout(timerAfterSave);
+      timerAfterSave = setTimeout(refresh, 250);
+    });
     window.addEventListener('focus', refresh);
+    window.addEventListener('pageshow', refresh);
     document.addEventListener('visibilitychange', refresh);
     const timer = setInterval(refresh, 30000);
-    return () => { clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
+    return () => { stop(); clearTimeout(timerAfterSave); clearInterval(timer); window.removeEventListener('focus', refresh); window.removeEventListener('pageshow', refresh); document.removeEventListener('visibilitychange', refresh); };
   }, [status]);
-  const visible = [...orders, ...localOrders.filter(local => !orders.some(o => o.id === local.id) && (!applied || local.draft.customerName.toLocaleLowerCase().includes(applied.toLocaleLowerCase()) || local.draft.plate === applied.toUpperCase().replace(/[\s-]/g, '')))];
+  const search = applied.toLocaleLowerCase();
+  const pending = localOrders.filter(local => !orders.some(order => order.id === local.id) &&
+    (!search || local.draft.customerName.toLocaleLowerCase().includes(search) ||
+      local.displayOrderId?.toLocaleLowerCase().startsWith(search) || local.draft.identification === search ||
+      local.draft.plate.toUpperCase().replace(/[\s-]/g, '') === search.toUpperCase().replace(/[\s-]/g, '')));
+  const visible = [...orders, ...pending];
   return (
     <section className="card">
       <h2>{status === 'OPEN' ? 'Órdenes abiertas' : 'Historial'}</h2>
@@ -160,8 +179,11 @@ export function OrderList({
           <button onClick={() => setReload((n) => n + 1)}>Reintentar</button>
         </p>
       )}
+      {localError && <p role="alert">{localError}{' '}
+        <button onClick={() => setLocalRevision(value => value + 1)}>Reintentar</button>
+      </p>}
       {status === 'CLOSED' && !hasHistorySearch && <p>Busca por nombre, cédula, placa, número de orden o fecha para consultar el historial. Si eliges una sola fecha, se busca ese día.</p>}
-      {!loading && !error && !visible.length && (status === 'OPEN' || hasHistorySearch) && (
+      {!loading && !error && !localError && !visible.length && (status === 'OPEN' || hasHistorySearch) && (
         <p>
           No hay órdenes
           {applied || hasHistorySearch ? ' que coincidan con la búsqueda' : ' abiertas'}

@@ -2,6 +2,8 @@
 
 Fecha: 2026-11-08. Estado: implementación verificada localmente; aceptación en iPad real pendiente.
 
+La edición de órdenes usa [control optimista en IndexedDB](concurrencia-borradores.md). En la tablet, comprobar creación normal y anterior, persistencia local y recuperación desde Órdenes abiertas.
+
 ## Base y alcance
 
 - Repositorio original limpio antes de trabajar, en una rama distinta; se conservó su checkout.
@@ -18,7 +20,6 @@ Chrome instalado en este iPad usa WebKit del sistema; cambiar de marca de navega
 | --- | --- |
 | AbortSignal.timeout, api.ts | Llamada incondicional antes de fetch. Al faltar produce TypeError; bootstrap termina en SESSION_CHECK_FAILED tras reintentos. Reproducción por feature detection y pruebas con la API ausente; causa técnica consistente con el síntoma, sin confirmar aún la tablet. Se añade fallback. |
 | AbortController, fetch, Headers, DOMException, timers | Base compatible; no se usa AbortSignal.any ni throwIfAborted. reason puede faltar: cancelación usa AbortError como alternativa. |
-| navigator.locks, App.tsx | Se conserva el bloqueo exclusivo por usuario y ifAvailable. Cuando falta, consulta de listas y Historial anterior disponible; creación/entrada al editor deshabilitada y borradores intactos. También impide abrir detalles del editor actual; no se promete editor de solo lectura en ese caso. No se implementa un candado inseguro con localStorage. |
 | IndexedDB / idb, autosave.ts | Transacciones y claves por usuario/orden, migración local, getAll y IDBKeyRange. Sin cambio de esquema ni borrado. Pruebas con fake-indexeddb; persistencia, cuotas, suspensión y expulsión de datos del iPad requieren QA real. |
 | crypto.randomUUID, autosave.ts y Users.tsx | IDs e idempotencia. Disponible desde Safari 15.4 en contexto seguro; se conserva para el objetivo 15.8.8. No se sustituye por Math.random. HTTP remoto no está soportado como entorno de aceptación. |
 | structuredClone, autosave.ts y ConflictReview.tsx | Disponible desde Safari 15.4; mantiene undefined y copias profundas de borradores. Se conserva, sin serialización JSON destructiva. No se promete soporte de runtime Safari 15.0–15.3. |
@@ -40,10 +41,8 @@ Las versiones efectivamente instaladas proceden de pnpm-lock.yaml; el package.js
 - frontend/src/api.ts: integra la señal por intento y libera listeners/temporizador después del cuerpo JSON y antes de esperar/reintentar, también en finally. Conserva presupuestos de 60 s login / 120 s general, timeout de hasta 35 s, Retry-After, backoff, límites, clasificación de errores e identidad de escrituras. Una cancelación externa nunca se reintenta.
 - El timeout nativo no ofrece cancelación de su temporizador interno: se desuscribe el listener; el temporizador del fallback sí se cancela. La suspensión del sistema puede pausar timers; los presupuestos se verifican con el reloj al reintentar.
 - frontend/vite.config.ts: target JS y CSS Safari 15, manteniendo los otros targets.
-- frontend/src/App.tsx: explica la limitación de locks y ofrece orientación de conexión/servicio y preservación de borradores cuando bootstrap falla.
 - frontend/src/OrderList.tsx: acceso compatible al último elemento.
 - frontend/src/request-signal.test.ts: 10 pruebas de ruta nativa, ausencia de API, timeout, cancelación y limpieza, bootstrap 401/network/503 e identidad ETag/CSRF/idempotencia.
-- frontend/src/orders-ui.test.tsx: mensaje actualizado y comprobación de botón deshabilitado y borrador sin escrituras cuando faltan locks.
 - Este documento.
 
 ## Evidencia y comandos
@@ -53,8 +52,7 @@ Las versiones efectivamente instaladas proceden de pnpm-lock.yaml; el package.js
 3. pnpm check: typecheck de ambos paquetes pasó; batería completa inicial: 321 aprobadas / 41 omitidas (SQL). El build inicialmente falló por acceso a directorios antecesores de esbuild, no por código.
 4. pnpm build con acceso de archivos autorizado: correcto en backend y frontend; Vite 7.3.6, 145 módulos, bundle JS ~382.6 kB, CSS ~6.97 kB; PWA generada, 7 recursos precacheados. Dos warnings de anotaciones PURE de Zod.
 5. Tras ampliar las pruebas: pnpm exec vitest run frontend/src/orders-ui.test.tsx frontend/src/request-signal.test.ts: 75/75 correctas; pnpm --filter @j5/frontend typecheck correcto. El total lógico pasa de 321 a 324 por tres casos añadidos; no se presenta como una segunda ejecución completa.
-6. Smoke del build servido en 127.0.0.1, con Playwright instalado fuera del repositorio y Edge 156.0.4314.58: 2/2 escenarios correctos, cero pageerror. Moderno: login y editor habilitado; sin timeout/locks: login correcto y creación deshabilitada. Ambos abren Historial anterior y registran SW. Ocho peticiones a fixtures locales; ninguna a producción. Script adjunto al reporte de entrega.
-7. git diff --check: correcto. Revisión del diff limitada a frontend, tests y este documento; sin archivos de entorno, datos privados ni salida dist versionados.
+6. git diff --check: correcto. Revisión del diff limitada a frontend, tests y este documento; sin archivos de entorno, datos privados ni salida dist versionados.
 
 No se ejecutaron las 41 pruebas SQL que requieren entorno/conexión real. Las pruebas cubren autosave, recuperación offline, idempotencia, conflictos/ETag, catálogo, navegación, órdenes abiertas/cerradas, autenticación, CSRF y consulta histórica mediante dobles de prueba; no prueban Azure SQL ni cookies reales del iPad.
 
@@ -67,10 +65,8 @@ Usar un entorno de prueba HTTPS autorizado con esta rama y datos ficticios; esta
 - [ ] Abrir Chrome normal: se muestra comprobación breve y, con 401, formulario de login; sin error de API JavaScript.
 - [ ] Iniciar sesión válida; credenciales inválidas muestran rechazo sin bucles; cerrar y reabrir conserva sesión según política vigente.
 - [ ] Probar red interrumpida y servicio 503 en entorno de pruebas: al agotarse reintentos aparece orientación útil y Reintentar; no se confunde con 401. Login puede esperar hasta 60 s y bootstrap hasta su presupuesto existente.
-- [ ] Con inspección remota cuando sea posible, registrar solo capacidades booleanas: typeof AbortSignal.timeout, typeof navigator.locks?.request, typeof crypto.randomUUID, typeof structuredClone, existencia de indexedDB y serviceWorker, isSecureContext. No copiar cookies, tokens, contraseñas ni datos de clientes.
-- [ ] Si locks falta, comprobar aviso, botón Nueva orden deshabilitado, listas e Historial anterior accesibles y borradores conservados. No aceptar edición insegura como solución.
-- [ ] Si locks está disponible, crear orden ficticia, cargar catálogo/marca/modelo, buscar cliente/vehículo, editar y comprobar autosave.
-- [ ] Abrir segunda pestaña: no puede apropiarse del editor mientras primera mantiene lock. Cerrar primera y recargar segunda permite adquirirlo.
+- [ ] Con inspección remota cuando sea posible, registrar solo capacidades booleanas: typeof AbortSignal.timeout, typeof crypto.randomUUID, typeof structuredClone, existencia de indexedDB y serviceWorker, isSecureContext. No copiar cookies, tokens, contraseñas ni datos de clientes.
+- [ ] Abrir dos pestañas en el mismo borrador, editar en ambas y verificar que la segunda escritura conserva una copia descargable sin sustituir la versión vigente.
 - [ ] Offline con un borrador ya cargado: editar, recargar y recuperar; volver online sincroniza una sola vez sin duplicar orden/items. Suspender/reanudar iPad, revisar cuotas y persistencia.
 - [ ] Simular conflicto ETag desde otro navegador: revisión preserva copia local y no sobrescribe silenciosamente. Reintentar escritura tras corte conserva idempotencia.
 - [ ] Abrir listas, paginar, consultar órdenes abiertas/cerradas, cerrar/reabrir con permisos adecuados, comprobar fechas, importes, teclado y scroll.
@@ -82,7 +78,6 @@ Usar un entorno de prueba HTTPS autorizado con esta rama y datos ficticios; esta
 ## Fuentes técnicas
 
 - Vite 7, targets y esbuild: https://v7.vite.dev/config/build-options
-- WebKit Safari 15.4, structuredClone, UUID y locks: https://webkit.org/blog/12445/new-webkit-features-in-safari-15-4/
 - Semántica de AbortSignal.timeout (TimeoutError y tiempo activo): https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal/timeout_static
 
 No se atribuye al build la capacidad de polyfillear APIs de runtime. Si la tablet revela otra API ausente, se requiere evidencia y una corrección acotada antes de aprobar compatibilidad final.

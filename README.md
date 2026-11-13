@@ -1,6 +1,6 @@
 # Frenos La Bandera / J5
 
-PWA para un taller de mecánica rápida de una sucursal. Phase 3 está funcionalmente completa: usuarios, clientes, vehículos, órdenes, autosave, recuperación offline, cierre e historial. Falta desplegar DEV en Azure y completar QA en teléfonos/tablets reales antes de producción.
+PWA para un taller de mecánica rápida de una sucursal. Phase 3 está funcionalmente completa: usuarios, clientes, vehículos, órdenes, autosave, recuperación offline, cierre e historial. El QA de sincronización y cancelación entre pestañas fue aprobado por el usuario el 12 de noviembre de 2026. La verificación física en iPadOS 15 sigue pendiente.
 
 ## Arquitectura
 
@@ -114,7 +114,9 @@ Pago: SINPE, tarjeta de crédito, tarjeta de débito, efectivo o transferencia b
 
 ## Autosave, offline y concurrencia
 
-IndexedDB separa borradores por usuario/orden y conserva payload, ETag, clave idempotente, pendientes y copias de recuperación. Datos incompletos se conservan localmente; SQL autosave espera payload válido. Crear/cerrar necesitan conexión para confirmación oficial. Tras una respuesta perdida, se reenvía la misma mutación/clave; no se duplican efectos. Web Lock por usuario evita dos editores simultáneos en pestañas compatibles del mismo navegador.
+IndexedDB separa borradores por usuario/orden y conserva payload, ETag, clave idempotente, pendientes y copias de recuperación. Datos incompletos se conservan localmente; SQL autosave espera payload válido. Crear/cerrar necesitan conexión para confirmación oficial. Tras una respuesta perdida, se reenvía la misma mutación/clave; no se duplican efectos. La revisión local detecta escrituras concurrentes entre pestañas y conserva una copia recuperable cuando hay conflicto.
+
+Las órdenes del día y los borradores de órdenes anteriores se actualizan silenciosamente entre pestañas al recibir cambios guardados en IndexedDB. Los borradores anteriores permanecen locales hasta confirmar el cierre. Una cancelación compartida deshabilita el formulario y retira las acciones y validaciones de cierre. Los avisos del editor y las descargas de recuperación aparecen únicamente en el contexto de su orden; Historial consulta las órdenes cerradas por placa, nombre, cédula o fecha.
 
 ETag se deriva de rowversion. Un conflicto conserva el borrador, consulta la versión actual y ofrece revisión por grupos/mezcla/servidor. La copia previa permanece en recoveryCopies y puede descargarse; una nueva modificación remota obliga a revisar de nuevo. Las acciones de cierre, cancelación y transferencia no se repiten automáticamente al resolver contenido. Reasignación sin cambio de contenido puede recuperarse con versión/clave nuevas.
 
