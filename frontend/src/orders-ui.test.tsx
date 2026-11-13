@@ -670,6 +670,37 @@ it('OPEN list identifies pending local changes for the active order', async () =
   );
 });
 
+it.each(['ADMIN', 'MECHANIC'] as const)('protects the invoice detail for %s and never attaches autosave', async role => {
+  const order = seed('CLOSED');
+  order.draft.electronicInvoice = true;
+  window.history.replaceState(null, '', '/?invoiceOrder=' + order.id);
+  try {
+    vi.mocked(bootstrapSession).mockResolvedValue({ status: 'authenticated', healthOk: true, session: { ...session, role } });
+    const request = vi.mocked(api);
+    request.mockImplementation(async path => {
+      if (path === '/admin/invoice-tracking/orders/' + order.id) return clone(order) as never;
+      throw new Error('Unexpected request: ' + path);
+    });
+    await mount();
+    if (role === 'ADMIN') {
+      expect(container.querySelector<HTMLInputElement>('[data-field=customerName]')?.value).toBe(order.draft.customerName);
+      expect(container.querySelector<HTMLFieldSetElement>('.editor fieldset')?.disabled).toBe(true);
+      expect(text()).toContain(order.displayOrderId);
+      expect(button('Reabrir orden')).toBeUndefined();
+      expect(button('Vista previa de orden')).toBeUndefined();
+      expect(request.mock.calls.map(([path]) => path)).toEqual(['/admin/invoice-tracking/orders/' + order.id]);
+    } else {
+      expect(text()).toContain('exclusiva para administradores');
+      expect(button('Facturas electrónicas')).toBeUndefined();
+      expect(request).not.toHaveBeenCalled();
+    }
+    expect(storage.read).not.toHaveBeenCalled();
+    expect(storage.write).not.toHaveBeenCalled();
+  } finally {
+    window.history.replaceState(null, '', '/');
+  }
+});
+
 async function historySearch() {
   await input('.card .search input', 'Cliente');
   await click('Buscar');

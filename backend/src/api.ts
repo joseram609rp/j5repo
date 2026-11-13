@@ -23,6 +23,7 @@ import {
 import { hashPassword, verifyPassword } from './password.js';
 import { HttpError } from './reliability.js';
 import { SqlRepository } from './sql.js';
+import { invoiceSearch, invoiceUpdate, invoiceVersion } from './invoice-tracking.js';
 
 export const tokenHash = (token: string) =>
   createHash('sha256').update(token).digest('hex');
@@ -201,10 +202,12 @@ export function createApi(
         const hash = tokenHash(token);
         const orderRoute = /^\/api\/orders\/([^/]+)$/.exec(path);
         const userRoute = /^\/api\/admin\/users\/([^/]+)$/.exec(path);
+        const invoiceRoute = /^\/api\/admin\/invoice-tracking\/orders\/([^/]+)$/.exec(path);
+        const invoiceWrite = invoiceRoute && method === 'PUT';
         const userWrite =
           (path === '/api/admin/users' && method === 'POST') ||
           (userRoute && ['PATCH','DELETE'].includes(method));
-        const write = Boolean(userWrite || (orderRoute && method === 'PUT'));
+        const write = Boolean(userWrite || invoiceWrite || (orderRoute && method === 'PUT'));
         // Authenticate before expensive password hashing. Authorization is repeated inside the write transaction.
         if (userWrite)
           await repository.run(async (tx) => {
@@ -300,6 +303,18 @@ export function createApi(
           if (path === '/api/vehicle-catalog' && method === 'GET') return result(await tx.vehicleCatalog());
           if (path.startsWith('/api/admin/') && user.role !== 'ADMIN')
             throw new HttpError(403, 'ADMIN_REQUIRED');
+          if (path === '/api/admin/invoice-tracking' && method === 'GET') {
+            const { state, filters, cursor } = invoiceSearch(new URL(request.url).searchParams);
+            return result(await tx.invoiceOrders(state, filters, cursor));
+          }
+          if (path === '/api/admin/invoice-tracking/count' && method === 'GET')
+            return result({ count: await tx.pendingInvoiceCount() });
+          if (invoiceRoute && method === 'GET') {
+            const order = await tx.order(uuid.parse(invoiceRoute[1]));
+            if (order?.status !== 'CLOSED' || order.draft.electronicInvoice !== true)
+              throw new HttpError(404, 'INVOICE_ORDER_NOT_FOUND');
+            return result(order);
+          }
           if (path === '/api/admin/users' && method === 'GET') {
             const users=[];
             for(const target of await tx.users()) users.push({...publicUser(target),canDelete:!target.active && target.id!==user.id && !(await tx.userHasHistory(target.id))});
@@ -375,7 +390,13 @@ export function createApi(
           }
           let response: Reply;
           try {
-            if (orderRoute && method === 'PUT') {
+            if (invoiceWrite) {
+              const id = uuid.parse(invoiceRoute[1]);
+              const { issued, orderVersion } = invoiceUpdate.parse(input);
+              const version = invoiceVersion(request.headers.get('if-match'));
+              await tx.setInvoiceState(id, issued, version, orderVersion);
+              response = result({ issued });
+            } else if (orderRoute && method === 'PUT') {
               const id = uuid.parse(orderRoute[1]);
               let draft = draftSchema.parse(input);
               const existing = await tx.order(id);

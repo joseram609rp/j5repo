@@ -1,4 +1,6 @@
+import { randomBytes } from 'node:crypto';
 import { amounts } from '../src/validation.js';
+import { INVOICE_PAGE_SIZE, type InvoiceCursor, type InvoiceFilters, type InvoiceState } from '../src/invoice-types.js';
 import { HttpError } from '../src/reliability.js';
 import {
   IDLE_MS,
@@ -19,6 +21,7 @@ export class FakeRepository implements Repository, UnitOfWork {
   sessions = new Map<string, Session>();
   orders = new Map<string, Order>();
   receipts = new Map<string, Receipt>();
+  invoices = new Map<string, { issued: boolean; version: string }>();
   audits: {
     actorId: string | null;
     action: string;
@@ -41,6 +44,7 @@ export class FakeRepository implements Repository, UnitOfWork {
       sessions: this.sessions,
       orders: this.orders,
       receipts: this.receipts,
+      invoices: this.invoices,
       audits: this.audits,
     });
     try {
@@ -116,6 +120,42 @@ export class FakeRepository implements Repository, UnitOfWork {
       o.draft.identification === search ||
       (o.displayOrderId ?? '').startsWith(search);
     }).slice(0,50);
+  }
+  async invoiceOrders(state: InvoiceState, filters: InvoiceFilters, cursor?: InvoiceCursor) {
+    const direction = state === 'pending' ? 1 : -1;
+    const compare = (a: InvoiceCursor, b: InvoiceCursor) =>
+      direction * (a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+    const matches = [...this.orders.values()].flatMap(order => {
+      const tracking = this.invoices.get(order.id);
+      if (order.status !== 'CLOSED' || order.draft.electronicInvoice !== true ||
+          (tracking?.issued ?? false) !== (state === 'issued')) return [];
+      const { identification, plate, make, model, customerName } = order.draft;
+      const date = order.orderDate ?? new Date(Date.parse(order.openedAt!) - 6 * 3600000).toISOString().slice(0, 10);
+      const orderNumber = order.displayOrderId ?? '';
+      if ((filters.plate && plate !== filters.plate) || (filters.identification && identification !== filters.identification) ||
+          (filters.orderNumber && orderNumber !== filters.orderNumber) || (filters.from && date < filters.from) ||
+          (filters.to && date > filters.to) || (cursor && compare({ id: order.id, date }, cursor) <= 0)) return [];
+      return [{ id: order.id, orderNumber, date, plate, make: make ?? null, model: model ?? null,
+        customer: customerName, identification: identification ?? null, total: order.totalAmount ?? 0,
+        version: tracking?.version ?? null, orderVersion: order.version }];
+    }).sort(compare);
+    const entries = matches.slice(0, INVOICE_PAGE_SIZE);
+    const last = entries.at(-1);
+    return { entries, next: matches.length > entries.length && last ? { date: last.date, id: last.id } : null };
+  }
+  async pendingInvoiceCount() {
+    return [...this.orders.values()].filter(order => order.status === 'CLOSED' && order.draft.electronicInvoice === true &&
+      !this.invoices.get(order.id)?.issued).length;
+  }
+  async setInvoiceState(id: string, issued: boolean, version: string | null, orderVersion: string) {
+    const order = this.orders.get(id);
+    if (order?.status !== 'CLOSED' || order.draft.electronicInvoice !== true)
+      throw new HttpError(404, 'INVOICE_ORDER_NOT_FOUND');
+    const current = this.invoices.get(id);
+    if ((current?.version ?? null) !== version || order.version !== orderVersion)
+      throw new HttpError(412, 'VERSION_CONFLICT');
+    if ((current?.issued ?? false) !== issued)
+      this.invoices.set(id, { issued, version: randomBytes(8).toString('hex') });
   }
   async findCustomers(_search: string) {
     return [];

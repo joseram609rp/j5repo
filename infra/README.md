@@ -6,7 +6,7 @@ El workflow instala dependencias con el lockfile del workspace, compila `fronten
 
 ## Configuración
 
-Configurar `APP_ORIGIN` para el origen HTTPS autorizado y mantener `SQL_*` exclusivamente en la configuración de la API. En Managed Functions con SWA Free, usar credenciales SQL restringidas para el runtime. Separar los permisos de ejecución de los permisos DDL para migraciones. El despliegue del código no aplica migraciones SQL.
+Configurar `APP_ORIGIN` para el origen HTTPS autorizado y mantener `SQL_*` exclusivamente en la configuración de la API. En Managed Functions con SWA Free, usar credenciales SQL restringidas para el runtime. Separar los permisos de ejecución de los permisos DDL para migraciones. El despliegue del código no aplica migraciones SQL. Para habilitar Facturas electrónicas, verificar que 019_order_invoice_tracking.sql figure en dbo.SchemaMigrations del destino SQL de cada entorno.
 
 El transporte de Functions usa `authLevel=anonymous`. La API aplica sesión, CSRF y roles. `GET /api/health` es público y devuelve el estado del servicio.
 
