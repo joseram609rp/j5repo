@@ -200,6 +200,7 @@ export class Autosave {
   private background = false;
   private storageFailed = false;
   private following = false;
+  private persistedRevision?: number;
   localConflict = false;
   constructor(
     public state: RecordState,
@@ -224,6 +225,7 @@ export class Autosave {
       }),
   ) {
     this.baselineDraft = structuredClone(state.pending?.baseDraft ?? state.order?.draft);
+    this.persistedRevision = state.localRevision === undefined ? undefined : state.revision;
     this.stopped = !!state.conflict;
   }
   private write() {
@@ -234,6 +236,7 @@ export class Autosave {
         try {
           const revision = await this.persist(this.user, { ...snapshot, localRevision: this.state.localRevision });
           if (revision !== undefined) this.state.localRevision = revision;
+          this.persistedRevision = snapshot.revision;
           this.storageFailed = false;
         } catch (error) {
           this.storageFailed = true;
@@ -336,7 +339,8 @@ export class Autosave {
     const canFollow = () => !this.detached && !this.localConflict && !this.background &&
       !this.storageFailed && !this.active && this.state === state && this.queue === queue &&
       (this.following || (!state.pending && !state.conflict && !state.draft.action &&
-        state.revision === state.savedRevision));
+        (state.revision === state.savedRevision ||
+          (canCancelBackfill(state) && state.revision === this.persistedRevision))));
     if (!canFollow()) return false;
     const current = await storage.read(this.user, state.id);
     if (!current || !canFollow() || !canApply()) return false;
@@ -349,6 +353,7 @@ export class Autosave {
     }
     clearTimeout(this.timer);
     this.state = current;
+    this.persistedRevision = current.revision;
     this.baselineDraft = structuredClone(current.pending?.baseDraft ?? current.order?.draft);
     this.stopped = !!current.conflict || (!!current.order && current.order.status !== 'OPEN' &&
       !current.pending && !current.draft.action);

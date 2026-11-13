@@ -234,3 +234,23 @@ it('keeps a pending historical close canonical when a stale tab tries to cancel'
   expect(offline).toHaveBeenCalledTimes(1);
   await Promise.all([closer.pause(), canceller.pause()]);
 });
+it('follows persisted historical edits in both directions without sending them to the server', async () => {
+  const user = crypto.randomUUID(), record = fresh();
+  record.draft.workDate = '2024-02-29';
+  record.draft.customerName = 'test';
+  record.draft.plate = 'JJJ111';
+  record.revision = 1;
+  await storage.write(user, record);
+  const send = vi.fn();
+  const left = new Autosave((await storage.read(user, record.id))!, user, 'csrf', vi.fn(), vi.fn(), storage.write, send);
+  const right = new Autosave((await storage.read(user, record.id))!, user, 'csrf', vi.fn(), vi.fn(), storage.write, send);
+  await left.edit({...left.state.draft, notes:'Primera revisión'});
+  expect(await right.refreshLocal()).toBe(true);
+  expect(right.state.draft.notes).toBe('Primera revisión');
+  await right.edit({...right.state.draft, recommendations:'Segunda revisión'});
+  expect(await left.refreshLocal()).toBe(true);
+  expect(left.state.draft.recommendations).toBe('Segunda revisión');
+  expect(left.localConflict || right.localConflict).toBe(false);
+  expect(send).not.toHaveBeenCalled();
+  await Promise.all([left.pause(), right.pause()]);
+});
