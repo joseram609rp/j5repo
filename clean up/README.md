@@ -1,4 +1,6 @@
-# Cleanup total de J5 — DEV/QA ONLY
+# Cleanup histórico de J5 para DEV/QA
+
+Estos scripts solo admiten un esquema con 15 migraciones (001–015). El esquema actual (001–018) queda fuera de su alcance. Los comandos siguientes documentan el procedimiento para ese esquema histórico.
 Elimina órdenes/trabajos, clientes, vehículos, sesiones, recibos idempotentes, auditoría y usuarios MECHANIC u otros no ADMIN.
 Conserva TODOS los ADMIN activos e inactivos con sus campos intactos, SchemaMigrations y schema/constraints/triggers/índices/secuencia.
 No es una migración; no altera migraciones aplicadas. Si aparecen tablas nuevas, aborta hasta revisarlas.
@@ -23,7 +25,6 @@ Reabre CLOSED/VOID solo dentro de la transacción para cumplir triggers; borra e
 
 ## Secuencia y limpieza local
 @ResetOrderNumber=1 reinicia dbo.OrderNumber a 1 para QA/entrega inicial después de borrar todas las órdenes.
-En producción NO reiniciar salvo decisión explícita; configure @ResetOrderNumber=0.
 test:sql usa fixtures rollback-only; puede consumir números de secuencia. Si se ejecuta, repetir postcheck. No publicar resultados operativos de DB en el repo.
 Complete [limpieza local](04_clear_local_cache.md) antes de reabrir frontend.
 

@@ -1,6 +1,6 @@
 # Frenos La Bandera / J5
 
-PWA para un taller de mecánica rápida de una sucursal. Phase 3 está funcionalmente completa: usuarios, clientes, vehículos, órdenes, autosave, recuperación offline, cierre e historial. El QA de sincronización y cancelación entre pestañas fue aprobado por el usuario el 12 de noviembre de 2026. La verificación física en iPadOS 15 sigue pendiente.
+PWA para un taller de mecánica rápida de una sucursal. Incluye usuarios, clientes, vehículos, órdenes del día, registro de órdenes anteriores, recuperación offline e historial.
 
 ## Arquitectura
 
@@ -23,7 +23,7 @@ Navegador / PWA React
 | data/vehicle-catalog/ | Seed, fuentes, evidencia y procedencia del catálogo |
 | docs/ | Arquitectura, verificación, correcciones técnicas y seguridad |
 | scripts/ | Herramientas SQL y generación/validación del catálogo |
-| infra/ | Preparación y pendientes de despliegue |
+| infra/ | Configuración y verificación de despliegues |
 | shared/, images/ | Recursos compartidos y logo original |
 
 ## Preparación local
@@ -64,9 +64,9 @@ Nunca colocar secretos en `VITE_*`: cualquier valor incorporado al frontend qued
 
 ## Base de datos
 
-Existen **15 migraciones, 001–015**. El runner usa transacción, applock y checksums SHA-256; rechaza historia ausente o alterada. Agregar migraciones nuevas para cambios futuros, sin editar las aplicadas.
+Existen **18 migraciones, 001–018**. El runner usa transacción, applock y checksums SHA-256; rechaza historia ausente o alterada. Agregar migraciones nuevas para cambios futuros, sin editar las aplicadas.
 
-Los hitos son core/rowversion (001), recibos y auditoría (002), guards históricos/totales (003), modelo del vehículo (004), notas de cierre (005, requisito retirado por 007), selección corregible en OPEN (006), notas opcionales y año >=1950 (007), reasignación (008), pago/IVA/notas por trabajo (009), catálogo (010), numeración diaria (011), lockout (012), placas flexibles (013), constraint de username (014) y guard flexible de placa al cerrar (015). [Detalle y permisos](database/README.md).
+Los hitos son core/rowversion (001), recibos y auditoría (002), guards históricos/totales (003), modelo del vehículo (004), notas de cierre (005, requisito retirado por 007), selección corregible en OPEN (006), notas opcionales y año >=1950 (007), reasignación (008), pago/IVA/notas por trabajo (009), catálogo (010), numeración diaria (011), lockout (012), placas flexibles (013), constraint de username (014), guard flexible de placa al cerrar (015), cédulas jurídicas (016), archivo histórico (017) y órdenes anteriores (018). [Detalle y permisos](database/README.md).
 
 ## Autenticación y seguridad
 
@@ -86,19 +86,19 @@ Transferir dueño está permitido a **MECHANIC y ADMIN autenticados**, mediante 
 
 ## Ciclo de órdenes
 
-`OPEN -> CLOSED` al cierre; `OPEN -> VOID` al cancelar; ADMIN puede `CLOSED -> OPEN`. VOID conserva datos y auditoría, desaparece de abiertas y no integra el historial normal de CLOSED. CLOSED/VOID no admiten reasignación. Cada acción Nueva orden crea una OPEN distinta; pueden existir varias a la vez. Login, refresh y navegación no crean órdenes.
+`OPEN -> CLOSED` al cierre; `OPEN -> VOID` al cancelar; ADMIN puede reabrir una orden del día cerrada. VOID conserva datos y auditoría, desaparece de abiertas y no integra el historial normal de CLOSED. CLOSED/VOID no admiten reasignación. **Nueva orden → Orden del día** crea una OPEN distinta. ADMIN también puede elegir **Orden anterior**, que queda como borrador local con una fecha de trabajo anterior a hoy en Costa Rica. Al confirmar se registra directamente como CLOSED y recibe su número oficial.
 
-Autosave conserva el formulario local y sincroniza cuando es válido. Cerrar valida campos/trabajos/pago/factura, confirma OT y total y usa cálculo oficial del backend. Cuando cliente y dueño difieren, el flujo de cierre propone asignar el vehículo al cliente seleccionado; permite elegir explícitamente mantener dueño actual. SQL comprueba las identidades y el dueño esperado dentro de la transacción; una decisión obsoleta se rechaza. Las órdenes anteriores conservan sus snapshots/referencias.
+**Vista previa de orden** valida los datos de cierre, los trabajos, el método de pago y la elección de factura electrónica. Muestra cliente, vehículo, servicios, subtotal, IVA, total y la fecha del negocio o del trabajo. Es un resumen para revisar con el cliente. **Volver a editar** conserva el borrador y **Confirmar y cerrar orden** solicita el cierre oficial. Para una orden del día, la aplicación sincroniza antes de preparar la vista y permite elegir entre transferir o conservar el dueño actual si difiere del cliente. SQL verifica esa decisión dentro de la transacción.
 
-Identificador visible `OT-YYYYMMDD-NN`: fecha local UTC-6, consecutivo diario de al menos dos dígitos, sin truncar números mayores de 99. UUID sigue siendo identidad técnica y order_number global sirve para desempate. Historial inicia vacío y busca CLOSED con mínimo dos caracteres: OT por prefijo (incluido prefijo del día), nombre parcial, cédula exacta o placa normalizada exacta. Páginas de 50 con cursor estable. [Contratos](docs/architecture.md).
+Identificador visible `OT-YYYYMMDD-NN`: fecha local UTC-6, consecutivo diario de al menos dos dígitos, sin truncar números mayores de 99. UUID sigue siendo identidad técnica y order_number global sirve para desempate. Historial inicia vacío y busca órdenes CLOSED por texto, rango de fechas o ambos. El texto requiere al menos dos caracteres y admite prefijo de OT, nombre parcial, cédula exacta o placa normalizada exacta. Al combinar texto y fechas se aplican ambos filtros. Las páginas contienen hasta 50 resultados. El archivo histórico importado se consulta en su módulo de solo lectura. [Contratos](docs/architecture.md).
 
 ## Clientes y vehículos
 
 La cédula única identifica al cliente. Un cierre válido actualiza nombre/teléfono/email del maestro, sin alterar la cédula; los snapshots de órdenes previas conservan el contacto histórico. Autosave no sobrescribe el contacto actual de clientes existentes. La selección de vehículo permite conservar un cliente elegido y decidir el dueño explícitamente. Las coincidencias reutilizan clientes/vehículos por cédula/placa.
 
-Último kilometraje: lectura más reciente no nula entre órdenes del vehículo, incluidas VOID; una orden posterior vacía no elimina la lectura anterior. Se usa como referencia del formulario, sin acreditar kilometraje real.
+Último kilometraje: lectura más reciente no nula entre órdenes del vehículo, incluidas VOID y excluidas las órdenes anteriores registradas retroactivamente; una orden posterior vacía no elimina la lectura anterior. Se usa como referencia del formulario, sin acreditar kilometraje real.
 
-Placas: mayúsculas, sin espacios/guiones, **3–12 caracteres alfanuméricos ASCII normalizados**. Ejemplos sintéticos: `AB-123` se normaliza a `AB123`; `XYZ 9` a `XYZ9`. Es una regla flexible de captura para Costa Rica, no una afirmación exhaustiva sobre registros legales. Año entero >=1950; kilometraje entero 0..10,000,000. Cierre exige nombre, cédula de 9 dígitos, teléfono de 8, email opcional válido, marca/modelo/año/placa, kilometraje y al menos un trabajo con precio positivo.
+Placas: mayúsculas, sin espacios/guiones, **3–12 caracteres alfanuméricos ASCII normalizados**. Ejemplos sintéticos: `AB-123` se normaliza a `AB123`; `XYZ 9` a `XYZ9`. Es una regla flexible de captura para Costa Rica, no una afirmación exhaustiva sobre registros legales. Año entero >=1950; kilometraje entero 0..10,000,000. Cierre exige nombre, cédula de 9 dígitos (física) o 10 (jurídica), teléfono de 8, email opcional válido, marca/modelo/año/placa, kilometraje y al menos un trabajo con precio positivo.
 
 ## Catálogo
 
@@ -114,7 +114,7 @@ Pago: SINPE, tarjeta de crédito, tarjeta de débito, efectivo o transferencia b
 
 ## Autosave, offline y concurrencia
 
-IndexedDB separa borradores por usuario/orden y conserva payload, ETag, clave idempotente, pendientes y copias de recuperación. Datos incompletos se conservan localmente; SQL autosave espera payload válido. Crear/cerrar necesitan conexión para confirmación oficial. Tras una respuesta perdida, se reenvía la misma mutación/clave; no se duplican efectos. La revisión local detecta escrituras concurrentes entre pestañas y conserva una copia recuperable cuando hay conflicto.
+IndexedDB separa borradores por usuario/orden y conserva payload, ETag, clave idempotente, pendientes y copias de recuperación. Datos incompletos se conservan localmente; SQL autosave espera payload válido. Crear/cerrar necesitan conexión para confirmación oficial. Tras una respuesta perdida, se reenvía la misma mutación/clave; no se duplican efectos. Las revisiones optimistas de IndexedDB detectan escrituras concurrentes entre pestañas y conservan una copia recuperable cuando hay conflicto. La vista previa bloquea el cierre si cambia la revisión local o el ETag. Vuelve a editar y abre una nueva vista para revisar los datos actualizados.
 
 Las órdenes del día y los borradores de órdenes anteriores se actualizan silenciosamente entre pestañas al recibir cambios guardados en IndexedDB. Los borradores anteriores permanecen locales hasta confirmar el cierre. Una cancelación compartida deshabilita el formulario y retira las acciones y validaciones de cierre. Los avisos del editor y las descargas de recuperación aparecen únicamente en el contexto de su orden; Historial consulta las órdenes cerradas por placa, nombre, cédula o fecha.
 
@@ -137,13 +137,11 @@ git diff --check
 
 ## Limpieza DEV/QA
 
-[clean up/README.md](clean%20up/README.md) describe precheck, confirmación destructiva, cleanup y postcheck. Borra órdenes/trabajos, clientes/vehículos, sesiones, receipts, auditoría y usuarios no ADMIN. Preserva **todos los ADMIN**, `SchemaMigrations` con 15 migraciones y catálogo completo (`VehicleMakes=57`, `VehicleModels=986`), además del schema y guards. Aborta ante schema desconocido y verifica snapshots antes/después. Es destructivo, exclusivo DEV/QA; requiere detener APIs/pestañas y respaldo disponible. Esta revisión no ejecuta cleanup. Borrar SQL no borra IndexedDB: completar limpieza local por separado.
+Los scripts de [limpieza DEV/QA](clean%20up/README.md) corresponden al esquema 001–015. Sus comprobaciones rechazan el esquema actual 001–018. Borrar datos de SQL y limpiar IndexedDB son operaciones independientes.
 
 ## Git y despliegue
 
-`main`: intención estable/producción; `dev`: integración. Branch de trabajo -> PR a dev -> QA Azure/dispositivos -> PR dev a main cuando esté listo. Esta revisión queda en una branch nueva, sin merge. [Infraestructura](infra/README.md) describe preparación de Azure sin credenciales.
-
-Antes de producción quedan: deployment DEV, QA móvil/tablet/PWA, validación del host Functions/cookies/CSP/cold start real, decisión de alojamiento/identidad y permisos SQL mínimos configurados (Managed Functions de SWA Free no admite Managed Identity para la API; ver infra), límite compartido si hay varias instancias, política automatizada de retención de Sessions/IdempotencyRequests/AuditLogs y pruebas de commits ambiguos/concurrencia. No hay integración de factura electrónica V1. La retención de receipts debe respetar la vida de la cola offline para evitar duplicados.
+`dev` integra cambios mediante PR y despliega el entorno de pruebas. Tras verificarlo, un PR de `dev` a `prod` promueve la versión. GitHub Actions despliega ambas ramas en Azure Static Web Apps y genera una vista temporal para PR hacia `prod`. [Infraestructura](infra/README.md).
 
 ## Privacidad del repositorio público
 
