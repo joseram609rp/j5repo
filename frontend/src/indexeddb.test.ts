@@ -2,7 +2,20 @@
 import 'fake-indexeddb/auto';
 import { expect, it, vi } from 'vitest';
 import { openDB } from 'idb';
-import { Autosave, fresh, storage, type Order } from './autosave';
+import { Autosave, DraftUpgradeBlocked, fresh, storage, type Order } from './autosave';
+
+it('waits for an old v1 tab to finish, then opens v2 without deleting its draft', async () => {
+  const user = crypto.randomUUID();
+  const record = fresh();
+  const legacy = await openDB('j5-drafts-v1', 1, {upgrade: db => { db.createObjectStore('drafts'); }});
+  await legacy.put('drafts', record, user);
+  try {
+    await expect(storage.read(user, record.id)).rejects.toBeInstanceOf(DraftUpgradeBlocked);
+    expect(await legacy.get('drafts', user)).toEqual(record);
+  } finally { legacy.close(); }
+  expect(await storage.read(user, record.id)).toEqual({...record, localRevision:0});
+  await expect(openDB('j5-drafts-v1', 1)).rejects.toMatchObject({name:'VersionError'});
+});
 it('IndexedDB persists user-scoped pending payload/key and recovers the exact close after restart', async () => {
   const user = crypto.randomUUID(),
     other = crypto.randomUUID();

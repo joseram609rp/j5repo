@@ -4,6 +4,7 @@ import { act, StrictMode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { App } from './App';
 import { OrderList } from './OrderList';
+import { draftChangeKey } from './draft-changes';
 import { api, ApiError } from './api';
 import { amounts } from '../../backend/src/validation';
 import { bootstrapSession } from './bootstrap';
@@ -728,7 +729,7 @@ it('focus refetch updates reassigned mechanic and removes cancellation without s
  orders.set(initial.id,{...initial,mechanicId:crypto.randomUUID(),mechanicName:'Nuevo mecánico',version:'new-version'});
  await act(async()=>{window.dispatchEvent(new Event('focus'));for(let i=0;i<30;i++)await Promise.resolve();});
  expect(text()).toContain('Esta orden fue reasignada a Nuevo mecánico.');expect(button('Cancelar orden')).toBeUndefined();
- expect(disk?.version).toBe('new-version');expect(vi.mocked(api).mock.calls.some(([path])=>path==='/auth/activity')).toBe(false);
+ expect(storage.write).not.toHaveBeenCalled();expect(vi.mocked(api).mock.calls.some(([path])=>path==='/auth/activity')).toBe(false);
 });
 it('ADMIN can cancel an order assigned to another mechanic',async()=>{
  const initial=seed();initial.mechanicId=crypto.randomUUID();orders.set(initial.id,clone(initial));disk!.order=clone(initial);
@@ -743,7 +744,7 @@ it('polls OPEN metadata every 30 seconds and does not renew session',async()=>{
  await click('Inicio');await click('Órdenes abiertas');await click('Continuar');
  orders.set(initial.id,{...initial,mechanicId:crypto.randomUUID(),mechanicName:'Poll mechanic',version:'polled'});
  await act(async()=>{await vi.advanceTimersByTimeAsync(30000);});
- expect(text()).toContain('Esta orden fue reasignada a Poll mechanic.');expect(disk?.version).toBe('polled');
+ expect(text()).toContain('Esta orden fue reasignada a Poll mechanic.');expect(storage.write).not.toHaveBeenCalled();
  expect(vi.mocked(api).mock.calls.some(([path])=>path==='/auth/activity')).toBe(false);
 });
 it('an invalid local draft does not prevent cancellation of a persisted OPEN',async()=>{
@@ -798,14 +799,74 @@ it.each([
  await newDailyOrder(); expect(disk!.id).not.toBe(first.id); expect(notices()).not.toContain(message);
  await click('Historial'); expect(notices()).not.toContain(message);
 });
-it('remote update and cancellation reports disappear outside the originating editor', async () => {
+it('refreshes ordinary remote changes silently and scopes cancellation to the editor', async () => {
  const first=seed(); await mount(); await click('Órdenes abiertas'); await click('Continuar');
  const refresh=async()=>act(async()=>{window.dispatchEvent(new Event('focus'));for(let i=0;i<30;i++)await Promise.resolve();});
- orders.set(first.id,{...first,version:'updated'}); await refresh(); expect(notices()).toContain('Orden actualizada.');
+ orders.set(first.id,{...first,version:'updated',draft:{...first.draft,customerName:'test'}}); await refresh();
+ expect(container.querySelector<HTMLInputElement>('[data-field=customerName]')?.value).toBe('test');
+ expect(notices()).not.toContain('Orden actualizada.');
  await click('Historial'); expect(notices()).not.toContain('Orden actualizada.');
  await click('Órdenes abiertas'); await click('Continuar');
  orders.set(first.id,{...first,status:'VOID',version:'void'}); await refresh(); expect(notices()).toContain('Esta orden fue cancelada.');
  await click('Inicio'); await newDailyOrder(); expect(notices()).not.toContain('Esta orden fue cancelada.');
+});
+
+it('follows shared device edits and receipts silently without sending a duplicate request', async () => {
+ const first = seed();
+ await mount(); await click('Órdenes abiertas'); await click('Continuar');
+ const snapshot = (await storage.read(session.userId, first.id))!;
+ const updated = {...first.draft, customerName:'test', plate:'JJJ111', identification:'333333333',
+   phone:'33333333', make:'Toyota', model:'Land Cruiser Prado', year:2023};
+ const notify = async (event: Event) => act(async () => {
+   window.dispatchEvent(event);
+   for (let i=0;i<30;i++) await Promise.resolve();
+ });
+ records.set(first.id, {...snapshot, localRevision:1, revision:1, draft:updated,
+   pending:{key:'shared-request', version:first.version, revision:1, draft:updated}});
+ await notify(new StorageEvent('storage', {key:draftChangeKey}));
+ expect(container.querySelector<HTMLInputElement>('[data-field=plate]')?.value).toBe('JJJ111');
+ await notify(new Event('pageshow'));
+ expect(puts).toBe(0);
+ const saved = {...first, status:'CLOSED' as const, version:'closed', draft:updated};
+ orders.set(first.id, saved);
+ records.set(first.id, {...snapshot, localRevision:2, revision:1, savedRevision:1, draft:updated,
+   order:saved, version:saved.version});
+ await notify(new Event('focus'));
+ expect(container.querySelector('.badge')?.textContent).toBe('CERRADA');
+ expect(notices()).not.toMatch(/Otra pestaña|Conflicto|Orden actualizada/);
+ expect(puts).toBe(0);
+});
+
+it('finds JJJ111 in history and keeps recovery inside its closed detail', async () => {
+ const first = seed('CLOSED');
+ first.draft = {...first.draft, customerName:'test', plate:'JJJ111', identification:'333333333',
+   phone:'33333333', make:'Toyota', model:'Land Cruiser Prado', year:2023};
+ disk = {...disk!, draft:clone(first.draft), order:clone(first),
+   recoveryCopies:[{draft:clone(first.draft), version:first.version, savedAt:1}]};
+ records.set(first.id, clone(disk));
+ vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
+ await mount(); await click('Órdenes abiertas');
+ await input('.search input','JJJ111'); await click('Buscar');
+ expect(container.querySelector('.order-card')).toBeNull();
+ expect(text()).not.toContain('Copias de recuperación');
+ await click('Historial'); await input('.search input','JJJ111'); await click('Buscar');
+ expect(container.querySelector('.order-card')?.textContent).toContain('JJJ111');
+ expect(text()).not.toContain('Copias de recuperación');
+ await click('Ver detalle');
+ expect(container.querySelector('summary')?.textContent).toBe('Copias de recuperación de esta orden');
+ await click('Usuarios');
+ expect(text()).not.toContain('Copias de recuperación');
+ expect(container.querySelector('section.editor [role=status]')).toBeNull();
+});
+
+it('scopes a logout failure to its control and clears it on module change', async () => {
+ const original = vi.mocked(api).getMockImplementation()!;
+ vi.mocked(api).mockImplementation((path, options) => path === '/auth/logout'
+   ? Promise.reject(new TypeError('offline')) : original(path, options));
+ await mount(); await click('Cerrar sesión');
+ expect(container.querySelector('header [role=alert]')?.textContent).toContain('No se pudo cerrar la sesión');
+ await click('Historial');
+ expect(container.querySelector('header [role=alert]')).toBeNull();
 });
 it('reopen and reassignment confirmations are cleared on navigation and another order', async () => {
  seed('CLOSED'); vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});

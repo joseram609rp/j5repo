@@ -17,3 +17,21 @@ it('does not announce first installation or block the app when service workers a
  vi.stubGlobal('navigator',{serviceWorker:{controller:null,register:vi.fn(async()=>registration)}});vi.stubGlobal('window',new EventTarget());
  await module.registerAppUpdates();expect(module.updateAvailable()).toBe(false);
 });
+
+it('offers a safe reload when another tab activated the waiting service worker', async () => {
+ const worker = {postMessage:vi.fn()};
+ const registration = Object.assign(new EventTarget(), {waiting:worker as typeof worker | null, installing:null});
+ const service = Object.assign(new EventTarget(), {controller:{}, register:vi.fn(async () => registration)});
+ const reload = vi.fn();
+ vi.stubGlobal('navigator', {serviceWorker:service});
+ vi.stubGlobal('window', Object.assign(new EventTarget(), {location:{reload}}));
+ const module = await import('./pwa-update');
+ await module.registerAppUpdates();
+ registration.waiting = null;
+ service.controller = {};
+ service.dispatchEvent(new Event('controllerchange'));
+ expect(reload).not.toHaveBeenCalled();
+ await module.applyUpdate();
+ expect(reload).toHaveBeenCalledTimes(1);
+ expect(worker.postMessage).not.toHaveBeenCalled();
+});
