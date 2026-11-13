@@ -423,6 +423,28 @@ nav {
   margin-top: 20px;
   border-radius: 12px;
 }
+.invoice-filters {
+  margin: 1rem 0;
+}
+.invoice-results {
+  list-style: none;
+  padding: 0;
+}
+.invoice-results li + li {
+  margin-top: .75rem;
+}
+.invoice-results a {
+  display: inline-block;
+  margin: .5rem;
+}
+dialog.invoice-dialog {
+  width: min(30rem, calc(100% - 2rem));
+  margin: auto;
+  color: inherit;
+}
+.invoice-dialog::backdrop {
+  background: rgba(16, 24, 40, .55);
+}
 .confirmation button {
   margin-right: 12px;
 }

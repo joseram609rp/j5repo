@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { customerSchema, vehicleSchema } from './validation.js';
 import { config } from './config.js';
 import { HttpError, retrySql } from './reliability.js';
+import { INVOICE_PAGE_SIZE, type InvoiceCursor, type InvoiceEntry, type InvoiceFilters, type InvoiceState } from './invoice-types.js';
 import {
   IDLE_MS,
   type Customer,
@@ -130,6 +131,11 @@ export function preserveItemOrder<T extends {description:string;price:number;not
   }
   return [...ordered,...remaining];
 }
+const invoiceEligible = `o.status='CLOSED' AND EXISTS (
+  SELECT 1 FROM OPENJSON(o.draft_data)
+  WHERE [key]='electronicInvoice' AND [type]=3 AND [value]='true'
+)`;
+
 export class SqlUnit implements UnitOfWork {
   constructor(
     private tx: sql.Transaction,
@@ -313,6 +319,69 @@ export class SqlUnit implements UnitOfWork {
       )
     ).recordset;
     return rows.map(order);
+  }
+  async invoiceOrders(state: InvoiceState, filters: InvoiceFilters, cursor?: InvoiceCursor) {
+    const direction = state === 'pending' ? 'ASC' : 'DESC';
+    const comparison = state === 'pending' ? '>' : '<';
+    const rows = (await this.query<Omit<InvoiceEntry, 'version' | 'orderVersion'> & {
+      version: Buffer | null;
+      orderVersion: Buffer;
+    }>(`
+      SELECT TOP (@limit) o.id, o.display_order_id AS orderNumber, o.customer_name_snapshot AS customer,
+        JSON_VALUE(o.draft_data,'$.identification') AS identification, o.plate_snapshot AS plate,
+        JSON_VALUE(o.draft_data,'$.make') AS make, JSON_VALUE(o.draft_data,'$.model') AS model,
+        CONVERT(char(10),o.order_date,23) AS date, o.total_amount AS total, t.version, o.version AS orderVersion
+      FROM dbo.Orders o LEFT JOIN dbo.OrderInvoiceTracking t ON t.order_id=o.id
+      WHERE ${invoiceEligible}
+        AND ${state === 'pending' ? '(t.is_issued=0 OR t.order_id IS NULL)' : 't.is_issued=1'}
+        ${filters.plate ? 'AND o.plate_snapshot=@plate' : ''}
+        ${filters.identification ? "AND JSON_VALUE(o.draft_data,'$.identification')=@identification" : ''}
+        ${filters.orderNumber ? 'AND o.display_order_id=@orderNumber' : ''}
+        ${filters.from ? 'AND o.order_date>=CONVERT(date,@from,23)' : ''}
+        ${filters.to ? 'AND o.order_date<=CONVERT(date,@to,23)' : ''}
+        ${cursor ? `AND (o.order_date ${comparison} CONVERT(date,@afterDate,23) OR
+          (o.order_date=CONVERT(date,@afterDate,23) AND o.id ${comparison} CONVERT(uniqueidentifier,@afterId)))` : ''}
+      ORDER BY o.order_date ${direction}, o.id ${direction}`, {
+      limit: INVOICE_PAGE_SIZE + 1,
+      ...filters,
+      ...(cursor ? { afterDate: cursor.date, afterId: cursor.id } : {}),
+    })).recordset;
+    const entries = rows.slice(0, INVOICE_PAGE_SIZE).map(row => ({
+      ...row, version: row.version?.toString('hex') ?? null, orderVersion: row.orderVersion.toString('hex'),
+    }));
+    const last = entries.at(-1);
+    return { entries, next: rows.length > INVOICE_PAGE_SIZE && last ? { date: last.date, id: last.id } : null };
+  }
+  async pendingInvoiceCount() {
+    const result = await this.query<{ total: number }>(`
+      SELECT COUNT(*) AS total
+      FROM dbo.Orders o LEFT JOIN dbo.OrderInvoiceTracking t ON t.order_id=o.id
+      WHERE ${invoiceEligible} AND (t.is_issued=0 OR t.order_id IS NULL)`);
+    return result.recordset[0]!.total;
+  }
+  async setInvoiceState(id: string, issued: boolean, version: string | null, orderVersion: string) {
+    // Take the order lock first, in the same transaction as the receipt and tracking write.
+    const eligible = (await this.query<{ version: Buffer }>(`
+      SELECT o.version FROM dbo.Orders o WITH (UPDLOCK,HOLDLOCK)
+      WHERE o.id=@id AND ${invoiceEligible}`, { id })).recordset[0];
+    if (!eligible) throw new HttpError(404, 'INVOICE_ORDER_NOT_FOUND');
+    if (eligible.version.toString('hex') !== orderVersion) throw new HttpError(412, 'VERSION_CONFLICT');
+
+    const current = (await this.query<{ version: Buffer; issued: boolean }>(
+      'SELECT version, is_issued AS issued FROM dbo.OrderInvoiceTracking WITH (UPDLOCK,HOLDLOCK) WHERE order_id=@id',
+      { id },
+    )).recordset[0];
+    if ((current?.version.toString('hex') ?? null) !== version) throw new HttpError(412, 'VERSION_CONFLICT');
+    if ((current?.issued ?? false) === issued) return;
+    if (!current) {
+      await this.query('INSERT dbo.OrderInvoiceTracking(order_id,is_issued) VALUES(@id,@issued)', { id, issued });
+      return;
+    }
+    const updated = await this.query(
+      'UPDATE dbo.OrderInvoiceTracking SET is_issued=@issued WHERE order_id=@id AND version=@version',
+      { id, issued, version: current.version },
+    );
+    if (updated.rowsAffected[0] !== 1) throw new HttpError(412, 'VERSION_CONFLICT');
   }
   async findCustomers(search: string): Promise<Customer[]> {
     return (
