@@ -56,7 +56,7 @@ Historial search-only: nombre parcial CI_AI, cédula/placa exactas, OT por prefi
 
 ## Offline, PWA y fiabilidad
 
-IndexedDB por [userId,orderId], migración atómica de borrador legacy, payload/clave/ETag/revisión pendientes. Valores incompletos permanecen localmente; se envían solo válidos. Una acción close/reopen/transfer-owner se persiste antes del envío. Refresh/login no crean órdenes. Cambiar editor protege borrador previo. Web Lock por usuario limita editores simultáneos del mismo navegador; no sustituye rowversion entre dispositivos.
+IndexedDB por [userId,orderId], migración atómica de borrador legacy, payload/clave/ETag/revisión pendientes. Valores incompletos permanecen localmente; se envían solo válidos. Una acción close/reopen/transfer-owner se persiste antes del envío. Refresh/login no crean órdenes. Cambiar editor protege borrador previo. Una revisión de almacenamiento comparada en la misma transacción protege cada borrador entre pestañas. Las escrituras obsoletas conservan una copia recuperable sin reemplazar el registro vigente. [Diseño y carreras revisadas](concurrencia-borradores.md).
 
 412 conserva cambios y consulta servidor. Reasignación solo de metadata permite nuevo intento explícito con ETag/clave nuevos; conflicto de contenido exige revisión por grupos/mezcla/servidor. recoveryCopies conserva la versión previa/pending y permite backup descargable. Remoto cambiado nuevamente exige revisar. Resolver no repite automáticamente acciones destructivas.
 

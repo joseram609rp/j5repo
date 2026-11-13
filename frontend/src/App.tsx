@@ -6,6 +6,7 @@ import { applyUpdate, onUpdateAvailable, updateAvailable } from './pwa-update';
 import { loadVehicleCatalog, normalizeCatalog, type VehicleCatalog } from './vehicle-catalog';
 import { SyncStatus } from './SyncStatus';
 import { SessionGate } from './SessionGate';
+import { onDraftChange } from './draft-changes';
 import { amounts, latestBackfillDate } from '../../backend/src/validation';
 import { bootstrapSession, type SessionStatus } from './bootstrap';
 import { Dashboard } from './Dashboard';
@@ -18,7 +19,9 @@ import { api, onBackendSuccess } from './api';
 import { loginErrorMessage } from './login-error';
 import {
   Autosave,
+  LocalConflict,
   canCancelBackfill,
+  draftUpgradeMessage,
   fresh,
   storage,
   type Draft,
@@ -26,15 +29,7 @@ import {
   type RecordState,
 } from './autosave';
 import { trackActivity, type Session } from './session';
-import { startEditorLock, type EditorAccess } from './editor-lock';
 import './style.css';
-
-const editorMessages: Record<Exclude<EditorAccess, 'ready'>, string> = {
-  checking: 'Comprobando si la edición está disponible…',
-  occupied: 'La edición está ocupada temporalmente. Si tienes otra pestaña de J5, ciérrala. Puedes seguir consultando las órdenes.',
-  unsupported: 'Este navegador permite consultar. Para editar tus borradores, usa un navegador con bloqueo de edición.',
-  error: 'No se pudo comprobar el bloqueo de edición. Revisa los permisos del navegador y reintenta.',
-};
 
 export function App() {
   const [hasUpdate, setHasUpdate] = useState(updateAvailable);
@@ -49,9 +44,7 @@ export function App() {
   const [mechanicRoster, setMechanicRoster] = useState<{id: string; fullName: string; role: string; active: boolean}[]>([]);
   const mechanics = mechanicRoster.filter(user => user.active);
   const [order, setOrder] = useState<Order | null>(null);
-  const [editorAccess, setEditorAccess] = useState<EditorAccess>('checking');
-  const editorLock = useRef<ReturnType<typeof startEditorLock> | null>(null);
-  const editorSession = useRef<Session | null>(null);
+  const activeSession = useRef<Session | null>(null);
   const [backfillStartError, setBackfillStartError] = useState(false);
   const [closing, setClosing] = useState(false);
   const [closeOwner,setCloseOwner]=useState<{vehicleId:string;customerId:string;expectedOwnerId:string;ownerName:string;decision:'transfer'|'keep'} | null>(null);
@@ -60,13 +53,15 @@ export function App() {
     'close' | 'reopen' | 'transfer-owner' | 'void' | null
   >(null);
   const [session, setSession] = useState<Session | null>(null);
-  const editorReady = editorSession.current === session && editorAccess === 'ready' && !!editorLock.current?.lease;
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>('checking');
   const [bootstrapError, setBootstrapError] = useState(false);
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [terminalRecovery, setTerminalRecovery] = useState<RecordState>();
   const historical = !!order?.isBackfilled || draft?.workDate !== undefined;
-  const [globalMessage, setGlobalMessage] = useState('');
+  const [loginMessage, setLoginMessage] = useState('');
+  const [logoutError, setLogoutError] = useState('');
+  const [updateError, setUpdateError] = useState('');
   const [healthMessage, setHealthMessage] = useState('');
   useEffect(() => onBackendSuccess(() => setHealthMessage('')), []);
   const [editorId, setEditorId] = useState<string | null>(null);
@@ -97,7 +92,15 @@ export function App() {
     return ()=>{live=false;window.removeEventListener('online',load);};
   }, [session?.userId, page]);
   const saver = useRef<Autosave | null>(null);
-  const creating = useRef(false);
+  const orderOperation = useRef(false);
+  const canFollowDraft = useRef(false);
+  useLayoutEffect(() => {
+    canFollowDraft.current = page === 'editor' && !busy && !confirmAction;
+  }, [page, busy, confirmAction]);
+  useLayoutEffect(() => {
+    setLogoutError('');
+    setUpdateError('');
+  }, [page, editorId, session]);
   useEffect(() => {
     const assigningMechanic = page === 'editor' && (order?.status === 'OPEN' || (historical && !order));
     if (session?.role !== 'ADMIN' || (page !== 'open' && !assigningMechanic)) return;
@@ -109,22 +112,42 @@ export function App() {
   }, [session, page, editorId, historical, order?.id, order?.status]);
   useEffect(() => { setSelectedMechanic(order?.mechanicId ?? ''); }, [order?.id, order?.mechanicId]);
   useEffect(() => {
-    if (page !== 'editor' || !order || order.status !== 'OPEN') return;
-    const refresh = () => {
-      if (document.visibilityState === 'hidden') return;
-      if (editorLock.current?.lease) void saver.current?.refresh().catch(() => undefined);
+    if (page !== 'editor' || busy || confirmAction) return;
+    let current = true;
+    const canApply = () => current && canFollowDraft.current && !orderOperation.current && document.visibilityState !== 'hidden';
+    const refreshLocal = () => {
+      const service = saver.current;
+      if (canApply()) void service?.refreshLocal(canApply).catch(() => undefined);
     };
+    const refresh = () => {
+      const service = saver.current;
+      if (!service || !canApply()) return;
+      void (async () => {
+        await service.refreshLocal(canApply).catch(() => undefined);
+        if (canApply() && saver.current === service) await service.refresh(false, true, canApply);
+      })().catch(() => undefined);
+    };
+    const stop = onDraftChange(refreshLocal);
     window.addEventListener('focus', refresh);
+    window.addEventListener('pageshow', refresh);
     document.addEventListener('visibilitychange', refresh);
     const timer = setInterval(refresh, 30000);
-    return () => { clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
-  }, [page, order?.id, order?.status]);
+    refreshLocal();
+    return () => {
+      current = false;
+      stop();
+      clearInterval(timer);
+      window.removeEventListener('focus', refresh);
+      window.removeEventListener('pageshow', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [page, editorId, busy, confirmAction]);
   async function updateMechanic() {
     const service = saver.current;
-    if (!editorLock.current?.lease || !service || !order || !session || busy) return;
+    if (!service || !order || !session || busy) return;
     setBusy(true);
     try {
-      await service.flush();
+      await service.flush(true);
       await service.edit({ ...service.state.draft, mechanicId: selectedMechanic, action: 'assign-mechanic' });
       await service.flush();
       if (service.state.order?.mechanicId !== selectedMechanic) throw new Error('ASSIGNMENT_FAILED');
@@ -132,72 +155,79 @@ export function App() {
     } catch { setMessage('No se pudo actualizar el mecánico. Revisa la orden y sincroniza los cambios pendientes.'); }
     finally { setBusy(false); }
   }
-  async function checkSession() {
-    setGlobalMessage('');
+  async function checkSession(isCurrent = () => true) {
+    setLoginMessage('');
     setHealthMessage('');
     setBootstrapError(false);
     setSessionStatus('checking');
     try {
       const result = await bootstrapSession();
+      if (!isCurrent()) return;
       setSession(result.session);
       setSessionStatus(result.status);
       if (result.status === 'anonymous')
-        setGlobalMessage('Inicia sesión para continuar.');
+        setLoginMessage('Inicia sesión para continuar.');
       if (!result.healthOk)
         setHealthMessage(
           'La base de datos no está disponible. Tu copia local está protegida.',
         );
     } catch {
-      setBootstrapError(true);
+      if (isCurrent()) setBootstrapError(true);
     }
   }
   useEffect(() => {
-    void checkSession();
+    let current = true;
+    void checkSession(() => current);
+    return () => { current = false; };
   }, []);
+  function detachSaver() {
+    const service = saver.current;
+    saver.current = null;
+    void service?.pause(true).catch(() => undefined);
+  }
+  function expireSession(expected: Session) {
+    if (activeSession.current !== expected) return;
+    activeSession.current = null;
+    detachSaver();
+    clearNotice();
+    setConfirmAction(null);
+    setConflict(undefined);
+    setDraft(null);
+    setOrder(null);
+    setPage('dashboard');
+    setSession(null);
+    setSessionStatus('anonymous');
+    setTouched(new Set());
+    setLoginMessage('La sesión terminó. Vuelve a entrar para recuperar tu borrador.');
+  }
   useLayoutEffect(() => {
     if (!session) return;
-    const controller = startEditorLock(session.userId, setEditorAccess, async () => {
+    activeSession.current = session;
+    const stop = trackActivity(session, () => expireSession(session));
+    const online = () => { void saver.current?.sync(); };
+    const hide = () => saver.current?.setBackground(true);
+    const visibility = () => {
       const service = saver.current;
-      saver.current = null;
-      if (editorLock.current === controller) {
-        clearNotice();
-        setConfirmAction(null);
-        if (service) setPage(current => current === 'editor' ? 'open' : current);
+      if (!service) return;
+      const hidden = document.visibilityState === 'hidden';
+      service.setBackground(hidden, false);
+      if (!hidden) {
+        void service.refreshLocal(() => saver.current === service && canFollowDraft.current && !orderOperation.current)
+          .catch(() => undefined).then(() => service.sync());
       }
-      try { await service?.pause(true); }
-      catch {
-        if (editorLock.current === controller) {
-          setHealthMessage('No se pudo guardar la última copia local. Revisa el borrador en Órdenes abiertas.');
-        }
-      }
-    });
-    editorLock.current = controller;
-    editorSession.current = session;
-    const expire = () => {
-      if (editorLock.current !== controller) return;
-      controller.dispose();
-      clearNotice();
-      setDraft(null);
-      setOrder(null);
-      setPage('dashboard');
-      setSession(null);
-      setSessionStatus('anonymous');
-      setTouched(new Set());
-      setGlobalMessage(
-        'La sesión terminó. Vuelve a entrar para recuperar tu borrador.',
-      );
-    };
-    const stop = trackActivity(session, expire);
-    const online = () => {
-      if (controller.lease) void saver.current?.sync();
     };
     window.addEventListener('online', online);
+    window.addEventListener('pagehide', hide);
+    window.addEventListener('pageshow', visibility);
+    document.addEventListener('visibilitychange', visibility);
     return () => {
-      editorLock.current = null;
-      editorSession.current = null;
-      controller.dispose();
+      activeSession.current = null;
+      detachSaver();
       stop();
       window.removeEventListener('online', online);
+      window.removeEventListener('pagehide', hide);
+      window.removeEventListener('pageshow', visibility);
+      document.removeEventListener('visibilitychange', visibility);
     };
   }, [session]);
   async function login() {
@@ -210,42 +240,66 @@ export function App() {
           body: JSON.stringify({ username, password }),
         }),
       );
-      setGlobalMessage('');
+      setLoginMessage('');
       setSessionStatus('authenticated');
       setPassword('');
       setPage('dashboard');
     } catch (error) {
-      setGlobalMessage(loginErrorMessage(error));
+      setLoginMessage(loginErrorMessage(error));
     } finally {
       setBusy(false);
     }
   }
   async function logout() {
+    if (!session || busy || orderOperation.current) return;
+    orderOperation.current = true;
+    setLogoutError('');
+    const service = saver.current;
+    service?.setBackground(true);
+    setBusy(true);
     try {
-      await saver.current?.pause();
+      await service?.settleLocal();
+      if (activeSession.current !== session) return;
       await api('/auth/logout', {
         method: 'POST',
-        headers: { 'X-CSRF-Token': session!.csrf },
+        headers: { 'X-CSRF-Token': session.csrf },
       });
+      if (activeSession.current !== session) return;
+      activeSession.current = null;
+      detachSaver();
+      setConfirmAction(null);
+      setConflict(undefined);
+      setOrder(null);
       setSession(null);
       setSessionStatus('anonymous');
       setTouched(new Set());
       clearNotice();
       setDraft(null);
-      setGlobalMessage('Sesión cerrada. Borrador conservado en este dispositivo.');
+      setLoginMessage('Sesión cerrada.');
     } catch {
-      setGlobalMessage(
+      if (activeSession.current !== session) return;
+      service?.setBackground(document.visibilityState === 'hidden');
+      setLogoutError(
         'No se pudo cerrar la sesión. Reintenta antes de dejar el dispositivo.',
       );
     }
+    finally { orderOperation.current = false; setBusy(false); }
   }
-  async function attach(record: RecordState, lease: object, syncInBackground = false) {
-    const controller = editorLock.current;
-    if (!session || controller?.lease !== lease) return;
-    await saver.current?.pause();
-    await controller.write(lease, () => storage.write(session.userId, record));
-    if (controller.lease !== lease) return;
+  async function attach(record: RecordState, syncInBackground = false, syncOnOpen = true) {
+    if (!session || activeSession.current !== session) return;
+    if (record.localRevision === undefined) {
+      try {
+        record.localRevision = await storage.write(session.userId, record, true);
+      } catch (error) {
+        if (!(error instanceof LocalConflict)) throw error;
+        const current = await storage.read(session.userId, record.id);
+        if (!current || current.cancelled) throw error;
+        record = current;
+      }
+    }
+    if (activeSession.current !== session) return;
     clearNotice();
+    setTerminalRecovery(undefined);
     setEditorId(record.id);
     const serviceGeneration = noticeGeneration.current;
     const service = new Autosave(
@@ -255,24 +309,21 @@ export function App() {
       (text, retry = false) => {
         // Ignore UI reports from an editor left or replaced while work was in flight.
         if (serviceGeneration !== noticeGeneration.current || saver.current !== service) return;
-        setNotice({ page: 'editor', orderId: record.id, message: text, retryable: retry });
+        setNotice(text && !service.localConflict ? { page: 'editor', orderId: record.id, message: text, retryable: retry } : null);
         setOrder(service.state.order ?? null);
         setConflict(service.state.conflict ? {...service.state.conflict} : undefined);
-        if (service.state.conflict || !service.state.pending && !service.state.draft.action)
+        if (service.state.cancelled) { setClosing(false); setCloseOwner(null); setConfirmAction(null); setTouched(new Set()); }
+        else if (service.localConflict) setConfirmAction(null);
+        else if (service.state.conflict || !service.state.pending && !service.state.draft.action)
           setConfirmAction(current => current === 'void' && canCancelBackfill(service.state) ? current : null);
         setDraft({ ...service.state.draft });
       },
       () => {
-        if (saver.current !== service) return;
-        controller.dispose();
-        setSession(null);
-        setSessionStatus('anonymous');
-        setGlobalMessage('La sesión terminó. Vuelve a entrar para recuperar tu borrador.');
-        clearNotice();
-        setPage('dashboard');
+        if (saver.current === service) expireSession(session);
       },
     );
     saver.current = service;
+    if (document.visibilityState === 'hidden') service.setBackground(true);
     setDraft(record.draft);
     setConflict(record.conflict);
     setOrder(record.order ?? null);
@@ -289,11 +340,12 @@ export function App() {
             : null,
     );
     setPage('editor');
-    if (!record.order || record.order.status === 'OPEN') {
+    if (syncOnOpen && (!record.order || record.order.status === 'OPEN' || record.pending?.draft.action === 'reopen')) {
       const syncing = service.sync();
       if (syncInBackground) {
         void syncing.catch(() => {
-          if (saver.current === service) setMessage('La orden está guardada en este dispositivo. Reintenta la sincronización.');
+          if (saver.current === service && noticeGeneration.current === serviceGeneration)
+            setNotice({ page: 'editor', orderId: record.id, message: 'La orden está guardada en este dispositivo. Reintenta la sincronización.', retryable: true });
         });
       } else {
         await syncing;
@@ -302,98 +354,116 @@ export function App() {
     }
   }
   async function navigate(next: typeof page) {
-    if (busy) return;
+    if (busy || orderOperation.current) return;
     if (confirmAction) {
       setMessage('Confirma o cancela la acción pendiente.');
       return;
     }
-    // Leaving the module preserves local changes and the editor lock; entering another order requires sync.
+    // A draft may continue synchronizing after leaving the editor.
     if (next !== page) clearNotice();
     setPage(next);
   }
   async function newOrder(backfill = false) {
-    const controller = editorLock.current;
-    const lease = controller?.lease;
-    if (!session || !lease || busy || creating.current || confirmAction || (backfill && session.role !== 'ADMIN')) return;
-    creating.current = true;
+    if (!session || activeSession.current !== session || busy || orderOperation.current || confirmAction || (backfill && session.role !== 'ADMIN')) return;
+    orderOperation.current = true;
     setBackfillStartError(false);
     setBusy(true);
     try {
-      await controller.write(lease, () => storage.read(session.userId));
+      await saver.current?.settleLocal();
+      if (activeSession.current !== session) return;
+      await storage.read(session.userId);
       const record = fresh();
       record.revision = 1;
       if (backfill) record.draft.workDate = '';
-      await attach(record, lease, true);
-    } catch {
+      await saver.current?.pause();
+      await attach(record, true);
+    } catch (error) {
       if (backfill) setBackfillStartError(true);
-      else setMessage(
-        'No se pudo abrir la orden. Tu borrador local está conservado.',
-      );
+      if (!backfill || draftUpgradeMessage(error))
+        setMessage(draftUpgradeMessage(error) ?? 'No se pudo abrir la orden. Tu borrador local está conservado.');
     } finally {
-      creating.current = false;
+      orderOperation.current = false;
       setBusy(false);
     }
   }
   async function openOrder(selected: Order) {
-    const controller = editorLock.current;
-    const lease = controller?.lease;
-    const editing = selected.status === 'OPEN';
-    if (!session || !controller || (editing && !lease) || busy) return;
+    if (!session || activeSession.current !== session || busy || orderOperation.current) return;
+    orderOperation.current = true;
     setBusy(true);
     try {
-      if (editing && lease) {
-        const local = saver.current?.state.id === selected.id
-          ? saver.current.state : await controller.write(lease, () => storage.read(session.userId, selected.id));
-        if (controller.lease !== lease || local?.cancelled) return;
-        if (local?.id === selected.id && (local.pending || local.savedRevision < local.revision || !local.version)) {
-          await attach(local, lease);
-          return;
-        }
+      await saver.current?.settleLocal();
+      if (saver.current?.state.id === selected.id) await saver.current.pause();
+      const local = await storage.read(session.userId, selected.id);
+      if (activeSession.current !== session) return;
+      if (local?.cancelled) {
+        await saver.current?.pause();
+        saver.current = null;
+        clearNotice();
+        setConfirmAction(null);
+        setPage('open');
+        return;
       }
-      await saver.current?.pause();
+      const hasLocalWork = local && (local.conflict || local.pending || local.savedRevision < local.revision || !local.version);
+      if ((selected.status === 'OPEN' || saver.current?.localConflict) && hasLocalWork) {
+        await saver.current?.pause();
+        await attach(local);
+        return;
+      }
       const remote = await api<Order>('/orders/' + selected.id);
-      if (editorLock.current !== controller || (editing && controller.lease !== lease)) return;
-      if (remote.status !== 'OPEN') {
+      await saver.current?.pause();
+      if (activeSession.current !== session) return;
+      const current = await storage.read(session.userId, selected.id);
+      if (activeSession.current !== session || current?.cancelled) return;
+      const currentHasWork = current && (current.conflict || current.pending || current.savedRevision < current.revision || !current.version);
+      if (currentHasWork && remote.status === 'OPEN') {
+        await attach(current);
+      } else if (currentHasWork && remote.status !== 'OPEN') {
+        // Show the terminal server detail and allow downloading the pending device copy.
+        // Keep the canonical pending request in IndexedDB with its original key.
+        detachSaver();
         clearNotice();
         setEditorId(remote.id);
         setDraft(remote.draft);
-        setConflict(undefined);
         setOrder(remote);
+        setTerminalRecovery(current);
+        setConflict(undefined);
         setTouched(new Set());
-        setClosing(false);
         setConfirmAction(null);
         setPage('editor');
-      } else if (lease && controller.lease === lease)
-        await attach({
+      } else {
+        const advanced = remote.status === 'OPEN' && current?.order?.status === 'OPEN' &&
+          current.localRevision !== local?.localRevision;
+        await attach(advanced ? current : current ? { ...current, draft: remote.draft, order: remote, version: remote.version } : {
           id: remote.id,
           draft: remote.draft,
           version: remote.version,
           order: remote,
           revision: 0,
           savedRevision: 0,
-        }, lease);
-    } catch {
+        }, false, remote.status === 'OPEN');
+      }
+    } catch (error) {
       setMessage(
-        'No se pudo abrir otra orden. Revisa la conexión o sincroniza el borrador pendiente.',
+        draftUpgradeMessage(error) ?? 'No se pudo abrir otra orden. Revisa la conexión o sincroniza el borrador pendiente.',
       );
     } finally {
+      orderOperation.current = false;
       setBusy(false);
     }
   }
   async function performAction() {
-    const controller = editorLock.current;
-    const lease = controller?.lease;
-    if (!lease || !confirmAction || !session || busy) return;
+    if (!confirmAction || !session || activeSession.current !== session || busy || orderOperation.current) return;
     const action = confirmAction;
     const localDraft = saver.current;
     const cancelDraft = action === 'void' && !order && session.role === 'ADMIN' &&
       localDraft && localDraft.state.id === editorId && canCancelBackfill(localDraft.state);
     if (!order && !cancelDraft && !(action === 'close' && draft?.workDate !== undefined)) return;
+    orderOperation.current = true;
     setBusy(true);
     try {
       if (cancelDraft) {
-        await controller.write(lease, () => localDraft.cancelBackfill());
-        if (controller.lease !== lease) return;
+        await localDraft.cancelBackfill();
+        if (activeSession.current !== session) return;
         clearNotice();
         setConfirmAction(null);
         setDraft(null);
@@ -401,25 +471,31 @@ export function App() {
         setPage('open');
         return;
       }
-      // History pauses the previous saver, including when it owns this same order.
-      // Keep only a pending reopen receipt; otherwise attach a fresh active editor.
-      if (action === 'reopen' && order && (saver.current?.state.id !== order.id || saver.current.state.pending?.draft.action !== 'reopen'))
-        await attach({
-          id: order.id,
-          draft: order.draft,
-          version: order.version,
-          order,
-          revision: 0,
-          savedRevision: 0,
-        }, lease);
+      if (action === 'reopen' && order && saver.current?.state.id !== order.id) {
+        const local = await storage.read(session.userId, order.id);
+        if (activeSession.current !== session) return;
+        if (local?.cancelled) return;
+        if (local && local.order?.version !== order.version && !local.pending && !local.conflict && local.savedRevision === local.revision) {
+          await attach({ ...local, draft: order.draft, order, version: order.version }, false, false);
+        } else {
+          await attach(local ?? {
+            id: order.id,
+            draft: order.draft,
+            version: order.version,
+            order,
+            revision: 0,
+            savedRevision: 0,
+          }, false, false);
+        }
+      }
       const service = saver.current;
-      if (editorLock.current?.lease !== lease || !service) return;
+      if (activeSession.current !== session || !service) return;
       const saved = await service.action(action, action==='close' && closeOwner ? {decision:closeOwner.decision,vehicleId:closeOwner.vehicleId,customerId:closeOwner.customerId,expectedOwnerId:closeOwner.expectedOwnerId} : undefined);
-      if (editorLock.current?.lease !== lease) return;
+      if (activeSession.current !== session) return;
       if (action === 'transfer-owner') {
         const currentDraft=service.state.draft;
         const lookup=await api<{vehicles:{id:string;ownerId:string}[]}>(`/vehicles?q=${encodeURIComponent(currentDraft.plate)}`);
-        if (editorLock.current?.lease !== lease) return;
+        if (activeSession.current !== session) return;
         const vehicle=lookup.vehicles.find(v=>v.id.toLowerCase()===currentDraft.vehicleId?.toLowerCase());
         if(!vehicle || vehicle.ownerId.toLowerCase()!==currentDraft.customerId?.toLowerCase()) throw new Error('OWNER_TRANSFER_NOT_APPLIED');
         setOwnerRevision(n => n + 1);
@@ -438,7 +514,7 @@ export function App() {
             : 'Dueño actual actualizado. El historial anterior se conserva.',
       });
     } catch (error) {
-      if (editorLock.current?.lease !== lease) return;
+      if (activeSession.current !== session) return;
       if (cancelDraft) {
         setMessage('No se pudo cancelar el borrador en este dispositivo. Volvé a intentar.');
         return;
@@ -452,12 +528,13 @@ export function App() {
         previous => (previous.includes('Conflicto de versión.') || previous.includes('Confirma quién será el dueño')) ? previous : 'La acción no se confirmó. La copia local está protegida; reintenta para recuperar el resultado.',
       );
     } finally {
+      orderOperation.current = false;
       setBusy(false);
     }
   }
   async function resolveConflict(version: string, selected?: Draft) {
     const service=saver.current;
-    if(!editorLock.current?.lease || !service || busy) return;
+    if(!service || service.localConflict || busy) return;
     setBusy(true);
     try {
       await service.resolveConflict(version,selected);
@@ -478,12 +555,18 @@ export function App() {
   async function updateApp() {
     if(busy || confirmAction || conflict) return;
     setBusy(true);
-    try { await saver.current?.flush(); await applyUpdate(); }
-    catch { setHealthMessage('Sincroniza tus cambios antes de actualizar. Tu copia local está protegida.'); }
+    setUpdateError('');
+    try {
+      const service = saver.current;
+      if (service && canCancelBackfill(service.state)) await service.settleLocal();
+      else await service?.flush();
+      await applyUpdate();
+    }
+    catch { setUpdateError('No se pudo actualizar la aplicación. Revisa la conexión y los cambios pendientes.'); }
     finally { setBusy(false); }
   }
   function saveDraft(next: Draft) {
-    if (!editorLock.current?.lease || !saver.current || busy || confirmAction || conflict || (order && order.status !== 'OPEN')) return;
+    if (!saver.current || saver.current.localConflict || busy || confirmAction || conflict || (order && order.status !== 'OPEN')) return;
     setDraft(next);
     void saver.current
       ?.edit(next)
@@ -526,9 +609,11 @@ export function App() {
   const canFinish = !order || session?.role === 'ADMIN' || order.mechanicId === session?.userId;
   const taxRate = order && order.status !== 'OPEN' ? order.taxRate ?? 0 : 13;
   const totals = amounts(draft?.items, taxRate);
-  const errors = draft ? visibleErrors(draft, touched, closing) : [];
+  const errors = draft && !saver.current?.state.cancelled ? visibleErrors(draft, touched, closing) : [];
+  const cancelledDraft = !!saver.current?.state.cancelled;
   const readOnly =
-    !editorReady ||
+    cancelledDraft ||
+    !!saver.current?.localConflict ||
     (historical && session?.role !== 'ADMIN') ||
     (!!order && order.status !== 'OPEN') ||
     !!confirmAction ||
@@ -536,6 +621,8 @@ export function App() {
     busy ||
     !!saver.current?.state.pending?.draft.action;
   const editor = page === 'editor';
+  const recovery = !saver.current && terminalRecovery?.id === editorId ? terminalRecovery :
+    saver.current?.unsavedLocally || saver.current?.state.recoveryCopies?.length ? saver.current?.state : undefined;
   function validation(field: string) {
     const error = errors.find((e) => e.field === field);
     return error ? (
@@ -576,14 +663,15 @@ export function App() {
           {session &&
             `${session.fullName ?? session.username} · ${session.role}`}
         </span>
-        {session && (
-          <button className="quiet" onClick={() => void logout()}>
-            Cerrar sesión
-          </button>
-        )}
+        {session && <div>
+          <button className="quiet" onClick={() => void logout()}>Cerrar sesión</button>
+          {logoutError && <p role="alert">{logoutError}</p>}
+        </div>}
       </header>
       <main>
-        {hasUpdate && <p role="status">Hay una actualización disponible. <button type="button" disabled={busy || !!confirmAction || !!conflict} onClick={()=>void updateApp()}>Actualizar aplicación</button></p>}
+        {hasUpdate && <div><p role="status">Hay una actualización disponible. <button type="button" disabled={busy || !!confirmAction || !!conflict} onClick={()=>void updateApp()}>Actualizar aplicación</button></p>
+          {updateError && <p role="alert">{updateError}</p>}
+        </div>}
         {healthMessage && <p role="status">{healthMessage}</p>}
         {sessionStatus === 'authenticated' && session && (
           <>
@@ -613,18 +701,10 @@ export function App() {
                 </button>
               )}
             </nav>
-            {editorAccess !== 'ready' && ['dashboard', 'new-order', 'open', 'history', 'editor'].includes(page) && (
-              <div className="editor-access-notice">
-                <p role="status">{editorMessages[editorAccess]}</p>
-                {(editorAccess === 'occupied' || editorAccess === 'error') && (
-                  <button type="button" className="quiet" onClick={() => editorLock.current?.retry()}>Reintentar edición</button>
-                )}
-              </div>
-            )}
             {(page === 'dashboard' || page === 'new-order') && (
               <Dashboard
                 session={session}
-                ready={editorReady && !busy}
+                ready={!busy}
                 choosingOrder={page === 'new-order'}
                 onNew={() => void (page === 'dashboard' && session.role === 'ADMIN' ? navigate('new-order') : newOrder())}
                 onBackfill={() => void newOrder(true)}
@@ -645,13 +725,11 @@ export function App() {
                 userName={session.fullName || session.username}
                 mechanicRoster={mechanicRoster}
                 role={session.role}
-                canEdit={editorReady && !busy}
+                canEdit={!busy}
                 onCancel={async selected => {
-                  const lease = editorLock.current?.lease;
-                  if (!lease) return;
                   await openOrder(selected);
                   const record = saver.current?.state;
-                  if (editorLock.current?.lease !== lease || record?.id !== selected.id) return;
+                  if (activeSession.current !== session || record?.id !== selected.id || saver.current?.localConflict) return;
                   if (record.order?.status === 'OPEN' && (session.role === 'ADMIN' || record.order.mechanicId === session.userId) ||
                       session.role === 'ADMIN' && canCancelBackfill(record)) setConfirmAction('void');
                 }}
@@ -663,8 +741,6 @@ export function App() {
             {page === 'users' && session.role === 'ADMIN' && (
               <Users session={session} />
             )}
-            {globalMessage && <p role="status">{globalMessage}</p>}
-
             {!editor && message && <p role="status">{message}</p>}
           </>
         )}
@@ -675,6 +751,7 @@ export function App() {
             sessionStatus === 'authenticated' ? 'card editor' : 'card login'
           }
         >
+          {(sessionStatus !== 'authenticated' || editor) && <>
           <div className="card-top">
             <h2>
               {sessionStatus === 'authenticated'
@@ -684,7 +761,7 @@ export function App() {
           </div>
           {sessionStatus === 'authenticated' && (
             <div className={`badge order-state order-state--${(order?.status ?? 'OPEN').toLowerCase()}`} role="status" aria-label="Estado de la orden">
-              {order?.status === 'VOID' ? 'CANCELADA' : order?.status === 'CLOSED' ? 'CERRADA' : historical ? 'BORRADOR' : 'ABIERTA'}
+              {order?.status === 'VOID' || cancelledDraft ? 'CANCELADA' : order?.status === 'CLOSED' ? 'CERRADA' : historical ? 'BORRADOR' : 'ABIERTA'}
             </div>
           )}
           {sessionStatus === 'authenticated' && historical && order && (
@@ -794,12 +871,20 @@ export function App() {
                       </ul>
                     </div>
                   )}
-                  {conflict && saver.current && <ConflictReview key={editorId+':'+conflict.remote.version} record={saver.current.state} busy={busy || !editorReady} onResolve={(version,selected)=>void resolveConflict(version,selected)} />}
-                  {!!saver.current?.state.recoveryCopies?.length && <button type="button" className="quiet" onClick={()=>{if(saver.current)downloadRecovery(saver.current.state);}}>Descargar copias de recuperación</button>}
-                  {editorReady && (!order || order.status === 'OPEN') && !conflict && (
+                  {conflict && saver.current && !saver.current.localConflict && <ConflictReview key={editorId+':'+conflict.remote.version} record={saver.current.state} busy={busy} onResolve={(version,selected)=>void resolveConflict(version,selected)} />}
+                  {saver.current?.localConflict && <section className="confirmation" aria-label="Recuperación local">
+                    <p role="status">Otra pestaña cambió este borrador. Tu copia se puede recuperar.</p>
+                    <button type="button" className="quiet" onClick={() => { if (saver.current) downloadRecovery(saver.current.state); }}>Descargar mi copia</button>
+                    <button type="button" disabled={busy} onClick={() => void openOrder(order ?? { id: editorId!, draft, status: 'OPEN', version: '', mechanicId: session.userId })}>Abrir versión vigente</button>
+                  </section>}
+                  {recovery && !saver.current?.localConflict && <details>
+                    <summary>Copias de recuperación de esta orden</summary>
+                    <button type="button" className="quiet" onClick={() => downloadRecovery(recovery)}>Descargar copias de recuperación</button>
+                  </details>}
+                  {!cancelledDraft && (!order || order.status === 'OPEN') && !conflict && !saver.current?.localConflict && (
                     <div hidden={!!confirmAction || busy}><EntitySearch key={`${page}:${editorId}`} ownerRevision={ownerRevision} draft={draft} onSelect={saveDraft} allowTransfer={!historical && (session.role === 'ADMIN' || session.role === 'MECHANIC')} onTransfer={() => {
                       const service = saver.current;
-                      if (!editorLock.current?.lease || !service) return;
+                      if (!service) return;
                       setBusy(true);
                       void service.flush().then(() => {
                         if (saver.current !== service) return;
@@ -1103,21 +1188,21 @@ export function App() {
                       />
                     </label>
                   </fieldset>
-                  {editor && closing && (!order || order.status === 'OPEN') && visibleErrors(draft, touched, true).length > 0 && (
+                  {!cancelledDraft && editor && closing && (!order || order.status === 'OPEN') && visibleErrors(draft, touched, true).length > 0 && (
                     <div className="close-errors confirmation" role="alert">
                       <p>Para cerrar la orden, completa:</p>
                       <ul>{visibleErrors(draft, touched, true).map(error => <li key={error.field}>{error.section}: {error.message}</li>)}</ul>
                     </div>
                   )}
                   <div className="order-actions">
-                  {(!order || order.status === 'OPEN') && !conflict && canFinish && (
+                  {!cancelledDraft && (!order || order.status === 'OPEN') && !conflict && canFinish && (
                     <button
                       type="button"
                       className="danger"
-                      disabled={!editorReady || busy || !!confirmAction}
+                      disabled={busy || !!confirmAction || !!saver.current?.localConflict}
                       onClick={() => {
                         const service = saver.current;
-                        if (!editorLock.current?.lease || !service) return;
+                        if (!service) return;
                         setClosing(true);
                         if (visibleErrors(draft, touched, true).length === 0) {
                           if (historical) {
@@ -1127,7 +1212,7 @@ export function App() {
                           }
                           setBusy(true);
                           void service
-                            .flush()
+                            .flush(true)
                             .then(async () => {
                               if (saver.current !== service) return;
                               const current=service.state.draft;
@@ -1155,13 +1240,13 @@ export function App() {
                   )}
                   {!conflict && ((order?.status === 'OPEN' && (session.role === 'ADMIN' || order.mechanicId === session.userId)) ||
                     (!order && session.role === 'ADMIN' && saver.current?.state.id === editorId && canCancelBackfill(saver.current.state))) && (
-                    <button type="button" className="danger" disabled={!editorReady || busy || !!confirmAction} onClick={() => setConfirmAction('void')}>Cancelar orden</button>
+                    <button type="button" className="danger" disabled={busy || !!confirmAction || !!saver.current?.localConflict} onClick={() => setConfirmAction('void')}>Cancelar orden</button>
                   )}
                   </div>
                   {order?.status === 'CLOSED' && !historical && !conflict && session.role === 'ADMIN' && (
                     <button
                       type="button"
-                      disabled={!editorReady || busy}
+                      disabled={busy || !!saver.current?.localConflict}
                       onClick={() => setConfirmAction('reopen')}
                     >
                       Reabrir orden
@@ -1195,7 +1280,7 @@ export function App() {
                       <p>Total: {formatCRC(totals.total)}</p>
                       <button
                         type="button"
-                        disabled={!editorReady || busy}
+                        disabled={busy}
                         onClick={() => void performAction()}
                       >
                         {busy ? 'Procesando…' : 'Confirmar'}
@@ -1220,13 +1305,13 @@ export function App() {
               )
             }
           />
-          <SyncStatus
-            message={sessionStatus === 'authenticated' ? (editor ? message : '') : globalMessage}
-            retryable={
-              editorReady && retryable && !!draft && sessionStatus === 'authenticated'
-            }
-            onRetry={() => { if (editorLock.current?.lease) void saver.current?.sync(); }}
-          />
+          {sessionStatus === 'anonymous' && loginMessage && <p role="status">{loginMessage}</p>}
+          {sessionStatus === 'authenticated' && editor && (message || retryable) && <SyncStatus
+            message={message}
+            retryable={retryable && !!draft}
+            onRetry={() => { void saver.current?.sync(true); }}
+          />}
+          </>}
         </section>
       </main>
     </div>
