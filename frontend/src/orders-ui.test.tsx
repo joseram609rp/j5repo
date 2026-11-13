@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { act } from 'react';
+import { act, StrictMode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { App } from './App';
 import { OrderList } from './OrderList';
@@ -53,23 +53,13 @@ let records: Map<string, RecordState>;
 const clone = <T,>(v: T): T => structuredClone(v);
 beforeEach(() => {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
-  Object.defineProperty(navigator, 'locks', {
-    configurable: true,
-    value: {
-      request: (
-        _name: string,
-        _options: unknown,
-        callback: (lock: object) => Promise<void>,
-      ) => callback({}),
-    },
-  });
   disk = undefined;
   records = new Map();
   orders = new Map();
   puts = 0;
   vi.mocked(storage.read).mockImplementation(async (_u, id) => {
     const r = id ? records.get(id) ?? (disk?.id === id ? disk : undefined) : disk;
-    return r ? clone(r) : undefined;
+    return r ? clone({...r, localRevision: r.localRevision ?? 0}) : undefined;
   });
   vi.mocked(storage.list).mockImplementation(async () => {
     const all = new Map(records);
@@ -77,8 +67,10 @@ beforeEach(() => {
     return [...all.values()].map(clone);
   });
   vi.mocked(storage.write).mockImplementation(async (_u, r) => {
-    disk = clone(r);
-    records.set(r.id, clone(r));
+    const revision = (r.localRevision ?? 0) + 1;
+    disk = clone({...r, localRevision: revision});
+    records.set(r.id, clone(disk));
+    return revision;
   });
   vi.mocked(bootstrapSession).mockResolvedValue({
     session: clone(session),
@@ -581,34 +573,6 @@ async function historySearch() {
   await click('Buscar');
 }
 
-it('keeps open lists and closed details accessible when another tab owns the editor', async () => {
-  vi.mocked(bootstrapSession).mockResolvedValue({
-    session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,
-  });
-  seed();
-  seed('CLOSED');
-  let occupied = true;
-  Object.defineProperty(navigator, 'locks', {
-    configurable: true,
-    value: { request: async (_name: string, _options: unknown, callback: LockGrantedCallback<Promise<void>>) =>
-      callback(occupied ? null : { name: _name, mode: 'exclusive' }) },
-  });
-  await mount();
-  expect(button('Nueva orden').disabled).toBe(true);
-  await click('Órdenes abiertas');
-  expect(button('Continuar').disabled).toBe(true);
-  expect(button('Cancelar orden').disabled).toBe(true);
-  await click('Historial');
-  await historySearch();
-  await click('Ver detalle');
-  expect(button('Reabrir orden').disabled).toBe(true);
-  expect(storage.write).not.toHaveBeenCalled();
-  expect(puts).toBe(0);
-  occupied = false;
-  await click('Reintentar edición');
-  expect(button('Reabrir orden').disabled).toBe(false);
-});
-
 it('recovers a locally saved draft after pagehide and pageshow without starting another order', async () => {
   await mount();
   await newDailyOrder();
@@ -616,10 +580,8 @@ it('recovers a locally saved draft after pagehide and pageshow without starting 
   await input('[data-field=identification]', '12');
   const initialPuts = puts;
   await act(async () => { window.dispatchEvent(new Event('pagehide')); });
-  expect(button('Continuar').disabled).toBe(true);
   expect(records.get(id)?.draft.identification).toBe('12');
   await act(async () => { window.dispatchEvent(new Event('pageshow')); });
-  await click('Continuar');
   expect(container.querySelector<HTMLInputElement>('[data-field=identification]')?.value).toBe('12');
   expect(disk?.id).toBe(id);
   expect(puts).toBe(initialPuts);
@@ -893,22 +855,19 @@ it('session expiry clears editor notices and remains visible on the login screen
  expect(notices()).toContain('La sesión terminó.'); expect(notices()).not.toContain('Orden cancelada.'); expect(button('Entrar')).toBeTruthy();
 });
 
-it('clears failed bootstrap health on recovery and preserves browser warnings', async () => {
+it('clears failed bootstrap health on recovery while keeping order creation available', async () => {
   seed();
   const original = clone(disk);
   vi.mocked(bootstrapSession).mockResolvedValue({session:clone(session),status:'authenticated',healthOk:false});
-  Object.defineProperty(navigator, 'locks', {configurable:true,value:undefined});
   await mount();
   expect(container.textContent).toContain('La base de datos no está disponible');
-  expect(container.textContent).toContain('Este navegador permite consultar');
-  expect(button('Nueva orden').disabled).toBe(true);
+  expect(button('Nueva orden').disabled).toBe(false);
   expect(disk).toEqual(original);
   expect(storage.write).not.toHaveBeenCalled();
   const actual = await vi.importActual<typeof import('./api')>('./api');
   vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => Response.json({orders:[]})));
   await act(async () => { await actual.api('/orders?status=OPEN'); });
   expect(container.textContent).not.toContain('La base de datos no está disponible');
-  expect(container.textContent).toContain('Este navegador permite consultar');
 });
 
 it('health recovery after navigation preserves expired-session messages', async () => {
@@ -1170,25 +1129,6 @@ it('login retains credentials while waiting and after service failure, with no e
  expect(password.value).toBe('Fixture-only-123!');expect(password.disabled).toBe(false);expect(notices()).toContain('Reporta el problema a soporte');
 });
 
-it('editor lock notices stay in order screens and never leak to Usuarios or login',async()=>{
- vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
- Object.defineProperty(navigator,'locks',{configurable:true,value:{request:async(_name:string,_options:unknown,callback:(lock:object|null)=>Promise<void>)=>callback(null)}});
- await mount();expect(notices()).toContain('La edición está ocupada temporalmente');expect(button('Nueva orden').disabled).toBe(true);
- await click('Usuarios');expect(text()).toContain('Crear usuario');expect(notices()).not.toContain('otra pestaña');
- await click('Órdenes abiertas');expect(notices()).toContain('otra pestaña');
- await click('Usuarios');const expire=vi.mocked(trackActivity).mock.calls.at(-1)![1];await act(async()=>{expire();});
- expect(notices()).toContain('La sesión terminó');expect(notices()).not.toContain('otra pestaña');
-});
-
-it('late editor lock errors cannot display an order notice in Usuarios',async()=>{
- vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
- let reject!:(error:Error)=>void;
- Object.defineProperty(navigator,'locks',{configurable:true,value:{request:()=>new Promise<void>((_resolve,fail)=>{reject=fail;})}});
- await mount();await click('Usuarios');await act(async()=>{reject(new Error('lock unavailable'));});
- expect(text()).toContain('Crear usuario');expect(notices()).not.toContain('bloqueo de edición');
- await click('Inicio');expect(notices()).toContain('No se pudo comprobar el bloqueo de edición');
-});
-
 it.each(['editor', 'open list'])('cancels an unsubmitted historical draft from the %s without sending a PUT', async source => {
   vi.mocked(bootstrapSession).mockResolvedValue({
     session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,
@@ -1249,4 +1189,41 @@ it('shows the assigned mechanic on an existing historical draft in the open list
   expect(card?.textContent).toContain('Mecánico: Mecánico asignado de prueba');
   expect(card?.textContent).toContain('Borrador de orden anterior');
   expect(card?.textContent).toContain('Elegí Continuar para terminar la orden.');
+});
+
+it('ignores the first StrictMode bootstrap result when it finishes after the current session', async () => {
+  let finish!: (result: Awaited<ReturnType<typeof bootstrapSession>>) => void;
+  vi.mocked(bootstrapSession).mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+  await act(async () => root.render(<StrictMode><App /></StrictMode>));
+  await newDailyOrder();
+  const id = disk!.id;
+  await act(async () => { finish({ session: null, status: 'anonymous', healthOk: true }); });
+  await input('[data-field=identification]', '42');
+  expect(records.get(id)?.draft.identification).toBe('42');
+  expect(button('Entrar')).toBeUndefined();
+});
+
+it('settles local writes before logout and recovers the draft on login', async () => {
+  const normalApi = vi.mocked(api).getMockImplementation()!;
+  vi.mocked(api).mockImplementation(async (path, options) => {
+    if (path === '/auth/login') return clone(session) as never;
+    if (path === '/auth/logout') {
+      expect(options?.headers).toEqual({ 'X-CSRF-Token': session.csrf });
+      expect(disk?.draft.identification).toBe('42');
+    }
+    return normalApi(path, options);
+  });
+  await mount();
+  await newDailyOrder();
+  await input('[data-field=identification]', '42');
+  const id = disk!.id;
+  await click('Cerrar sesión');
+  expect(button('Entrar')).toBeTruthy();
+  await input('input[autocomplete=username]', 'fixture');
+  await input('input[autocomplete=current-password]', 'Fixture-only-123!');
+  await click('Entrar');
+  await click('Órdenes abiertas');
+  await click('Continuar');
+  expect(container.querySelector<HTMLInputElement>('[data-field=identification]')?.value).toBe('42');
+  expect(records.get(id)?.draft.identification).toBe('42');
 });

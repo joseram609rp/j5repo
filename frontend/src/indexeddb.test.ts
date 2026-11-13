@@ -2,7 +2,7 @@
 import 'fake-indexeddb/auto';
 import { expect, it, vi } from 'vitest';
 import { openDB } from 'idb';
-import { Autosave, fresh, storage } from './autosave';
+import { Autosave, fresh, storage, type Order } from './autosave';
 it('IndexedDB persists user-scoped pending payload/key and recovers the exact close after restart', async () => {
   const user = crypto.randomUUID(),
     other = crypto.randomUUID();
@@ -86,12 +86,12 @@ it('persists multiple orders for one user independently', async () => {
 
 it('migrates a legacy user draft atomically without overwriting the newer order copy', async()=>{
  const user=crypto.randomUUID(),old=fresh();old.draft.notes='Legacy';
- const db=await openDB('j5-drafts-v1',1);await db.put('drafts',old,user);
+ const db=await openDB('j5-drafts-v1',2);await db.put('drafts',old,user);
  expect((await storage.list(user)).map(r=>r.id)).toContain(old.id);
  expect(await db.get('drafts',user)).toEqual(old);
  expect((await storage.read(user,old.id))?.draft.notes).toBe('Legacy');
  expect(await db.get('drafts',user)).toBeUndefined();
- const newer=structuredClone(old);newer.draft.notes='Newer';await storage.write(user,newer);await db.put('drafts',old,user);
+ const newer=(await storage.read(user,old.id))!;newer.draft.notes='Newer';await storage.write(user,newer);await db.put('drafts',old,user);
  expect((await storage.read(user,old.id))?.draft.notes).toBe('Newer');
  db.close();
 });
@@ -148,4 +148,76 @@ it('rejects cancellation after a historical close is pending, preserving the exa
   await expect(service.cancelBackfill()).rejects.toThrow('ORDER_LOCKED');
   expect((await storage.read(user, record.id))?.pending).toEqual(pending);
   expect(record.cancelled).toBeUndefined();
+});
+
+it('atomically keeps both concurrent edits and leaves the winning revision usable', async () => {
+  const user = crypto.randomUUID();
+  const record = fresh();
+  await storage.write(user, record);
+  const left = (await storage.read(user, record.id))!;
+  const right = (await storage.read(user, record.id))!;
+  left.draft.notes = 'Pestaña izquierda';
+  right.draft.notes = 'Pestaña derecha';
+  const outcomes = await Promise.allSettled([storage.write(user, left), storage.write(user, right)]);
+  expect(outcomes.map(result => result.status).sort()).toEqual(['fulfilled', 'rejected']);
+  const canonical = (await storage.read(user, record.id))!;
+  expect([canonical.draft.notes, canonical.recoveryCopies?.[0]?.draft.notes].sort())
+    .toEqual(['Pestaña derecha', 'Pestaña izquierda']);
+  const winner = outcomes[0].status === 'fulfilled' ? left : right;
+  winner.localRevision = canonical.localRevision;
+  winner.draft.notes = 'Segunda edición de la pestaña vigente';
+  await storage.write(user, winner);
+  const saved = (await storage.read(user, record.id))!;
+  expect(saved.draft.notes).toBe(winner.draft.notes);
+  expect(saved.recoveryCopies).toEqual(canonical.recoveryCopies);
+});
+
+it('preserves a newer offline edit while the first tab receives a remote response', async () => {
+  const user = crypto.randomUUID();
+  const record = fresh();
+  record.revision = 1;
+  await storage.write(user, record);
+  let accept!: (order: Order) => void;
+  let started!: () => void;
+  const sent = new Promise<void>(resolve => { started = resolve; });
+  const reply = new Promise<Order>(resolve => { accept = resolve; });
+  const first = new Autosave((await storage.read(user, record.id))!, user, 'csrf', () => {}, () => {}, storage.write,
+    async () => { started(); return reply; });
+  const syncing = first.sync();
+  await sent;
+  const pending = (await storage.read(user, record.id))!;
+  const second = new Autosave(pending, user, 'csrf', () => {}, () => {}, storage.write,
+    async (_id, mutation) => {
+      expect(mutation).toEqual(original);
+      throw new TypeError('offline');
+    });
+  const original = structuredClone(pending.pending);
+  second.setBackground(true);
+  await second.edit({ ...second.state.draft, notes: 'Edición más reciente' });
+  accept({ id: record.id, draft: record.draft, status: 'OPEN', version: 'v1', mechanicId: user });
+  await syncing;
+  expect(first.localConflict).toBe(true);
+  await expect(first.flush()).rejects.toThrow('SYNC_REQUIRED');
+  await second.pause();
+  const recovered = (await storage.read(user, record.id))!;
+  expect(recovered.draft.notes).toBe('Edición más reciente');
+  expect(recovered.pending).toEqual(original);
+  expect(recovered.recoveryCopies?.[0]?.version).toBe('v1');
+});
+
+it('keeps a pending historical close canonical when a stale tab tries to cancel', async () => {
+  const user = crypto.randomUUID();
+  const record = fresh();
+  record.draft.workDate = '2024-02-29';
+  await storage.write(user, record);
+  const offline = vi.fn(async () => { throw new TypeError('offline'); });
+  const closer = new Autosave((await storage.read(user, record.id))!, user, 'csrf', () => {}, () => {}, storage.write, offline);
+  const canceller = new Autosave((await storage.read(user, record.id))!, user, 'csrf', () => {}, () => {}, storage.write, offline);
+  await expect(closer.action('close')).rejects.toThrow('SYNC_REQUIRED');
+  const pending = (await storage.read(user, record.id))!.pending;
+  await expect(canceller.cancelBackfill()).rejects.toThrow('LOCAL_CONFLICT');
+  expect((await storage.read(user, record.id))).toMatchObject({ pending });
+  expect((await storage.read(user, record.id))?.cancelled).toBeUndefined();
+  expect(offline).toHaveBeenCalledTimes(1);
+  await Promise.all([closer.pause(), canceller.pause()]);
 });

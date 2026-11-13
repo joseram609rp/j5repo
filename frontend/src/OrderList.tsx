@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { api } from './api';
 import { formatCRC, formatRegistrationDate, formatWorkDate } from './form-validation';
 import { canCancelBackfill, storage, type Order } from './autosave';
+import { downloadRecovery } from './ConflictReview';
 
 const historyDate = z.iso.date().refine((value) => value.slice(0, 4) !== '0000');
 
@@ -26,6 +27,7 @@ export function OrderList({
   onOpen: (order: Order) => void;
 }) {
   const [localOrders, setLocalOrders] = useState<(Order & { canCancelDraft: boolean })[]>([]);
+  const [recoveries, setRecoveries] = useState<Awaited<ReturnType<typeof storage.list>>>([]);
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [appliedDates, setAppliedDates] = useState({ from: '', to: '' });
@@ -44,6 +46,7 @@ export function OrderList({
     if (status !== 'OPEN' || !userId) return;
     let current = true;
     void storage.list(userId).then(records => {
+      if (current) setRecoveries(records.filter(record => record.recoveryCopies?.length));
       if(current) setLocalOrders(records.filter(r => !r.cancelled && r.order?.status !== 'CLOSED' && r.order?.status !== 'VOID' && (!r.version || r.pending || r.savedRevision < r.revision)).map(r => ({
         ...(r.order ?? {status: 'OPEN' as const, mechanicId: r.draft.mechanicId ?? userId}), id: r.id, draft: r.draft, version: r.version ?? '', canCancelDraft: canCancelBackfill(r),
       })));
@@ -160,6 +163,15 @@ export function OrderList({
           <button onClick={() => setReload((n) => n + 1)}>Reintentar</button>
         </p>
       )}
+      {!!recoveries.length && <section aria-label="Copias de recuperación en este dispositivo">
+        <h3>Copias de recuperación en este dispositivo</h3>
+        {recoveries.map(record => (
+          <p key={record.id}>
+            {record.order?.displayOrderId ?? (record.draft.plate || 'Borrador')} · {record.draft.customerName || 'Cliente pendiente'}{' '}
+            <button type="button" className="quiet" onClick={() => downloadRecovery(record)}>Descargar copias</button>
+          </p>
+        ))}
+      </section>}
       {status === 'CLOSED' && !hasHistorySearch && <p>Busca por nombre, cédula, placa, número de orden o fecha para consultar el historial. Si eliges una sola fecha, se busca ese día.</p>}
       {!loading && !error && !visible.length && (status === 'OPEN' || hasHistorySearch) && (
         <p>

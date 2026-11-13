@@ -114,7 +114,7 @@ Pago: SINPE, tarjeta de crédito, tarjeta de débito, efectivo o transferencia b
 
 ## Autosave, offline y concurrencia
 
-IndexedDB separa borradores por usuario/orden y conserva payload, ETag, clave idempotente, pendientes y copias de recuperación. Datos incompletos se conservan localmente; SQL autosave espera payload válido. Crear/cerrar necesitan conexión para confirmación oficial. Tras una respuesta perdida, se reenvía la misma mutación/clave; no se duplican efectos. Web Lock por usuario evita dos editores simultáneos en pestañas compatibles del mismo navegador.
+IndexedDB separa borradores por usuario/orden y conserva payload, ETag, clave idempotente, pendientes y copias de recuperación. Datos incompletos se conservan localmente; SQL autosave espera payload válido. Crear/cerrar necesitan conexión para confirmación oficial. Tras una respuesta perdida, se reenvía la misma mutación/clave; no se duplican efectos. La revisión local detecta escrituras concurrentes entre pestañas y conserva una copia recuperable cuando hay conflicto.
 
 ETag se deriva de rowversion. Un conflicto conserva el borrador, consulta la versión actual y ofrece revisión por grupos/mezcla/servidor. La copia previa permanece en recoveryCopies y puede descargarse; una nueva modificación remota obliga a revisar de nuevo. Las acciones de cierre, cancelación y transferencia no se repiten automáticamente al resolver contenido. Reasignación sin cambio de contenido puede recuperarse con versión/clave nuevas.
 
