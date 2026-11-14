@@ -49,7 +49,8 @@ export async function readOperationalReport(tx: SqlUnit, filters: OperationalFil
       COALESCE(SUM(required),0) AS required, COUNT(pendingDays) AS pending,
       MAX(pendingDays) AS oldestPendingDays
     FROM work GROUP BY GROUPING SETS ((),(mechanic_id),(order_date),(method))
-    HAVING GROUPING(method)=1 OR method IS NOT NULL;
+    HAVING GROUPING(method)=1 OR method IS NOT NULL
+    OPTION (RECOMPILE);
 
     SELECT id, full_name AS name FROM dbo.Users u
     WHERE u.role='MECHANIC' OR EXISTS (SELECT 1 FROM dbo.Orders o WHERE o.mechanic_id=u.id)
@@ -69,7 +70,8 @@ export async function readOperationalReport(tx: SqlUnit, filters: OperationalFil
     SELECT mechanic_id AS mechanic, CONVERT(char(10),localDate,23) AS date,
       CONVERT(char(10),monday,23) AS week, COUNT(*) AS closed,
       AVG(CONVERT(float,CASE WHEN duration>=0 THEN duration END)) AS durationMs
-    FROM periods GROUP BY GROUPING SETS ((localDate),(mechanic_id,monday));
+    FROM periods GROUP BY GROUPING SETS ((localDate),(mechanic_id,localDate),(mechanic_id,monday))
+    OPTION (RECOMPILE);
 
     DECLARE @monday date=${week('CONVERT(date,@to)')};
     DECLARE @current datetime2(3)=DATEADD(hour,6,CONVERT(datetime2(3),@monday));
@@ -81,7 +83,7 @@ export async function readOperationalReport(tx: SqlUnit, filters: OperationalFil
     WHERE o.status='CLOSED' AND o.is_backfilled=0
       AND o.closed_at>=DATEADD(day,-7,@current) AND o.closed_at<@currentEnd
       AND (@mechanic IS NULL OR o.mechanic_id=CONVERT(uniqueidentifier,@mechanic))
-    GROUP BY o.mechanic_id;
+    GROUP BY o.mechanic_id OPTION (RECOMPILE);
 
     SELECT CONVERT(char(10),@monday,23) AS comparisonWeek, @to AS comparisonThrough;
   `, { ...params(filters), today });
@@ -101,7 +103,9 @@ export async function readOperationalReport(tx: SqlUnit, filters: OperationalFil
     workDays: work.flatMap(row => row.date ? [{ ...totals(row), date: row.date }] : [])
       .sort((a,b) => a.date.localeCompare(b.date)),
     payments: work.flatMap(row => row.method ? [{ method: row.method, gross: row.gross, closed: row.closed }] : []),
-    closureDays: closures.flatMap(row => row.date ? [{ date: row.date, closed: row.closed, durationMs: row.durationMs }] : [])
+    closureDays: closures.flatMap(row => row.date && !row.mechanic ? [{ date: row.date, closed: row.closed, durationMs: row.durationMs }] : [])
+      .sort((a,b) => a.date.localeCompare(b.date)),
+    closureByMechanicDay: closures.flatMap(row => row.date && row.mechanic ? [{ date: row.date, mechanic: row.mechanic, closed: row.closed }] : [])
       .sort((a,b) => a.date.localeCompare(b.date)),
     closureWeeks: closures.flatMap(row => row.week && row.mechanic ? [{ week: row.week, mechanic: row.mechanic, closed: row.closed }] : [])
       .sort((a,b) => a.week.localeCompare(b.week)),
@@ -122,7 +126,7 @@ export async function readOperationalOrders(tx: SqlUnit, filters: OperationalFil
     SELECT o.id,o.display_order_id AS orderNumber,CONVERT(char(10),o.order_date,23) AS workDate,
       o.customer_name_snapshot AS customer,o.plate_snapshot AS plate,o.status,o.is_backfilled AS backfilled,
       i.services,o.total_amount AS gross,CONVERT(decimal(12,2),o.total_amount-i.tax) AS net
-    FROM page o CROSS APPLY (${itemTotals}) i ORDER BY o.order_date DESC,o.id DESC;
+    FROM page o CROSS APPLY (${itemTotals}) i ORDER BY o.order_date DESC,o.id DESC OPTION (RECOMPILE);
   `, { ...params(filters), status, offset: page * pageSize, limit: pageSize + 1 });
   return { rows: result.recordset.slice(0, pageSize), more: page < 199 && result.recordset.length > pageSize };
 }

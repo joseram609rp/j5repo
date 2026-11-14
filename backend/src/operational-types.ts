@@ -25,6 +25,7 @@ export type OperationalReport = {
   workDays: (OperationalTotals & { date: string })[];
   payments: { method: string; gross: number; closed: number }[];
   closureDays: { date: string; closed: number; durationMs: number | null }[];
+  closureByMechanicDay: { mechanic: string; date: string; closed: number }[];
   closureWeeks: { mechanic: string; week: string; closed: number }[];
   comparison: { mechanic: string; current: number; previous: number }[];
   comparisonWeek: string;

@@ -15,6 +15,7 @@ export function sampleReport(date = sampleOrder.workDate): OperationalReport {
     totals: metrics, mechanics: [mechanic], productivity: [{ ...mechanic, ...metrics }],
     workDays: [{ ...metrics, date }], payments: [{ method: 'SINPE', gross: metrics.gross, closed: 1 }],
     closureDays: [{ date, closed: 1, durationMs: 7_200_000 }],
+    closureByMechanicDay: [{ mechanic: mechanic.id, date, closed: 1 }],
     closureWeeks: [{ mechanic: mechanic.id, week: date, closed: 1 }],
     comparison: [{ mechanic: mechanic.id, current: 1, previous: 0 }],
     comparisonWeek: date, comparisonThrough: date,

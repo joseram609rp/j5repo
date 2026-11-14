@@ -36,12 +36,12 @@ function Status({ error, retry }: { error?: string; retry: () => void }) {
     : <p role="status">Consultando indicadores…</p>;
 }
 
-type Bar = { label: string; value: number; secondary?: number };
+type Bar = { id?: string; label: string; value: number; secondary?: number };
 function Bars({ title, rows, format = String }: { title: string; rows: Bar[]; format?: (value: number) => string }) {
   const max = Math.max(1, ...rows.map(row => Math.max(row.value, row.secondary ?? 0)));
   return <section className="op-block">
     <h3>{title}</h3>
-    {!rows.length ? <p>Sin datos en el período.</p> : <ul className="op-bars">{rows.map(row => <li key={row.label}>
+    {!rows.length ? <p>Sin datos en el período.</p> : <ul className="op-bars">{rows.map(row => <li key={row.id ?? row.label}>
       <span>{row.label}</span>
       <div className="op-bar-values">
         <span><i aria-hidden="true" style={{ width: 100 * row.value / max + '%' }} />{format(row.value)}</span>
@@ -74,9 +74,11 @@ function Business({ report, onOrders }: { report: OperationalReport; onOrders: (
 }
 
 function Mechanics({ report, onOrders }: { report: OperationalReport; onOrders: (status: 'OPEN' | 'CLOSED', mechanic: string) => void }) {
+  const [weekly, setWeekly] = useState(true);
+  const closures = weekly ? report.closureWeeks.map(row => ({ ...row, date: row.week })) : report.closureByMechanicDay;
   return <>
     <p>Las cifras se atribuyen al mecánico asignado a la orden. La asignación por sí sola no identifica quién hizo cada servicio.</p>
-    <Bars title="Órdenes cerradas por fecha de trabajo" rows={report.productivity.map(row => ({ label: row.name, value: row.closed }))} />
+    <Bars title="Órdenes cerradas por fecha de trabajo" rows={report.productivity.map(row => ({ id: row.id, label: row.name, value: row.closed }))} />
     <div className="op-table"><table><caption>Productividad por fecha de trabajo</caption>
       <thead><tr>{['Mecánico', 'Cerradas', 'Abiertas', 'Servicios', 'Con IVA', 'Sin IVA', 'Ticket promedio'].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
       <tbody>{report.productivity.map(row => <tr key={row.id}><th scope="row">{row.name}</th>
@@ -86,12 +88,16 @@ function Mechanics({ report, onOrders }: { report: OperationalReport; onOrders: 
       </tr>)}</tbody>
     </table></div>
     <Bars title={'Cierres reales del ' + dateLabel(report.comparisonWeek) + ' al ' + dateLabel(report.comparisonThrough) + ' y mismos días de la semana anterior'}
-      rows={report.comparison.map(row => ({ label: report.mechanics.find(person => person.id === row.mechanic)?.name ?? row.mechanic, value: row.current, secondary: row.previous }))} />
+      rows={report.comparison.map(row => ({ id: row.mechanic, label: report.mechanics.find(person => person.id === row.mechanic)?.name ?? row.mechanic, value: row.current, secondary: row.previous }))} />
     <p>En la comparación, la primera barra corresponde a la semana del último día seleccionado y la segunda a la semana anterior. Solo órdenes normales.</p>
-    <div className="op-table"><table><caption>Cierres reales por semana dentro del rango</caption>
-      <thead><tr><th scope="col">Semana del</th><th scope="col">Mecánico</th><th scope="col">Cierres</th></tr></thead>
-      <tbody>{report.closureWeeks.map(row => <tr key={row.mechanic + row.week}>
-        <td>{dateLabel(row.week)}</td><td>{report.mechanics.find(person => person.id === row.mechanic)?.name}</td><td>{row.closed}</td>
+    <label>Intervalo de cierres <select value={weekly ? 'week' : 'day'} onChange={event => setWeekly(event.target.value === 'week')}>
+      <option value="week">Semanal</option><option value="day">Diario</option>
+    </select></label>
+    {!closures.length && <p>Sin cierres reales en el período.</p>}
+    <div className="op-table"><table><caption>Cierres reales por mecánico dentro del rango</caption>
+      <thead><tr><th scope="col">{weekly ? 'Semana del' : 'Día'}</th><th scope="col">Mecánico</th><th scope="col">Cierres</th></tr></thead>
+      <tbody>{closures.map(row => <tr key={row.mechanic + row.date}>
+        <td>{dateLabel(row.date)}</td><td>{report.mechanics.find(person => person.id === row.mechanic)?.name}</td><td>{row.closed}</td>
       </tr>)}</tbody>
     </table></div>
   </>;
@@ -112,7 +118,7 @@ function Trends({ report, from, to }: { report: OperationalReport; from: string;
     <Bars title="Cierres reales por día · solo órdenes normales" rows={days.map(row => ({
       label: dateLabel(row.date), value: closures.get(row.date)?.closed ?? 0,
     }))} />
-    <Bars title="Cerradas por mecánico asignado · fecha de trabajo" rows={report.productivity.map(row => ({ label: row.name, value: row.closed }))} />
+    <Bars title="Cerradas por mecánico asignado · fecha de trabajo" rows={report.productivity.map(row => ({ id: row.id, label: row.name, value: row.closed }))} />
     <Bars title="Tiempo promedio de apertura a cierre · solo órdenes normales"
       rows={report.closureDays.flatMap(row => row.durationMs === null ? [] : [{ label: dateLabel(row.date), value: row.durationMs / 3_600_000 }])}
       format={value => value.toLocaleString('es-CR', { maximumFractionDigits: 2 }) + ' h'} />

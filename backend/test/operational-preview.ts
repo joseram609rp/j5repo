@@ -27,11 +27,11 @@ export function operationalPreview() {
     if (pathname === '/api/admin/operational/orders/' + sampleOrder.id) return response({
       id: sampleOrder.id, orderDate: date, displayOrderId: sampleOrder.orderNumber, status: 'CLOSED',
       mechanicId: mechanic.id, mechanicName: mechanic.name, version: '0000000000000001',
-      total: metrics.gross, tax: metrics.tax, taxRate: 13,
+      totalAmount: metrics.gross, taxAmount: metrics.tax, subtotalAmount: metrics.net, taxRate: 13,
       draft: {
         customerName: sampleOrder.customer, plate: sampleOrder.plate, mileage: 72000,
         paymentMethod: 'SINPE', electronicInvoice: true,
-        items: [{ description: 'Inspección de frenos', price: 5000.04 }, { description: 'Ajuste', price: 5000.04 }],
+        items: [{ description: 'Inspección de frenos', price: 5000.07 }, { description: 'Ajuste', price: 5000.01 }],
       },
     });
     return response({ code: 'NOT_FOUND' }, 404);
