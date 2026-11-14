@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "concurrently -k -n api,web \"pnpm --filter @j5/backend dev\" \"pnpm --filter @j5/frontend dev\"",
+    "dev:operational": "pnpm --filter @j5/frontend dev --mode operational-preview",
     "build": "pnpm -r build",
     "test": "vitest run",
     "check": "pnpm -r typecheck && pnpm test && pnpm build",

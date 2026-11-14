@@ -16,6 +16,12 @@ import {
 /** Transactional test double only. Runtime always uses SqlRepository. */
 export class FakeRepository implements Repository, UnitOfWork {
   async vehicleCatalog() { return { makes: [{name:'Toyota',models:['Hilux','Fortuner']},{name:'Suzuki',models:['Jimny']}] }; }
+  async operationalReport(): Promise<import('../src/operational-types.js').OperationalReport> {
+    throw new Error('Register a report fixture for this test');
+  }
+  async operationalOrders(): Promise<import('../src/operational-types.js').OperationalOrderPage> {
+    throw new Error('Register an order fixture for this test');
+  }
   clock = 1_000_000;
   accounts = new Map<string, User>();
   sessions = new Map<string, Session>();

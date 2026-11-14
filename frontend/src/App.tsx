@@ -11,6 +11,7 @@ import { amounts, latestBackfillDate } from '../../backend/src/validation';
 import { bootstrapSession, type SessionStatus } from './bootstrap';
 import { Dashboard } from './Dashboard';
 import { InvoiceTracking } from './InvoiceTracking';
+import { OperationalDashboard } from './OperationalDashboard';
 import { OrderList } from './OrderList';
 import { OrderPreview } from './OrderPreview';
 import { EntitySearch } from './EntitySearch';
@@ -41,15 +42,28 @@ function invoiceOrderId() {
   return typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('invoiceOrder');
 }
 
+function operationalLink() {
+  return typeof window === 'undefined' ? null : new URLSearchParams(window.location.search);
+}
+
+function initialPage() {
+  const params = operationalLink();
+  if (params?.has('operationalOrder')) return 'operational-order';
+  if (params?.has('operational')) return 'operational';
+  return invoiceOrderId() === null ? 'dashboard' : 'invoice-order';
+}
+
 export function App() {
   const [hasUpdate, setHasUpdate] = useState(updateAvailable);
   useEffect(()=>onUpdateAvailable(()=>setHasUpdate(true)),[]);
   const [conflict, setConflict] = useState<RecordState['conflict']>();
   const [catalog, setCatalog] = useState<VehicleCatalog>({makes:[]});
   const [page, setPage] = useState<
-    'dashboard' | 'new-order' | 'editor' | 'open' | 'history' | 'legacy' | 'users' | 'invoices' | 'invoice-order'
-  >(() => invoiceOrderId() === null ? 'dashboard' : 'invoice-order');
+    'dashboard' | 'new-order' | 'editor' | 'open' | 'history' | 'legacy' | 'users' | 'invoices' | 'invoice-order' | 'operational' | 'operational-order'
+  >(initialPage);
+  const operationalDetail = page === 'operational-order';
   const invoiceDetail = page === 'invoice-order';
+  const readOnlyDetail = invoiceDetail || operationalDetail;
   const [invoiceDetailError, setInvoiceDetailError] = useState('');
   const [invoiceDetailRevision, setInvoiceDetailRevision] = useState(0);
   const [ownerRevision, setOwnerRevision] = useState(0);
@@ -79,28 +93,29 @@ export function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>('checking');
   useEffect(() => {
-    if (!invoiceDetail || sessionStatus !== 'authenticated' || session?.role !== 'ADMIN') return;
-    const id = invoiceOrderId();
+    if (!readOnlyDetail || sessionStatus !== 'authenticated' || session?.role !== 'ADMIN') return;
+    const id = operationalDetail ? operationalLink()?.get('operationalOrder') : invoiceOrderId();
     if (!id || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) {
       setInvoiceDetailError('El enlace de la orden es inválido.');
       return;
     }
     const controller = new AbortController();
     setInvoiceDetailError('');
-    void api<Order>('/admin/invoice-tracking/orders/' + id, { signal: controller.signal }).then(remote => {
+    const endpoint = operationalDetail ? '/admin/operational/orders/' : '/admin/invoice-tracking/orders/';
+    void api<Order>(endpoint + id, { signal: controller.signal }).then(remote => {
       if (controller.signal.aborted) return;
       setOrder(remote);
       setDraft(remote.draft);
     }).catch(error => {
       if (controller.signal.aborted) return;
       setInvoiceDetailError(error instanceof ApiError && error.status === 404
-        ? 'La orden ya no está cerrada, no requiere factura electrónica o no existe.'
+        ? (operationalDetail ? 'La orden ya no está disponible en el panel.' : 'La orden ya no está cerrada, no requiere factura electrónica o no existe.')
         : error instanceof ApiError && error.status === 403
           ? 'Esta sección es exclusiva para administradores.'
           : 'No se pudo consultar la orden.');
     });
     return () => controller.abort();
-  }, [invoiceDetail, sessionStatus, session, invoiceDetailRevision]);
+  }, [readOnlyDetail, operationalDetail, sessionStatus, session, invoiceDetailRevision]);
   const [bootstrapError, setBootstrapError] = useState(false);
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -241,7 +256,7 @@ export function App() {
     setConflict(undefined);
     setDraft(null);
     setOrder(null);
-    setPage(invoiceOrderId() === null ? 'dashboard' : 'invoice-order');
+    setPage(initialPage());
     setSession(null);
     setSessionStatus('anonymous');
     setTouched(new Set());
@@ -292,7 +307,7 @@ export function App() {
       setLoginMessage('');
       setSessionStatus('authenticated');
       setPassword('');
-      setPage(invoiceOrderId() === null ? 'dashboard' : 'invoice-order');
+      setPage(initialPage());
     } catch (error) {
       setLoginMessage(loginErrorMessage(error));
     } finally {
@@ -411,12 +426,21 @@ export function App() {
     }
     // A draft may continue synchronizing after leaving the editor.
     if (next !== page) clearNotice();
-    if (invoiceDetail && next !== page) {
+    if ((readOnlyDetail || page === 'operational') && next !== page) {
       const url = new URL(window.location.href);
       url.searchParams.delete('invoiceOrder');
+      url.searchParams.delete('operationalOrder');
+      url.searchParams.delete('operational');
       window.history.replaceState(window.history.state, '', url);
-      setOrder(null);
-      setDraft(null);
+      if (readOnlyDetail) {
+        setOrder(null);
+        setDraft(null);
+      }
+    }
+    if (next === 'operational' && next !== page) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('operational', '');
+      window.history.replaceState(window.history.state, '', url);
     }
     setPage(next);
   }
@@ -746,6 +770,7 @@ export function App() {
     !matchesCloseRevision(saver.current.state, preview.revision)
   );
   const readOnly =
+    readOnlyDetail ||
     cancelledDraft ||
     !!saver.current?.localConflict ||
     (historical && session?.role !== 'ADMIN') ||
@@ -754,7 +779,7 @@ export function App() {
     !!conflict ||
     busy ||
     !!saver.current?.state.pending?.draft.action;
-  const editor = page === 'editor' || (invoiceDetail && session?.role === 'ADMIN' && !!order && !!draft);
+  const editor = page === 'editor' || (readOnlyDetail && session?.role === 'ADMIN' && !!order && !!draft);
   const recovery = !saver.current && terminalRecovery?.id === editorId ? terminalRecovery :
     saver.current?.unsavedLocally || saver.current?.state.recoveryCopies?.length ? saver.current?.state : undefined;
   function validation(field: string) {
@@ -826,6 +851,7 @@ export function App() {
                 Historial
               </button>
               <button className="quiet" onClick={() => void navigate('legacy')}>Historial J5 antiguo</button>
+              {session.role === 'ADMIN' && <button className="quiet" onClick={() => void navigate('operational')}>Panel operativo</button>}
               {session.role === 'ADMIN' && <button className="quiet" onClick={() => void navigate('invoices')}>Facturas electrónicas</button>}
               {session.role === 'ADMIN' && (
                 <button
@@ -874,7 +900,9 @@ export function App() {
             )}
             {page === 'legacy' && <LegacyHistory />}
             {page === 'invoices' && session.role === 'ADMIN' && <InvoiceTracking key={session.userId} session={session} />}
-            {invoiceDetail && !editor && <section className="card" aria-label="Detalle de factura electrónica">
+            {page === 'operational' && (session.role === 'ADMIN' ? <OperationalDashboard key={session.userId} />
+              : <p role="alert">Esta sección es exclusiva para administradores.</p>)}
+            {readOnlyDetail && !editor && <section className="card" aria-label="Detalle de orden">
               {session.role !== 'ADMIN' ? <p role="alert">Esta sección es exclusiva para administradores.</p>
                 : invoiceDetailError ? <>
                   <p role="alert">{invoiceDetailError}</p>
@@ -1048,7 +1076,7 @@ export function App() {
                     <summary>Copias de recuperación de esta orden</summary>
                     <button type="button" className="quiet" onClick={() => downloadRecovery(recovery)}>Descargar copias de recuperación</button>
                   </details>}
-                  {!cancelledDraft && (!order || order.status === 'OPEN') && !conflict && !saver.current?.localConflict && (
+                  {!readOnlyDetail && !cancelledDraft && (!order || order.status === 'OPEN') && !conflict && !saver.current?.localConflict && (
                     <div hidden={!!confirmAction || busy}><EntitySearch key={`${page}:${editorId}`} ownerRevision={ownerRevision} draft={draft} onSelect={saveDraft} allowTransfer={!historical && (session.role === 'ADMIN' || session.role === 'MECHANIC')} onTransfer={() => {
                       const service = saver.current;
                       if (!service) return;
@@ -1362,7 +1390,7 @@ export function App() {
                     </div>
                   )}
                   <div className="order-actions">
-                  {!cancelledDraft && (!order || order.status === 'OPEN') && !conflict && canFinish && (
+                  {!readOnlyDetail && !cancelledDraft && (!order || order.status === 'OPEN') && !conflict && canFinish && (
                     <button
                       ref={previewButton}
                       type="button"
@@ -1372,12 +1400,12 @@ export function App() {
                       Vista previa de orden
                     </button>
                   )}
-                  {!conflict && ((order?.status === 'OPEN' && (session.role === 'ADMIN' || order.mechanicId === session.userId)) ||
+                  {!readOnlyDetail && !conflict && ((order?.status === 'OPEN' && (session.role === 'ADMIN' || order.mechanicId === session.userId)) ||
                     (!order && session.role === 'ADMIN' && saver.current?.state.id === editorId && canCancelBackfill(saver.current.state))) && (
                     <button type="button" className="danger" disabled={busy || !!confirmAction || !!saver.current?.localConflict} onClick={() => setConfirmAction('void')}>Cancelar orden</button>
                   )}
                   </div>
-                  {!invoiceDetail && order?.status === 'CLOSED' && !historical && !conflict && session.role === 'ADMIN' && (
+                  {!readOnlyDetail && order?.status === 'CLOSED' && !historical && !conflict && session.role === 'ADMIN' && (
                     <button
                       type="button"
                       disabled={busy || !!saver.current?.localConflict}

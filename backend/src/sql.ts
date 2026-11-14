@@ -1,5 +1,7 @@
 import sql from 'mssql';
 import { randomUUID } from 'node:crypto';
+import { readOperationalOrders, readOperationalReport } from './operational-sql.js';
+import type { OperationalFilters } from './operational-types.js';
 import { customerSchema, vehicleSchema } from './validation.js';
 import { config } from './config.js';
 import { HttpError, retrySql } from './reliability.js';
@@ -137,6 +139,12 @@ const invoiceEligible = `o.status='CLOSED' AND EXISTS (
 )`;
 
 export class SqlUnit implements UnitOfWork {
+  operationalReport(filters: OperationalFilters, now: number) {
+    return readOperationalReport(this, filters, now);
+  }
+  operationalOrders(filters: OperationalFilters, status: 'OPEN' | 'CLOSED', page: number) {
+    return readOperationalOrders(this, filters, status, page);
+  }
   constructor(
     private tx: sql.Transaction,
     private signal: AbortSignal,
@@ -430,9 +438,9 @@ export class SqlUnit implements UnitOfWork {
       owner: { id: v.ownerId, fullName, identification, phone, email },
     }));
   }
-  async order(id: string) {
+  async order(id: string, readOnly = false) {
     const r = await this.query<OrderRow>(
-      'SELECT o.*,(SELECT COALESCE(SUM(ROUND(oi.price*b.tax_rate/100,2)),0) FROM dbo.OrderItems oi JOIN dbo.Orders b ON b.id=oi.order_id WHERE oi.order_id=o.id) AS tax_amount,u.full_name AS mechanic_name FROM dbo.Orders o WITH (UPDLOCK,HOLDLOCK) JOIN dbo.Users u ON u.id=o.mechanic_id WHERE o.id=@id',
+      `SELECT o.*,(SELECT COALESCE(SUM(ROUND(oi.price*b.tax_rate/100,2)),0) FROM dbo.OrderItems oi JOIN dbo.Orders b ON b.id=oi.order_id WHERE oi.order_id=o.id) AS tax_amount,u.full_name AS mechanic_name FROM dbo.Orders o ${readOnly ? '' : 'WITH (UPDLOCK,HOLDLOCK)'} JOIN dbo.Users u ON u.id=o.mechanic_id WHERE o.id=@id`,
       { id },
     );
     if (!r.recordset[0]) return undefined;
