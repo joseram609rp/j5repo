@@ -81,3 +81,18 @@ it('maps SQL aggregates and binds filters and pagination without interpolating v
   expect(await readOperationalOrders(tx, filters, 'CLOSED', 1)).toEqual({ rows: Array.from({ length: 25 }, () => sampleOrder), more: true });
   expect(query.mock.calls[1]?.[1]).toMatchObject({ status: 'CLOSED', offset: 25, limit: 26 });
 });
+
+it('returns zero totals for the empty SQL grouping sets result', async () => {
+  const query = vi.fn().mockResolvedValue({ recordsets: [
+    [], [mechanic], [], [], [{ comparisonWeek: '1900-01-01', comparisonThrough: '1900-01-01' }],
+  ] });
+  const tx = { query } as unknown as SqlUnit;
+  const report = await readOperationalReport(tx, { from: '1900-01-01', to: '1900-01-01', includeBackfilled: false }, now);
+  expect(report.totals).toEqual({
+    closed: 0, open: 0, services: 0, gross: 0, net: 0, tax: 0,
+    required: 0, pending: 0, oldestPendingDays: null,
+  });
+  expect(report.workDays).toEqual([]);
+  expect(report.payments).toEqual([]);
+  expect(report.mechanics).toEqual([mechanic]);
+});

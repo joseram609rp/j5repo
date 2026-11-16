@@ -14,6 +14,11 @@ const itemTotals = `
 const week = (column: string) => `DATEADD(day,-(DATEDIFF(day,'19000101',${column})%7+7)%7,${column})`;
 const params = (filters: OperationalFilters) => ({ ...filters, mechanic: filters.mechanic ?? null });
 
+const emptyTotals: OperationalTotals = {
+  closed: 0, open: 0, services: 0, gross: 0, net: 0, tax: 0,
+  required: 0, pending: 0, oldestPendingDays: null,
+};
+
 type WorkRow = OperationalTotals & { mechanic: string | null; date: string | null; method: string | null };
 type ClosureRow = { date: string | null; week: string | null; mechanic: string | null; closed: number; durationMs: number | null };
 
@@ -93,9 +98,10 @@ export async function readOperationalReport(tx: SqlUnit, filters: OperationalFil
     Pick<OperationalReport,'comparisonWeek'|'comparisonThrough'>[],
   ];
   const totals = ({ mechanic, date, method, ...values }: WorkRow) => values;
+  const grandTotal = work.find(row => !row.mechanic && !row.date && !row.method);
   return {
     ...period[0]!,
-    totals: totals(work.find(row => !row.mechanic && !row.date && !row.method)!),
+    totals: grandTotal ? totals(grandTotal) : emptyTotals,
     mechanics,
     productivity: work.flatMap(row => {
       const mechanic = mechanics.find(candidate => candidate.id === row.mechanic);
