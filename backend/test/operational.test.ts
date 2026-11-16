@@ -73,7 +73,8 @@ it('maps SQL aggregates and binds filters and pagination without interpolating v
   const tx = { query } as unknown as SqlUnit;
   const filters = operationalFilters(new URLSearchParams(range + '&mechanic=' + mechanic.id), now);
   expect((await readOperationalReport(tx, filters, now)).totals).toEqual(metrics);
-  expect(query.mock.calls[0]?.[0]).toContain('ROUND(i.price*o.tax_rate/100,2)');
+  expect(query.mock.calls[0]?.[0]).toContain('ROUND(i.price*b.tax_rate/100,2)');
+  expect(query.mock.calls[0]?.[0]).toContain('JOIN dbo.Orders b ON b.id=i.order_id');
   expect(query.mock.calls[0]?.[0]).toContain('o.is_backfilled=0 AND o.closed_at>=@closeFrom');
   expect(query.mock.calls[0]?.[0]).not.toContain(mechanic.id);
   expect(query.mock.calls[0]?.[1]).toEqual({ ...filters, today: '2026-11-13' });

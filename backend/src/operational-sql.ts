@@ -7,8 +7,9 @@ const workScope = `
   AND (@includeBackfilled=1 OR o.is_backfilled=0)
 `;
 const itemTotals = `
-  SELECT COUNT(*) AS services, CONVERT(decimal(19,2),COALESCE(SUM(ROUND(i.price*o.tax_rate/100,2)),0)) AS tax
-  FROM dbo.OrderItems i WHERE i.order_id=o.id
+  SELECT COUNT(*) AS services, CONVERT(decimal(19,2),COALESCE(SUM(ROUND(i.price*b.tax_rate/100,2)),0)) AS tax
+  FROM dbo.OrderItems i JOIN dbo.Orders b ON b.id=i.order_id
+  WHERE i.order_id=o.id
 `;
 const week = (column: string) => `DATEADD(day,-(DATEDIFF(day,'19000101',${column})%7+7)%7,${column})`;
 const params = (filters: OperationalFilters) => ({ ...filters, mechanic: filters.mechanic ?? null });
@@ -118,7 +119,7 @@ export async function readOperationalOrders(tx: SqlUnit, filters: OperationalFil
   const result = await tx.query<OperationalOrder>(`
     WITH page AS (
       SELECT o.id,o.display_order_id,o.order_date,o.customer_name_snapshot,o.plate_snapshot,
-        o.status,o.is_backfilled,o.total_amount,o.tax_rate
+        o.status,o.is_backfilled,o.total_amount
       FROM dbo.Orders o WHERE o.status=@status AND ${workScope}
       ORDER BY o.order_date DESC,o.id DESC
       OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY
