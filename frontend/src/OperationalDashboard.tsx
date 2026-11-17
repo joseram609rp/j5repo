@@ -92,7 +92,7 @@ function Mechanics({ report, from, to, onOrders }: {
   onOrders: (status: 'OPEN' | 'CLOSED', mechanic: string) => void;
 }) {
   const [weekly, setWeekly] = useState(true);
-  const closures = weekly ? report.closureWeeks.map(row => ({ ...row, date: row.week })) : report.closureByMechanicDay;
+  const closures = weekly ? report.workClosuresByMechanicWeek.map(row => ({ ...row, date: row.week })) : report.workClosuresByMechanicDay;
   return <>
     <p>Las cifras se atribuyen al mecánico asignado a la orden. La asignación por sí sola no identifica quién hizo cada servicio.</p>
     <Bars title="Órdenes cerradas por fecha de trabajo" rows={report.productivity.map(row => ({ id: row.id, label: row.name, value: row.closed }))} />
@@ -109,13 +109,13 @@ function Mechanics({ report, from, to, onOrders }: {
       </tr>)}</tbody>
     </table></div>
     <p>Primera barra: {dateLabel(from)} – {dateLabel(to)}. Segunda barra: {dateLabel(report.previousFrom)} – {dateLabel(report.previousTo)}.</p>
-    <Bars title="Cierres reales comparados con el período anterior"
+    <Bars title="Órdenes cerradas por fecha de trabajo frente al período anterior"
       rows={report.comparison.map(row => ({ id: row.mechanic, label: report.mechanics.find(person => person.id === row.mechanic)?.name ?? row.mechanic, value: row.current, secondary: row.previous }))} />
-    <label>Intervalo de cierres <select value={weekly ? 'week' : 'day'} onChange={event => setWeekly(event.target.value === 'week')}>
+    <label>Agrupar órdenes cerradas por <select value={weekly ? 'week' : 'day'} onChange={event => setWeekly(event.target.value === 'week')}>
       <option value="week">Semanal</option><option value="day">Diario</option>
     </select></label>
-    {!closures.length && <p>Sin cierres reales en el período.</p>}
-    <div className="op-table"><table><caption>Cierres reales por mecánico dentro del rango</caption>
+    {!closures.length && <p>Sin órdenes cerradas en el período.</p>}
+    <div className="op-table"><table><caption>Órdenes cerradas por fecha de trabajo dentro del rango</caption>
       <thead><tr><th scope="col">{weekly ? 'Semana del' : 'Día'}</th><th scope="col">Mecánico</th><th scope="col">Cierres</th></tr></thead>
       <tbody>{closures.map(row => <tr key={row.mechanic + row.date}>
         <td>{dateLabel(row.date)}</td><td>{report.mechanics.find(person => person.id === row.mechanic)?.name}</td><td>{row.closed}</td>

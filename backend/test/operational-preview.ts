@@ -21,7 +21,7 @@ export function operationalPreview() {
       const previous = (ms: number) => new Date(ms).toISOString().slice(0, 10);
       return response({
         ...base, previousFrom: previous(from - (Date.parse(date) - from) - 86_400_000),
-        previousTo: previous(from - 86_400_000), closureWeeks: [{ mechanic: mechanic.id, week: monday, closed: 1 }],
+        previousTo: previous(from - 86_400_000), workClosuresByMechanicWeek: [{ mechanic: mechanic.id, week: monday, closed: 1 }],
       } satisfies ReturnType<typeof sampleReport>);
     }
     if (pathname === '/api/admin/operational/orders') return response({

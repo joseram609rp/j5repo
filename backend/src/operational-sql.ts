@@ -20,7 +20,7 @@ const emptyTotals: OperationalTotals = {
 };
 
 type WorkRow = OperationalTotals & { mechanic: string | null; date: string | null; method: string | null };
-type ClosureRow = { date: string | null; week: string | null; mechanic: string | null; closed: number; durationMs: number | null };
+type WorkClosureRow = { date: string | null; week: string | null; mechanic: string; closed: number };
 
 export async function readOperationalReport(tx: SqlUnit, filters: OperationalFilters, now: number): Promise<OperationalReport> {
   const today = new Date(now - 6 * 3_600_000).toISOString().slice(0, 10);
@@ -65,36 +65,44 @@ export async function readOperationalReport(tx: SqlUnit, filters: OperationalFil
     DECLARE @closeFrom datetime2(3)=DATEADD(hour,6,CONVERT(datetime2(3),@from));
     DECLARE @closeEnd datetime2(3)=DATEADD(hour,6,DATEADD(day,1,CONVERT(datetime2(3),@to)));
     WITH closures AS (
-      SELECT o.mechanic_id, CONVERT(date,DATEADD(hour,-6,o.closed_at)) AS localDate,
+      SELECT CONVERT(date,DATEADD(hour,-6,o.closed_at)) AS localDate,
         DATEDIFF_BIG(millisecond,o.created_at,o.closed_at) AS duration
       FROM dbo.Orders o
       WHERE o.status='CLOSED' AND o.is_backfilled=0 AND o.closed_at>=@closeFrom AND o.closed_at<@closeEnd
         AND (@mechanic IS NULL OR o.mechanic_id=CONVERT(uniqueidentifier,@mechanic))
-    ), periods AS (
-      SELECT *, ${week('localDate')} AS monday FROM closures
     )
-    SELECT mechanic_id AS mechanic, CONVERT(char(10),localDate,23) AS date,
-      CONVERT(char(10),monday,23) AS week, COUNT(*) AS closed,
+    SELECT CONVERT(char(10),localDate,23) AS date, COUNT(*) AS closed,
       AVG(CONVERT(float,CASE WHEN duration>=0 THEN duration END)) AS durationMs
-    FROM periods GROUP BY GROUPING SETS ((localDate),(mechanic_id,localDate),(mechanic_id,monday))
+    FROM closures GROUP BY localDate
     OPTION (RECOMPILE);
 
-    DECLARE @days int=DATEDIFF(day,@closeFrom,@closeEnd);
-    DECLARE @previousStart datetime2(3)=DATEADD(day,-@days,@closeFrom);
+    WITH workClosures AS (
+      SELECT o.mechanic_id, o.order_date, ${week('o.order_date')} AS monday
+      FROM dbo.Orders o WHERE o.status='CLOSED' AND ${workScope}
+    )
+    SELECT mechanic_id AS mechanic, CONVERT(char(10),order_date,23) AS date,
+      CONVERT(char(10),monday,23) AS week, COUNT(*) AS closed
+    FROM workClosures GROUP BY GROUPING SETS ((mechanic_id,order_date),(mechanic_id,monday))
+    OPTION (RECOMPILE);
+
+    DECLARE @workFrom date=CONVERT(date,@from);
+    DECLARE @workTo date=CONVERT(date,@to);
+    DECLARE @days int=DATEDIFF(day,@workFrom,@workTo)+1;
+    DECLARE @previousStart date=DATEADD(day,-@days,@workFrom);
     SELECT o.mechanic_id AS mechanic,
-      COUNT(CASE WHEN o.closed_at>=@closeFrom THEN 1 END) AS [current],
-      COUNT(CASE WHEN o.closed_at<@closeFrom THEN 1 END) AS previous
+      COUNT(CASE WHEN o.order_date>=@workFrom THEN 1 END) AS [current],
+      COUNT(CASE WHEN o.order_date<@workFrom THEN 1 END) AS previous
     FROM dbo.Orders o
-    WHERE o.status='CLOSED' AND o.is_backfilled=0
-      AND o.closed_at>=@previousStart AND o.closed_at<@closeEnd
+    WHERE o.status='CLOSED' AND (@includeBackfilled=1 OR o.is_backfilled=0)
+      AND o.order_date>=@previousStart AND o.order_date<=@workTo
       AND (@mechanic IS NULL OR o.mechanic_id=CONVERT(uniqueidentifier,@mechanic))
     GROUP BY o.mechanic_id OPTION (RECOMPILE);
 
-    SELECT CONVERT(char(10),DATEADD(day,-@days,CONVERT(date,@from)),23) AS previousFrom,
-      CONVERT(char(10),DATEADD(day,-1,CONVERT(date,@from)),23) AS previousTo;
+    SELECT CONVERT(char(10),@previousStart,23) AS previousFrom,
+      CONVERT(char(10),DATEADD(day,-1,@workFrom),23) AS previousTo;
   `, { ...params(filters), today });
-  const [work, mechanics, closures, comparison, period] = result.recordsets as unknown as [
-    WorkRow[], OperationalMechanic[], ClosureRow[], OperationalReport['comparison'],
+  const [work, mechanics, closures, workClosures, comparison, period] = result.recordsets as unknown as [
+    WorkRow[], OperationalMechanic[], OperationalReport['closureDays'], WorkClosureRow[], OperationalReport['comparison'],
     Pick<OperationalReport,'previousFrom'|'previousTo'>[],
   ];
   const totals = ({ mechanic, date, method, ...values }: WorkRow) => values;
@@ -110,11 +118,10 @@ export async function readOperationalReport(tx: SqlUnit, filters: OperationalFil
     workDays: work.flatMap(row => row.date ? [{ ...totals(row), date: row.date }] : [])
       .sort((a,b) => a.date.localeCompare(b.date)),
     payments: work.flatMap(row => row.method ? [{ method: row.method, gross: row.gross, closed: row.closed }] : []),
-    closureDays: closures.flatMap(row => row.date && !row.mechanic ? [{ date: row.date, closed: row.closed, durationMs: row.durationMs }] : [])
+    closureDays: closures.sort((a,b) => a.date.localeCompare(b.date)),
+    workClosuresByMechanicDay: workClosures.flatMap(row => row.date ? [{ date: row.date, mechanic: row.mechanic, closed: row.closed }] : [])
       .sort((a,b) => a.date.localeCompare(b.date)),
-    closureByMechanicDay: closures.flatMap(row => row.date && row.mechanic ? [{ date: row.date, mechanic: row.mechanic, closed: row.closed }] : [])
-      .sort((a,b) => a.date.localeCompare(b.date)),
-    closureWeeks: closures.flatMap(row => row.week && row.mechanic ? [{ week: row.week, mechanic: row.mechanic, closed: row.closed }] : [])
+    workClosuresByMechanicWeek: workClosures.flatMap(row => row.week ? [{ week: row.week, mechanic: row.mechanic, closed: row.closed }] : [])
       .sort((a,b) => a.week.localeCompare(b.week)),
     comparison,
   };
