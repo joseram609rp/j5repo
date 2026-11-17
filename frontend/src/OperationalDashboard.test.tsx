@@ -20,7 +20,7 @@ it('retries a failed report, keeps filters across tabs and opens the matching re
     ? { rows: [sampleOrder], more: false } : sampleReport()) as never)
     .mockRejectedValueOnce(new ApiError(500, 'UNAVAILABLE'));
   try {
-    await act(async () => root.render(<OperationalDashboard />));
+    await act(async () => root.render(<OperationalDashboard onPendingInvoices={vi.fn()} />));
     expect(container.querySelector('[role=alert]')).not.toBeNull();
     await click('Reintentar');
     expect(container.textContent).toContain('Ventas registradas sin IVA');

@@ -61,6 +61,7 @@ export function App() {
   const [page, setPage] = useState<
     'dashboard' | 'new-order' | 'editor' | 'open' | 'history' | 'legacy' | 'users' | 'invoices' | 'invoice-order' | 'operational' | 'operational-order'
   >(initialPage);
+  const [invoiceDates, setInvoiceDates] = useState<{ from: string; to: string }>();
   const operationalDetail = page === 'operational-order';
   const invoiceDetail = page === 'invoice-order';
   const readOnlyDetail = invoiceDetail || operationalDetail;
@@ -418,7 +419,7 @@ export function App() {
       }
     }
   }
-  async function navigate(next: typeof page) {
+  async function navigate(next: typeof page, dates?: { from: string; to: string }) {
     if (busy || orderOperation.current) return;
     if (confirmAction) {
       setMessage('Confirma o cancela la acción pendiente.');
@@ -442,6 +443,7 @@ export function App() {
       url.searchParams.set('operational', '');
       window.history.replaceState(window.history.state, '', url);
     }
+    if (next !== page) setInvoiceDates(next === 'invoices' ? dates : undefined);
     setPage(next);
   }
   async function newOrder(backfill = false) {
@@ -899,8 +901,8 @@ export function App() {
               />
             )}
             {page === 'legacy' && <LegacyHistory />}
-            {page === 'invoices' && session.role === 'ADMIN' && <InvoiceTracking key={session.userId} session={session} />}
-            {page === 'operational' && (session.role === 'ADMIN' ? <OperationalDashboard key={session.userId} />
+            {page === 'invoices' && session.role === 'ADMIN' && <InvoiceTracking key={session.userId} session={session} initialDates={invoiceDates} />}
+            {page === 'operational' && (session.role === 'ADMIN' ? <OperationalDashboard key={session.userId} onPendingInvoices={dates => void navigate('invoices', dates)} />
               : <p role="alert">Esta sección es exclusiva para administradores.</p>)}
             {readOnlyDetail && !editor && <section className="card" aria-label="Detalle de orden">
               {session.role !== 'ADMIN' ? <p role="alert">Esta sección es exclusiva para administradores.</p>

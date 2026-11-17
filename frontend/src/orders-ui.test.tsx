@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { act, StrictMode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { App } from './App';
+import { sampleReport } from '../../backend/test/operational-fixture';
 import { OrderList } from './OrderList';
 import { draftChangeKey } from './draft-changes';
 import { api, ApiError } from './api';
@@ -696,6 +697,33 @@ it.each(['ADMIN', 'MECHANIC'] as const)('protects the invoice detail for %s and 
     }
     expect(storage.read).not.toHaveBeenCalled();
     expect(storage.write).not.toHaveBeenCalled();
+  } finally {
+    window.history.replaceState(null, '', '/');
+  }
+});
+
+it('opens pending invoices with the current operational dates', async () => {
+  window.history.replaceState(null, '', '/?operational');
+  try {
+    vi.mocked(bootstrapSession).mockResolvedValue({
+      status: 'authenticated', healthOk: true, session: { ...session, role: 'ADMIN' },
+    });
+    const request = vi.mocked(api);
+    request.mockImplementation(async path => {
+      if (path.startsWith('/admin/operational?')) return sampleReport() as never;
+      if (path.startsWith('/admin/invoice-tracking?')) return { entries: [], next: null } as never;
+      throw new Error('Unexpected request: ' + path);
+    });
+    await mount();
+    const reportPath = request.mock.calls.find(([path]) => path.startsWith('/admin/operational?'))![0];
+    const dates = new URLSearchParams(reportPath.split('?')[1]);
+    const pending = container.querySelector<HTMLButtonElement>('[aria-label="Ver facturas pendientes del período"]')!;
+    await act(async () => pending.click());
+    expect(button('Pendientes')?.getAttribute('aria-pressed')).toBe('true');
+    expect([...container.querySelectorAll<HTMLInputElement>('.invoice-filters input[type=date]')].map(field => field.value))
+      .toEqual([dates.get('from'), dates.get('to')]);
+    expect(request.mock.calls.filter(([path]) => path.startsWith('/admin/invoice-tracking?')).map(([path]) => path))
+      .toEqual([`/admin/invoice-tracking?state=pending&from=${dates.get('from')}&to=${dates.get('to')}`]);
   } finally {
     window.history.replaceState(null, '', '/');
   }

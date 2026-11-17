@@ -51,16 +51,23 @@ function Bars({ title, rows, format = String }: { title: string; rows: Bar[]; fo
   </section>;
 }
 
-function Business({ report, onOrders }: { report: OperationalReport; onOrders: (status: 'OPEN' | 'CLOSED') => void }) {
+function Business({ report, onOrders, onPendingInvoices }: {
+  report: OperationalReport;
+  onOrders: (status: 'OPEN' | 'CLOSED') => void;
+  onPendingInvoices: () => void;
+}) {
   const row = report.totals;
   const metrics = [
     ['Ventas registradas con IVA', formatCRC(row.gross)], ['Ventas registradas sin IVA', formatCRC(row.net)],
     ['IVA', formatCRC(row.tax)],
-    ['Facturas requeridas', row.required], ['Facturas pendientes', row.pending],
+    ['Facturas requeridas', row.required],
   ];
   return <>
     <div className="op-kpis">
       {metrics.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}
+      <div><span>Facturas pendientes</span><strong>{row.pending > 0
+        ? <button type="button" className="quiet" onClick={onPendingInvoices} aria-label="Ver facturas pendientes del período">{row.pending}</button>
+        : row.pending}</strong></div>
       <div><span>Órdenes cerradas</span><strong>{row.closed > 0
         ? <button type="button" className="quiet" onClick={() => onOrders('CLOSED')} aria-label={'Ver ' + row.closed + ' órdenes cerradas'}>{row.closed}</button>
         : row.closed}</strong></div>
@@ -170,7 +177,9 @@ function Orders({ query, selected, close }: { query: string; selected: Selection
 }
 
 const tabs = ['Negocio', 'Mecánicos', 'Tendencias'] as const;
-export function OperationalDashboard() {
+export function OperationalDashboard({ onPendingInvoices }: {
+  onPendingInvoices: (dates: { from: string; to: string }) => void;
+}) {
   const [tab, setTab] = useState<typeof tabs[number]>('Negocio');
   const [preset, setPreset] = useState<Preset>('week');
   const [custom, setCustom] = useState(() => period('week'));
@@ -205,7 +214,7 @@ export function OperationalDashboard() {
       <button className={tab === label ? '' : 'quiet'} type="button" key={label} aria-pressed={tab === label} onClick={() => { setTab(label); setSelection(undefined); }}>{label}</button>)}</nav>
     {!valid ? <p role="alert">Elegí un rango válido de hasta 366 días, sin fechas futuras.</p> :
       !data ? <Status error={error} retry={retry} /> : <>
-      {tab === 'Negocio' && <Business report={data} onOrders={open} />}
+      {tab === 'Negocio' && <Business report={data} onOrders={open} onPendingInvoices={() => onPendingInvoices({ from, to })} />}
       {tab === 'Mecánicos' && <Mechanics report={data} onOrders={open} />}
       {tab === 'Tendencias' && <Trends report={data} from={from} to={to} />}
       {selection && <Orders key={query.toString() + selection.status + selection.mechanic} query={query.toString()} selected={selection} close={() => setSelection(undefined)} />}
