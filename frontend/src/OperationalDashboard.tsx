@@ -1,0 +1,228 @@
+import { useEffect, useRef, useState } from 'react';
+import { api, ApiError } from './api';
+import { formatCRC, formatWorkDate } from './form-validation';
+import { costaRicaToday, period, presets, shiftDate, sumSales, type Preset } from './operational-period';
+import type { OperationalOrderPage, OperationalReport } from '../../backend/src/operational-types';
+import './operational.css';
+
+const endpoint = '/admin/operational';
+const methods = {
+  SINPE: 'SINPE', CASH: 'Efectivo', CREDIT_CARD: 'Tarjeta de crédito',
+  DEBIT_CARD: 'Tarjeta de débito', BANK_TRANSFER: 'Transferencia bancaria',
+};
+const dateLabel = (date: string) => formatWorkDate(date);
+
+
+function useReport<T>(url: string | null) {
+  const [result, setResult] = useState<{ url: string; data?: T; error?: string }>();
+  const [revision, setRevision] = useState(0);
+  useEffect(() => {
+    if (!url) return;
+    const controller = new AbortController();
+    setResult(undefined);
+    void api<T>(url, { signal: controller.signal }).then(data => {
+      if (!controller.signal.aborted) setResult({ url, data });
+    }).catch(error => {
+      if (!controller.signal.aborted) setResult({ url, error: error instanceof ApiError && error.status === 403
+        ? 'Esta sección es exclusiva para administradores.' : 'No se pudo consultar el panel.' });
+    });
+    return () => controller.abort();
+  }, [url, revision]);
+  return { ...(result?.url === url ? result : undefined), retry: () => setRevision(value => value + 1) };
+}
+
+function Status({ error, retry }: { error?: string; retry: () => void }) {
+  return error ? <div><p role="alert">{error}</p><button onClick={retry}>Reintentar</button></div>
+    : <p role="status">Consultando indicadores…</p>;
+}
+
+type Bar = { id?: string; label: string; value: number; secondary?: number };
+function Bars({ title, rows, format = String }: { title: string; rows: Bar[]; format?: (value: number) => string }) {
+  const max = Math.max(1, ...rows.map(row => Math.max(row.value, row.secondary ?? 0)));
+  return <section className="op-block">
+    <h3>{title}</h3>
+    {!rows.length ? <p>Sin datos en el período.</p> : <ul className="op-bars">{rows.map(row => <li key={row.id ?? row.label}>
+      <span>{row.label}</span>
+      <div className="op-bar-values">
+        <span><i aria-hidden="true" style={{ width: 100 * row.value / max + '%' }} />{format(row.value)}</span>
+        {row.secondary !== undefined && <span><i aria-hidden="true" style={{ width: 100 * row.secondary / max + '%' }} />{format(row.secondary)}</span>}
+      </div>
+    </li>)}</ul>}
+  </section>;
+}
+
+function Business({ report, onOrders, onPendingInvoices }: {
+  report: OperationalReport;
+  onOrders: (status: 'OPEN' | 'CLOSED') => void;
+  onPendingInvoices: () => void;
+}) {
+  const row = report.totals;
+  const metrics = [
+    ['Ventas registradas con IVA', formatCRC(row.gross)], ['Ventas registradas sin IVA', formatCRC(row.net)],
+    ['IVA', formatCRC(row.tax)],
+    ['Facturas requeridas', row.required],
+  ];
+  return <>
+    <div className="op-kpis">
+      {metrics.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}
+      <div><span>Facturas pendientes</span><strong>{row.pending > 0
+        ? <button type="button" className="quiet" onClick={onPendingInvoices} aria-label="Ver facturas pendientes del período">{row.pending}</button>
+        : row.pending}</strong></div>
+      <div><span>Órdenes cerradas</span><strong>{row.closed > 0
+        ? <button type="button" className="quiet" onClick={() => onOrders('CLOSED')} aria-label={'Ver ' + row.closed + ' órdenes cerradas'}>{row.closed}</button>
+        : row.closed}</strong></div>
+      <div><span>Órdenes abiertas</span><strong>{row.open > 0
+        ? <button type="button" className="quiet" onClick={() => onOrders('OPEN')} aria-label={'Ver ' + row.open + ' órdenes abiertas'}>{row.open}</button>
+        : row.open}</strong></div>
+      <div><span>Servicios registrados</span><strong>{row.services}</strong><small>Ítems en las órdenes cerradas</small></div>
+    </div>
+    {!row.closed && !row.open && <p role="status">No hay órdenes abiertas ni cerradas con estos filtros.</p>}
+    <Bars title="Ventas registradas por método de pago" rows={Object.entries(methods).map(([method, label]) => {
+      const gross = report.payments.find(payment => payment.method === method)?.gross ?? 0;
+      const percent = row.gross ? 100 * gross / row.gross : 0;
+      return { label: label + ' · ' + percent.toLocaleString('es-CR', { maximumFractionDigits: 1 }) + '%', value: gross };
+    })} format={formatCRC} />
+  </>;
+}
+
+function Mechanics({ report, from, to, onOrders }: {
+  report: OperationalReport;
+  from: string;
+  to: string;
+  onOrders: (status: 'OPEN' | 'CLOSED', mechanic: string) => void;
+}) {
+  const [weekly, setWeekly] = useState(true);
+  const closures = weekly ? report.workClosuresByMechanicWeek.map(row => ({ ...row, date: row.week })) : report.workClosuresByMechanicDay;
+  return <>
+    <p>Las cifras se atribuyen al mecánico asignado a la orden. La asignación por sí sola no identifica quién hizo cada servicio.</p>
+    <Bars title="Órdenes cerradas por fecha de trabajo" rows={report.productivity.map(row => ({ id: row.id, label: row.name, value: row.closed }))} />
+    <div className="op-table"><table><caption>Productividad por fecha de trabajo</caption>
+      <thead><tr>{['Mecánico', 'Cerradas', 'Abiertas', 'Servicios', 'Con IVA', 'Sin IVA'].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
+      <tbody>{report.productivity.map(row => <tr key={row.id}><th scope="row">{row.name}</th>
+        <td>{row.closed > 0
+          ? <button type="button" className="quiet" onClick={() => onOrders('CLOSED', row.id)} aria-label={'Cerradas de ' + row.name}>{row.closed}</button>
+          : row.closed}</td>
+        <td>{row.open > 0
+          ? <button type="button" className="quiet" onClick={() => onOrders('OPEN', row.id)} aria-label={'Abiertas de ' + row.name}>{row.open}</button>
+          : row.open}</td>
+        <td>{row.services}</td><td>{formatCRC(row.gross)}</td><td>{formatCRC(row.net)}</td>
+      </tr>)}</tbody>
+    </table></div>
+    <p>Primera barra: {dateLabel(from)} – {dateLabel(to)}. Segunda barra: {dateLabel(report.previousFrom)} – {dateLabel(report.previousTo)}.</p>
+    <Bars title="Órdenes cerradas por fecha de trabajo frente al período anterior"
+      rows={report.comparison.map(row => ({ id: row.mechanic, label: report.mechanics.find(person => person.id === row.mechanic)?.name ?? row.mechanic, value: row.current, secondary: row.previous }))} />
+    <label>Agrupar órdenes cerradas por <select value={weekly ? 'week' : 'day'} onChange={event => setWeekly(event.target.value === 'week')}>
+      <option value="week">Semanal</option><option value="day">Diario</option>
+    </select></label>
+    {!closures.length && <p>Sin órdenes cerradas en el período.</p>}
+    <div className="op-table"><table><caption>Órdenes cerradas por fecha de trabajo dentro del rango</caption>
+      <thead><tr><th scope="col">{weekly ? 'Semana del' : 'Día'}</th><th scope="col">Mecánico</th><th scope="col">Cierres</th></tr></thead>
+      <tbody>{closures.map(row => <tr key={row.mechanic + row.date}>
+        <td>{dateLabel(row.date)}</td><td>{report.mechanics.find(person => person.id === row.mechanic)?.name}</td><td>{row.closed}</td>
+      </tr>)}</tbody>
+    </table></div>
+  </>;
+}
+
+function Trends({ report, from, to }: { report: OperationalReport; from: string; to: string }) {
+  const [weekly, setWeekly] = useState(false);
+  const days = sumSales(report.workDays, from, to, false);
+  const closures = new Map(report.closureDays.map(row => [row.date, row]));
+  return <>
+    <label>Intervalo de ventas <select value={weekly ? 'week' : 'day'} onChange={event => setWeekly(event.target.value === 'week')}>
+      <option value="day">Diario</option><option value="week">Semanal</option>
+    </select></label>
+    <p>Ventas por fecha de trabajo. Primera barra con IVA, segunda sin IVA.</p>
+    <Bars title="Ventas registradas" format={formatCRC} rows={sumSales(report.workDays, from, to, weekly).map(row => ({
+      label: dateLabel(row.date), value: row.gross, secondary: row.net,
+    }))} />
+    <Bars title="Cierres reales por día · solo órdenes normales" rows={days.map(row => ({
+      label: dateLabel(row.date), value: closures.get(row.date)?.closed ?? 0,
+    }))} />
+    <Bars title="Cerradas por mecánico asignado · fecha de trabajo" rows={report.productivity.map(row => ({ id: row.id, label: row.name, value: row.closed }))} />
+    <Bars title="Tiempo promedio de apertura a cierre · solo órdenes normales"
+      rows={report.closureDays.flatMap(row => row.durationMs === null ? [] : [{ label: dateLabel(row.date), value: row.durationMs / 3_600_000 }])}
+      format={value => value.toLocaleString('es-CR', { maximumFractionDigits: 2 }) + ' h'} />
+    <p>Tiempo transcurrido entre los registros de apertura y cierre.</p>
+    <Bars title="Factura electrónica por fecha de trabajo · requeridas y aún pendientes"
+      rows={report.workDays.map(row => ({ label: dateLabel(row.date), value: row.required, secondary: row.pending }))} />
+    <p>{report.totals.oldestPendingDays === null ? 'Sin facturas pendientes.'
+      : 'Pendiente más antigua: ' + report.totals.oldestPendingDays + ' días desde la fecha de trabajo.'}</p>
+  </>;
+}
+
+type Selection = { status: 'OPEN' | 'CLOSED'; mechanic?: string };
+function Orders({ query, selected, close }: { query: string; selected: Selection; close: () => void }) {
+  const [page, setPage] = useState(0);
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    heading.current?.focus();
+  }, [selected]);
+  const params = new URLSearchParams(query);
+  params.set('status', selected.status);
+  params.set('page', String(page));
+  if (selected.mechanic) params.set('mechanic', selected.mechanic);
+  const { data, error, retry } = useReport<OperationalOrderPage>(endpoint + '/orders?' + params);
+  return <section className="op-block">
+    <h3 ref={heading} tabIndex={-1}>Órdenes {selected.status === 'CLOSED' ? 'cerradas' : 'abiertas'} por fecha de trabajo</h3>
+    <button className="quiet" onClick={close}>Cerrar listado</button>
+    {!data ? <Status error={error} retry={retry} /> : !data.rows.length ? <p>Sin órdenes en esta página.</p> : <div className="op-table">
+      <table><thead><tr>{['Orden', 'Trabajo', 'Cliente', 'Placa', 'Servicios', 'Con IVA', 'Sin IVA'].map(label =>
+        <th key={label} scope="col">{label}</th>)}</tr></thead>
+      <tbody>{data.rows.map(row => <tr key={row.id}>
+        <th scope="row"><a target="_blank" rel="noopener noreferrer" href={'?operationalOrder=' + row.id}>{row.orderNumber}</a></th>
+        <td>{dateLabel(row.workDate)}{row.backfilled && <small> · Retroactiva</small>}</td>
+        <td>{row.customer || '—'}</td><td>{row.plate || '—'}</td><td>{row.services}</td>
+        <td>{formatCRC(row.gross)}</td><td>{formatCRC(row.net)}</td>
+      </tr>)}</tbody></table>
+    </div>}
+    {page > 0 && <button className="quiet" onClick={() => setPage(value => value - 1)}>Anterior</button>}
+    {data?.more && <button className="quiet" onClick={() => setPage(value => value + 1)}>Siguiente</button>}
+  </section>;
+}
+
+const tabs = ['Negocio', 'Mecánicos', 'Tendencias'] as const;
+export function OperationalDashboard({ onPendingInvoices }: {
+  onPendingInvoices: (dates: { from: string; to: string }) => void;
+}) {
+  const [tab, setTab] = useState<typeof tabs[number]>('Negocio');
+  const [preset, setPreset] = useState<Preset>('week');
+  const [custom, setCustom] = useState(() => period('week'));
+  const [mechanic, setMechanic] = useState('');
+  const [roster, setRoster] = useState<OperationalReport['mechanics']>([]);
+  const [selection, setSelection] = useState<Selection>();
+  const today = costaRicaToday();
+  const { from, to } = preset === 'custom' ? custom : period(preset, today);
+  const valid = !!from && !!to && from >= '1900-01-01' && from <= to && to <= today && to <= shiftDate(from, 365);
+  const query = new URLSearchParams({ from, to });
+  if (tab !== 'Negocio' && mechanic) query.set('mechanic', mechanic);
+  const { data, error, retry } = useReport<OperationalReport>(valid ? endpoint + '?' + query : null);
+  useEffect(() => { if (data) setRoster(data.mechanics); }, [data]);
+  const open = (status: Selection['status'], id?: string) => setSelection({ status, mechanic: id });
+  return <section className="card op-dashboard">
+    <h2>Panel operativo</h2>
+    <div className="op-filters">
+      <label>Período<select value={preset} onChange={event => { setPreset(event.target.value as Preset); setSelection(undefined); }}>
+        {Object.entries(presets).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+      </select></label>
+      {preset === 'custom' && <>
+        <label>Desde<input type="date" min="1900-01-01" max={today} value={from} onChange={event => { setCustom({ from: event.target.value, to }); setSelection(undefined); }} /></label>
+        <label>Hasta<input type="date" min={from} max={today} value={to} onChange={event => { setCustom({ from, to: event.target.value }); setSelection(undefined); }} /></label>
+      </>}
+      {tab !== 'Negocio' && <label>Mecánico asignado<select value={mechanic} onChange={event => { setMechanic(event.target.value); setSelection(undefined); }}>
+        <option value="">Todos</option>{roster.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}
+      </select></label>}
+    </div>
+    {valid && <p>{dateLabel(from)} – {dateLabel(to)} · Costa Rica · Semana de lunes a domingo</p>}
+    <p>Las órdenes retroactivas cuentan en su fecha de trabajo. Los cierres reales usan la hora local de cierre y solo incluyen órdenes normales.</p>
+    <nav className="op-tabs" aria-label="Vistas del panel">{tabs.map(label =>
+      <button className={tab === label ? '' : 'quiet'} type="button" key={label} aria-pressed={tab === label} onClick={() => { setTab(label); setSelection(undefined); }}>{label}</button>)}</nav>
+    {!valid ? <p role="alert">Elegí un rango válido de hasta 366 días, sin fechas futuras.</p> :
+      !data ? <Status error={error} retry={retry} /> : <>
+      {tab === 'Negocio' && <Business report={data} onOrders={open} onPendingInvoices={() => onPendingInvoices({ from, to })} />}
+      {tab === 'Mecánicos' && <Mechanics report={data} from={from} to={to} onOrders={open} />}
+      {tab === 'Tendencias' && <Trends report={data} from={from} to={to} />}
+      {selection && <Orders key={query.toString() + selection.status + selection.mechanic} query={query.toString()} selected={selection} close={() => setSelection(undefined)} />}
+    </>}
+  </section>;
+}

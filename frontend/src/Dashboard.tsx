@@ -14,7 +14,7 @@ export function Dashboard({
   choosingOrder: boolean;
   onNew: () => void;
   onBackfill: () => void;
-  onPage: (page: 'dashboard' | 'open' | 'history' | 'users' | 'invoices') => void;
+  onPage: (page: 'dashboard' | 'open' | 'history' | 'users' | 'invoices' | 'operational') => void;
 }) {
   const admin = session.role === 'ADMIN';
 
@@ -46,6 +46,7 @@ export function Dashboard({
         <button onClick={() => onPage('open')}>Órdenes abiertas</button>
         <button onClick={() => onPage('history')}>Historial</button>
         {admin && <>
+          <button onClick={() => onPage('operational')}>Panel operativo<span>Ventas y productividad del taller</span></button>
           <button onClick={() => onPage('invoices')}>Facturas electrónicas<InvoiceCount key={session.userId} /></button>
           <button onClick={() => onPage('users')}>Usuarios</button>
         </>}

@@ -18,3 +18,5 @@ El transporte de Functions usa `authLevel=anonymous`. La API aplica sesión, CSR
 4. Abrir el PR de `dev` a `prod` y revisar su despliegue temporal. Tras el merge, comprobar **Build and Deploy** para el commit de `prod` y repetir las comprobaciones de carga y salud en producción.
 
 [Arquitectura](../docs/architecture.md) · [Seguridad](../docs/security-review.md)
+
+Para el Panel operativo, verificar con ADMIN que Negocio carga un rango conocido, Mecánicos reconcilia el resumen con el desglose y Facturas pendientes conserva las fechas al abrir su listado. Con una sesión MECHANIC, verificar que la ruta del panel devuelve 403. El módulo usa lecturas del esquema existente, incluido el seguimiento de facturas de la migración 019.

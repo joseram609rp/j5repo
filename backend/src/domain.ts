@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { OperationalFilters, OperationalOrderPage, OperationalReport } from './operational-types.js';
 import type { InvoiceCursor, InvoiceFilters, InvoicePage, InvoiceState } from './invoice-types.js';
 export const IDLE_MS = 7_200_000;
 export const usernameSchema = z
@@ -104,7 +105,9 @@ export interface UnitOfWork {
   setInvoiceState(id: string, issued: boolean, version: string | null, orderVersion: string): Promise<void>;
   findCustomers(search: string): Promise<Customer[]>;
   findVehicles(search: string, customerId?: string): Promise<Vehicle[]>;
-  order(id: string): Promise<Order | undefined>;
+  order(id: string, readOnly?: boolean): Promise<Order | undefined>;
+  operationalReport(filters: OperationalFilters, now: number): Promise<OperationalReport>;
+  operationalOrders(filters: OperationalFilters, status: 'OPEN' | 'CLOSED', page: number): Promise<OperationalOrderPage>;
   saveOrder(
     id: string,
     userId: string,
