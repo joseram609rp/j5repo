@@ -8,7 +8,7 @@ import './operational.css';
 const endpoint = '/admin/operational';
 const methods = {
   SINPE: 'SINPE', CASH: 'Efectivo', CREDIT_CARD: 'Tarjeta de crédito',
-  DEBIT_CARD: 'Tarjeta de débito', BANK_TRANSFER: 'Transferencia bancaria', UNRECORDED: 'No registrado',
+  DEBIT_CARD: 'Tarjeta de débito', BANK_TRANSFER: 'Transferencia bancaria',
 };
 const dateLabel = (date: string) => formatWorkDate(date);
 
