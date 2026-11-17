@@ -61,8 +61,12 @@ function Business({ report, onOrders }: { report: OperationalReport; onOrders: (
   return <>
     <div className="op-kpis">
       {metrics.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}
-      <div><button className="quiet" onClick={() => onOrders('CLOSED')}>Órdenes cerradas</button><strong>{row.closed}</strong></div>
-      <div><button className="quiet" onClick={() => onOrders('OPEN')}>Órdenes abiertas</button><strong>{row.open}</strong></div>
+      <div><span>Órdenes cerradas</span><strong>{row.closed > 0
+        ? <button type="button" className="op-count" onClick={() => onOrders('CLOSED')} aria-label={'Ver ' + row.closed + ' órdenes cerradas'}>{row.closed}</button>
+        : row.closed}</strong></div>
+      <div><span>Órdenes abiertas</span><strong>{row.open > 0
+        ? <button type="button" className="op-count" onClick={() => onOrders('OPEN')} aria-label={'Ver ' + row.open + ' órdenes abiertas'}>{row.open}</button>
+        : row.open}</strong></div>
       <div><span>Servicios registrados</span><strong>{row.services}</strong><small>Ítems en las órdenes cerradas</small></div>
     </div>
     {!row.closed && !row.open && <p role="status">No hay órdenes abiertas ni cerradas con estos filtros.</p>}
@@ -83,8 +87,12 @@ function Mechanics({ report, onOrders }: { report: OperationalReport; onOrders: 
     <div className="op-table"><table><caption>Productividad por fecha de trabajo</caption>
       <thead><tr>{['Mecánico', 'Cerradas', 'Abiertas', 'Servicios', 'Con IVA', 'Sin IVA'].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
       <tbody>{report.productivity.map(row => <tr key={row.id}><th scope="row">{row.name}</th>
-        <td><button className="quiet" onClick={() => onOrders('CLOSED', row.id)} aria-label={'Cerradas de ' + row.name}>{row.closed}</button></td>
-        <td><button className="quiet" onClick={() => onOrders('OPEN', row.id)} aria-label={'Abiertas de ' + row.name}>{row.open}</button></td>
+        <td>{row.closed > 0
+          ? <button type="button" className="op-count" onClick={() => onOrders('CLOSED', row.id)} aria-label={'Cerradas de ' + row.name}>{row.closed}</button>
+          : row.closed}</td>
+        <td>{row.open > 0
+          ? <button type="button" className="op-count" onClick={() => onOrders('OPEN', row.id)} aria-label={'Abiertas de ' + row.name}>{row.open}</button>
+          : row.open}</td>
         <td>{row.services}</td><td>{formatCRC(row.gross)}</td><td>{formatCRC(row.net)}</td>
       </tr>)}</tbody>
     </table></div>

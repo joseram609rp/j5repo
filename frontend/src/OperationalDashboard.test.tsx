@@ -28,7 +28,10 @@ it('retries a failed report, keeps filters across tabs and opens the matching re
     expect(container.textContent).not.toContain('Ticket promedio');
     expect(container.querySelector('input[type=checkbox]')).toBeNull();
     expect(container.querySelectorAll('select')).toHaveLength(1);
+    expect(container.querySelector('[aria-label="Ver 1 órdenes cerradas"]')?.className).toBe('op-count');
+    expect(container.querySelector('[aria-label$="órdenes abiertas"]')).toBeNull();
     await click('Mecánicos');
+    expect(container.querySelector('[aria-label="Abiertas de Mecánico de prueba"]')).toBeNull();
     await act(async () => {
       const select = container.querySelectorAll('select')[1]!;
       select.value = mechanic.id;
