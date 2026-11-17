@@ -68,7 +68,7 @@ it('maps SQL aggregates and binds filters and pagination without interpolating v
   const query = vi.fn().mockResolvedValueOnce({ recordsets: [
     [aggregate, { ...aggregate, mechanic: mechanic.id }, { ...aggregate, date: sampleOrder.workDate }, { ...aggregate, method: 'SINPE' }],
     [mechanic], [{ ...sample.closureDays[0], week: null, mechanic: null }], sample.comparison,
-    [{ comparisonWeek: sample.comparisonWeek, comparisonThrough: sample.comparisonThrough }],
+    [{ previousFrom: sample.previousFrom, previousTo: sample.previousTo }],
   ] }).mockResolvedValueOnce({ recordset: Array.from({ length: 26 }, () => sampleOrder) });
   const tx = { query } as unknown as SqlUnit;
   const filters = operationalFilters(new URLSearchParams(range + '&mechanic=' + mechanic.id), now);
@@ -76,6 +76,8 @@ it('maps SQL aggregates and binds filters and pagination without interpolating v
   expect(query.mock.calls[0]?.[0]).toContain('ROUND(i.price*b.tax_rate/100,2)');
   expect(query.mock.calls[0]?.[0]).toContain('JOIN dbo.Orders b ON b.id=i.order_id');
   expect(query.mock.calls[0]?.[0]).toContain('o.is_backfilled=0 AND o.closed_at>=@closeFrom');
+  expect(query.mock.calls[0]?.[0]).toContain('DATEDIFF(day,@closeFrom,@closeEnd)');
+  expect(query.mock.calls[0]?.[0]).toContain('o.closed_at>=@previousStart AND o.closed_at<@closeEnd');
   expect(query.mock.calls[0]?.[0]).not.toContain(mechanic.id);
   expect(query.mock.calls[0]?.[1]).toEqual({ ...filters, today: '2026-11-13' });
   expect(await readOperationalOrders(tx, filters, 'CLOSED', 1)).toEqual({ rows: Array.from({ length: 25 }, () => sampleOrder), more: true });
@@ -84,7 +86,7 @@ it('maps SQL aggregates and binds filters and pagination without interpolating v
 
 it('returns zero totals for the empty SQL grouping sets result', async () => {
   const query = vi.fn().mockResolvedValue({ recordsets: [
-    [], [mechanic], [], [], [{ comparisonWeek: '1900-01-01', comparisonThrough: '1900-01-01' }],
+    [], [mechanic], [], [], [{ previousFrom: '1899-12-31', previousTo: '1899-12-31' }],
   ] });
   const tx = { query } as unknown as SqlUnit;
   const report = await readOperationalReport(tx, { from: '1900-01-01', to: '1900-01-01', includeBackfilled: false }, now);

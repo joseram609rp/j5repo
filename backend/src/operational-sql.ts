@@ -79,23 +79,23 @@ export async function readOperationalReport(tx: SqlUnit, filters: OperationalFil
     FROM periods GROUP BY GROUPING SETS ((localDate),(mechanic_id,localDate),(mechanic_id,monday))
     OPTION (RECOMPILE);
 
-    DECLARE @monday date=${week('CONVERT(date,@to)')};
-    DECLARE @current datetime2(3)=DATEADD(hour,6,CONVERT(datetime2(3),@monday));
-    DECLARE @currentEnd datetime2(3)=@closeEnd;
+    DECLARE @days int=DATEDIFF(day,@closeFrom,@closeEnd);
+    DECLARE @previousStart datetime2(3)=DATEADD(day,-@days,@closeFrom);
     SELECT o.mechanic_id AS mechanic,
-      COUNT(CASE WHEN o.closed_at>=@current THEN 1 END) AS [current],
-      COUNT(CASE WHEN o.closed_at<DATEADD(day,-7,@currentEnd) THEN 1 END) AS previous
+      COUNT(CASE WHEN o.closed_at>=@closeFrom THEN 1 END) AS [current],
+      COUNT(CASE WHEN o.closed_at<@closeFrom THEN 1 END) AS previous
     FROM dbo.Orders o
     WHERE o.status='CLOSED' AND o.is_backfilled=0
-      AND o.closed_at>=DATEADD(day,-7,@current) AND o.closed_at<@currentEnd
+      AND o.closed_at>=@previousStart AND o.closed_at<@closeEnd
       AND (@mechanic IS NULL OR o.mechanic_id=CONVERT(uniqueidentifier,@mechanic))
     GROUP BY o.mechanic_id OPTION (RECOMPILE);
 
-    SELECT CONVERT(char(10),@monday,23) AS comparisonWeek, @to AS comparisonThrough;
+    SELECT CONVERT(char(10),DATEADD(day,-@days,CONVERT(date,@from)),23) AS previousFrom,
+      CONVERT(char(10),DATEADD(day,-1,CONVERT(date,@from)),23) AS previousTo;
   `, { ...params(filters), today });
   const [work, mechanics, closures, comparison, period] = result.recordsets as unknown as [
     WorkRow[], OperationalMechanic[], ClosureRow[], OperationalReport['comparison'],
-    Pick<OperationalReport,'comparisonWeek'|'comparisonThrough'>[],
+    Pick<OperationalReport,'previousFrom'|'previousTo'>[],
   ];
   const totals = ({ mechanic, date, method, ...values }: WorkRow) => values;
   const grandTotal = work.find(row => !row.mechanic && !row.date && !row.method);

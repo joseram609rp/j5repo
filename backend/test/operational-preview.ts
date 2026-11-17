@@ -17,8 +17,11 @@ export function operationalPreview() {
     if (pathname === '/api/admin/operational') {
       const base = sampleReport(date);
       const monday = new Date(Date.parse(date) - ((new Date(date).getUTCDay() + 6) % 7) * 86_400_000).toISOString().slice(0,10);
+      const from = Date.parse(searchParams.get('from') ?? date);
+      const previous = (ms: number) => new Date(ms).toISOString().slice(0, 10);
       return response({
-        ...base, comparisonWeek: monday, closureWeeks: [{ mechanic: mechanic.id, week: monday, closed: 1 }],
+        ...base, previousFrom: previous(from - (Date.parse(date) - from) - 86_400_000),
+        previousTo: previous(from - 86_400_000), closureWeeks: [{ mechanic: mechanic.id, week: monday, closed: 1 }],
       } satisfies ReturnType<typeof sampleReport>);
     }
     if (pathname === '/api/admin/operational/orders') return response({

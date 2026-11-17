@@ -85,7 +85,12 @@ function Business({ report, onOrders, onPendingInvoices }: {
   </>;
 }
 
-function Mechanics({ report, onOrders }: { report: OperationalReport; onOrders: (status: 'OPEN' | 'CLOSED', mechanic: string) => void }) {
+function Mechanics({ report, from, to, onOrders }: {
+  report: OperationalReport;
+  from: string;
+  to: string;
+  onOrders: (status: 'OPEN' | 'CLOSED', mechanic: string) => void;
+}) {
   const [weekly, setWeekly] = useState(true);
   const closures = weekly ? report.closureWeeks.map(row => ({ ...row, date: row.week })) : report.closureByMechanicDay;
   return <>
@@ -103,9 +108,9 @@ function Mechanics({ report, onOrders }: { report: OperationalReport; onOrders: 
         <td>{row.services}</td><td>{formatCRC(row.gross)}</td><td>{formatCRC(row.net)}</td>
       </tr>)}</tbody>
     </table></div>
-    <Bars title={'Cierres reales del ' + dateLabel(report.comparisonWeek) + ' al ' + dateLabel(report.comparisonThrough) + ' y mismos días de la semana anterior'}
+    <p>Primera barra: {dateLabel(from)} – {dateLabel(to)}. Segunda barra: {dateLabel(report.previousFrom)} – {dateLabel(report.previousTo)}.</p>
+    <Bars title="Cierres reales comparados con el período anterior"
       rows={report.comparison.map(row => ({ id: row.mechanic, label: report.mechanics.find(person => person.id === row.mechanic)?.name ?? row.mechanic, value: row.current, secondary: row.previous }))} />
-    <p>En la comparación, la primera barra corresponde a la semana del último día seleccionado y la segunda a la semana anterior. Solo órdenes normales.</p>
     <label>Intervalo de cierres <select value={weekly ? 'week' : 'day'} onChange={event => setWeekly(event.target.value === 'week')}>
       <option value="week">Semanal</option><option value="day">Diario</option>
     </select></label>
@@ -215,7 +220,7 @@ export function OperationalDashboard({ onPendingInvoices }: {
     {!valid ? <p role="alert">Elegí un rango válido de hasta 366 días, sin fechas futuras.</p> :
       !data ? <Status error={error} retry={retry} /> : <>
       {tab === 'Negocio' && <Business report={data} onOrders={open} onPendingInvoices={() => onPendingInvoices({ from, to })} />}
-      {tab === 'Mecánicos' && <Mechanics report={data} onOrders={open} />}
+      {tab === 'Mecánicos' && <Mechanics report={data} from={from} to={to} onOrders={open} />}
       {tab === 'Tendencias' && <Trends report={data} from={from} to={to} />}
       {selection && <Orders key={query.toString() + selection.status + selection.mechanic} query={query.toString()} selected={selection} close={() => setSelection(undefined)} />}
     </>}

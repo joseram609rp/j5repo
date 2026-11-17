@@ -18,6 +18,6 @@ export function sampleReport(date = sampleOrder.workDate): OperationalReport {
     closureByMechanicDay: [{ mechanic: mechanic.id, date, closed: 1 }],
     closureWeeks: [{ mechanic: mechanic.id, week: date, closed: 1 }],
     comparison: [{ mechanic: mechanic.id, current: 1, previous: 0 }],
-    comparisonWeek: date, comparisonThrough: date,
+    previousFrom: '2026-11-12', previousTo: '2026-11-12',
   };
 }

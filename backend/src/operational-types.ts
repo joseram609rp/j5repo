@@ -28,8 +28,8 @@ export type OperationalReport = {
   closureByMechanicDay: { mechanic: string; date: string; closed: number }[];
   closureWeeks: { mechanic: string; week: string; closed: number }[];
   comparison: { mechanic: string; current: number; previous: number }[];
-  comparisonWeek: string;
-  comparisonThrough: string;
+  previousFrom: string;
+  previousTo: string;
 };
 
 export type OperationalOrder = {
