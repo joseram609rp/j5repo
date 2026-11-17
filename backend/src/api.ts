@@ -23,6 +23,7 @@ import {
 import { hashPassword, verifyPassword } from './password.js';
 import { HttpError } from './reliability.js';
 import { SqlRepository } from './sql.js';
+import { operationalFilters, operationalPage } from './operational-filters.js';
 import { invoiceSearch, invoiceUpdate, invoiceVersion } from './invoice-tracking.js';
 
 export const tokenHash = (token: string) =>
@@ -303,6 +304,23 @@ export function createApi(
           if (path === '/api/vehicle-catalog' && method === 'GET') return result(await tx.vehicleCatalog());
           if (path.startsWith('/api/admin/') && user.role !== 'ADMIN')
             throw new HttpError(403, 'ADMIN_REQUIRED');
+          const operational = '/api/admin/operational';
+          if (path === operational || path.startsWith(operational + '/')) {
+            if (method !== 'GET') throw new HttpError(405, 'READ_ONLY');
+            if (path === operational || path === operational + '/orders') {
+              const params = new URL(request.url).searchParams;
+              const filters = operationalFilters(params, now);
+              if (path === operational) return result(await tx.operationalReport(filters, now));
+              const { status, page } = operationalPage(params);
+              return result(await tx.operationalOrders(filters, status, page));
+            }
+            const detail = /^\/api\/admin\/operational\/orders\/([^/]+)$/.exec(path);
+            if (detail) {
+              const order = await tx.order(uuid.parse(detail[1]), true);
+              if (order && (order.status === 'OPEN' || order.status === 'CLOSED')) return result(order);
+            }
+            throw new HttpError(404, 'NOT_FOUND');
+          }
           if (path === '/api/admin/invoice-tracking' && method === 'GET') {
             const { state, filters, cursor } = invoiceSearch(new URL(request.url).searchParams);
             return result(await tx.invoiceOrders(state, filters, cursor));

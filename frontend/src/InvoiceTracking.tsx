@@ -62,10 +62,13 @@ function invoiceError(error: unknown, fallback: string) {
   return fallback;
 }
 
-export function InvoiceTracking({ session }: { session: Session }) {
+export function InvoiceTracking({ session, initialDates }: {
+  session: Session;
+  initialDates?: { from: string; to: string };
+}) {
   const [state, setState] = useState<InvoiceState>('pending');
-  const [input, setInput] = useState<InvoiceFilters>({});
-  const [filters, setFilters] = useState<InvoiceFilters | null>({});
+  const [input, setInput] = useState<InvoiceFilters>(() => initialDates ?? {});
+  const [filters, setFilters] = useState<InvoiceFilters | null>(() => initialDates ?? {});
   const [cursors, setCursors] = useState<InvoiceCursor[]>([]);
   const [revision, setRevision] = useState(0);
   const [page, setPage] = useState<InvoicePage>();
@@ -80,6 +83,10 @@ export function InvoiceTracking({ session }: { session: Session }) {
   const heading = useRef<HTMLHeadingElement>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const cursor = cursors.at(-1);
+
+  useLayoutEffect(() => {
+    if (initialDates) heading.current?.focus();
+  }, [initialDates]);
 
   function refresh() {
     setLoading(true);
