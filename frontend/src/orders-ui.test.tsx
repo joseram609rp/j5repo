@@ -6,6 +6,7 @@ import { App } from './App';
 import { sampleReport } from '../../backend/test/operational-fixture';
 import { OrderList } from './OrderList';
 import { draftChangeKey } from './draft-changes';
+import { publishServerChange } from './refresh';
 import { api, ApiError } from './api';
 import { amounts } from '../../backend/src/validation';
 import { bootstrapSession } from './bootstrap';
@@ -55,6 +56,7 @@ let container: HTMLDivElement,
 let records: Map<string, RecordState>;
 const clone = <T,>(v: T): T => structuredClone(v);
 beforeEach(() => {
+  window.history.replaceState(null, '', '/');
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
   disk = undefined;
   records = new Map();
@@ -848,6 +850,63 @@ it('history searches on submit and loads the next page using the last server UUI
  await click('Cargar más');expect(container.querySelectorAll('.order-card')).toHaveLength(55);
  expect(vi.mocked(api).mock.calls.at(-1)?.[0]).toContain('before='+list[49]!.id);
  expect(button('Cargar más')).toBeUndefined();
+});
+
+it('restores a private history search on browser Back and after a remount', async () => {
+  const order = seed();
+  orders.set(order.id, { ...order, status: 'CLOSED' });
+  await mount();
+  await click('Historial');
+  await input('.history-search input', 'Cliente de prueba');
+  await click('Buscar');
+  const historyState = window.history.state;
+  expect(window.location.pathname).toBe('/historial');
+  expect(window.location.search).toBe('');
+  await click('Ver detalle');
+  expect(window.location.pathname).toBe('/ordenes/' + order.id);
+  await act(async () => {
+    window.history.replaceState(historyState, '', '/historial');
+    window.dispatchEvent(new PopStateEvent('popstate', { state: historyState }));
+  });
+  expect(button('Ver detalle')).toBeTruthy();
+  expect((container.querySelector('.history-search input') as HTMLInputElement).value).toBe('Cliente de prueba');
+  await act(async () => root.render(null));
+  await mount();
+  expect(button('Ver detalle')).toBeTruthy();
+  expect(window.location.search).not.toContain('Cliente');
+});
+
+it('opens an editor URL with the existing local draft and does not create a second order', async () => {
+  const order = seed();
+  const local = { ...disk!, revision: 2, savedRevision: 1, draft: { ...order.draft, identification: '12' } };
+  records.set(order.id, local);
+  window.history.replaceState(null, '', '/ordenes/' + order.id);
+  await mount();
+  expect((container.querySelector('[data-field=identification]') as HTMLInputElement).value).toBe('12');
+  expect(puts).toBe(0);
+});
+
+it('refreshes Abiertas for server changes while local draft signals only reload IndexedDB', async () => {
+  vi.useFakeTimers();
+  seed();
+  await mount();
+  await click('Órdenes abiertas');
+  const listCalls = () => vi.mocked(api).mock.calls.filter(([path]) => path.startsWith('/orders?')).length;
+  expect(listCalls()).toBe(1);
+  await act(async () => {
+    window.dispatchEvent(new StorageEvent('storage', { key: draftChangeKey }));
+    window.dispatchEvent(new Event('focus'));
+    window.dispatchEvent(new Event('pageshow'));
+    await vi.advanceTimersByTimeAsync(30_000);
+  });
+  expect(listCalls()).toBe(1);
+  expect(storage.list).toHaveBeenCalledTimes(2);
+  await act(async () => {
+    publishServerChange('orders');
+    publishServerChange('orders');
+    await vi.advanceTimersByTimeAsync(100);
+  });
+  expect(listCalls()).toBe(2);
 });
 
 it('submits date-only history, keeps applied dates on the next page and clears the results', async () => {

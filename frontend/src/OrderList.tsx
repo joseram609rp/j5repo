@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { isOrderId, readView, restoreListPosition, saveView } from './navigation';
+import { useVisibleRefresh } from './refresh';
 import { z } from 'zod';
 import { api } from './api';
 import { formatCRC, formatRegistrationDate, formatWorkDate } from './form-validation';
@@ -26,23 +28,46 @@ export function OrderList({
   status: 'OPEN' | 'CLOSED';
   onOpen: (order: Order) => void;
 }) {
+  const [initial] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const date = (key: string) => {
+      const value = params.get(key) ?? '';
+      return historyDate.safeParse(value).success ? value : '';
+    };
+    const saved = readView<{ query: string; cursors: string[] }>(userId);
+    const before = params.get('before');
+    return {
+      from: date('from'), to: date('to'), query: saved?.query ?? '',
+      cursors: saved?.cursors ?? (before && isOrderId(before) ? [before] : []),
+    };
+  });
+  const section = useRef<HTMLElement>(null);
+  const request = useRef<AbortController | null>(null);
+  const loaded = useRef<{ filters: string; pages: Map<string | undefined, Order[]> } | undefined>(undefined);
   const [localOrders, setLocalOrders] = useState<(Order & { canCancelDraft: boolean })[]>([]);
   const [localError, setLocalError] = useState('');
   const [localRevision, setLocalRevision] = useState(0);
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
-  const [appliedDates, setAppliedDates] = useState({ from: '', to: '' });
+  const [from, setFrom] = useState(initial.from);
+  const [to, setTo] = useState(initial.to);
+  const [appliedDates, setAppliedDates] = useState({ from: initial.from, to: initial.to });
   const [dateError, setDateError] = useState('');
   const [orders, setOrders] = useState<Order[]>([]),
-    [query, setQuery] = useState(''),
-    [applied, setApplied] = useState(''),
+    [query, setQuery] = useState(initial.query),
+    [applied, setApplied] = useState(initial.query),
     [loading, setLoading] = useState(status === 'OPEN'),
     [error, setError] = useState(false),
     [reload, setReload] = useState(0),
-    [cursor, setCursor] = useState<string | undefined>(),
+    [cursors, setCursors] = useState(initial.cursors),
     [more, setMore] = useState(false);
   const { from: appliedFrom, to: appliedTo } = appliedDates;
   const hasHistorySearch = applied.length >= 2 || !!appliedFrom || !!appliedTo;
+  const cursor = cursors.at(-1);
+  const refresh = () => {
+    if (request.current) return false;
+    setReload(value => value + 1);
+    return true;
+  };
+  useVisibleRefresh({ enabled: status === 'OPEN', interval: 120_000, resources: ['orders'], refresh });
   useEffect(() => {
     if (status !== 'OPEN' || !userId) return;
     let current = true;
@@ -55,54 +80,67 @@ export function OrderList({
       if (current) setLocalError(draftUpgradeMessage(error) ?? 'No se pudieron consultar los borradores en este dispositivo.');
     });
   return () => { current = false; };
-  }, [status, userId, reload, localRevision]);
+  }, [status, userId, localRevision]);
   useEffect(() => {
-    let current = true;
     if (status === 'CLOSED' && !hasHistorySearch) {
+      loaded.current = undefined;
       setOrders([]); setMore(false); setLoading(false); setError(false);
       return;
     }
+    const controller = new AbortController();
+    request.current = controller;
     setLoading(true);
     setError(false);
-    if (!cursor) setOrders([]);
     const params = new URLSearchParams({ status, q: applied });
-    if (cursor) params.set('before', cursor);
     if (status === 'CLOSED') {
       if (appliedFrom) params.set('from', appliedFrom);
       if (appliedTo) params.set('to', appliedTo);
     }
-    void api<{ orders: Order[] }>(`/orders?${params}`)
-      .then((data) => {
-        if (current) {
-          setOrders((old) => (cursor ? [...old, ...data.orders] : data.orders));
-          setMore(data.orders.length === 50);
-        }
+    const filters = params.toString();
+    if (loaded.current?.filters !== filters) {
+      loaded.current = { filters, pages: new Map() };
+      setOrders([]);
+    }
+    const pages = loaded.current.pages;
+    const wanted = [undefined, ...cursors];
+    const missing = wanted.filter(before => before === cursor || !pages.has(before));
+    void Promise.all(missing.map(async before => {
+      const query = new URLSearchParams(params);
+      if (before) query.set('before', before);
+      const result = await api<{ orders: Order[] }>(`/orders?${query}`, { signal: controller.signal });
+      return { before, orders: result.orders };
+    }))
+      .then(results => {
+        if (controller.signal.aborted) return;
+        for (const result of results) pages.set(result.before, result.orders);
+        const unique = new Map(wanted.flatMap(before => pages.get(before) ?? []).map(order => [order.id, order]));
+        setOrders([...unique.values()]);
+        setMore(pages.get(cursor)?.length === 50);
       })
       .catch(() => {
-        if (current) setError(true);
+        if (!controller.signal.aborted) setError(true);
       })
       .finally(() => {
-        if (current) setLoading(false);
+        if (request.current === controller) request.current = null;
+        if (!controller.signal.aborted) setLoading(false);
       });
     return () => {
-      current = false;
+      controller.abort();
+      if (request.current === controller) request.current = null;
     };
-  }, [status, applied, appliedFrom, appliedTo, hasHistorySearch, cursor, reload]);
+  }, [status, applied, appliedFrom, appliedTo, hasHistorySearch, cursor, cursors, reload]);
   useEffect(() => {
     if (status !== 'OPEN') return;
-    const refresh = () => { if (document.visibilityState !== 'hidden') { setCursor(undefined); setReload(n => n + 1); } };
-    let timerAfterSave: ReturnType<typeof setTimeout>;
-    const stop = onDraftChange(() => {
-      setLocalRevision(value => value + 1);
-      clearTimeout(timerAfterSave);
-      timerAfterSave = setTimeout(refresh, 250);
-    });
-    window.addEventListener('focus', refresh);
-    window.addEventListener('pageshow', refresh);
-    document.addEventListener('visibilitychange', refresh);
-    const timer = setInterval(refresh, 30000);
-    return () => { stop(); clearTimeout(timerAfterSave); clearInterval(timer); window.removeEventListener('focus', refresh); window.removeEventListener('pageshow', refresh); document.removeEventListener('visibilitychange', refresh); };
+    return onDraftChange(() => setLocalRevision(value => value + 1));
   }, [status]);
+  useEffect(() => {
+    if (userId) saveView(userId, { query: applied, cursors }, {
+      from: appliedFrom, to: appliedTo, before: cursor,
+    });
+  }, [userId, applied, cursors, cursor, appliedFrom, appliedTo]);
+  useEffect(() => {
+    if (!loading && !error && section.current && orders.length) restoreListPosition(section.current);
+  }, [loading, error, orders]);
   const search = applied.toLocaleLowerCase();
   const pending = localOrders.filter(local => !orders.some(order => order.id === local.id) &&
     (!search || local.draft.customerName.toLocaleLowerCase().includes(search) ||
@@ -110,8 +148,8 @@ export function OrderList({
       local.draft.plate.toUpperCase().replace(/[\s-]/g, '') === search.toUpperCase().replace(/[\s-]/g, '')));
   const visible = [...orders, ...pending];
   return (
-    <section className="card">
-      <h2>{status === 'OPEN' ? 'Órdenes abiertas' : 'Historial'}</h2>
+    <section ref={section} className="card">
+      <h2 tabIndex={-1}>{status === 'OPEN' ? 'Órdenes abiertas' : 'Historial'}</h2>
       <form
         className={status === 'CLOSED' ? 'search history-search' : 'search'}
         onSubmit={(e) => {
@@ -131,7 +169,7 @@ export function OrderList({
             setOrders([]);
             setMore(false);
           }
-          setCursor(undefined);
+           setCursors([]);
           setApplied(query.trim());
           setReload((n) => n + 1);
         }}
@@ -165,12 +203,16 @@ export function OrderList({
             setApplied('');
             setAppliedDates({ from: '', to: '' });
             setDateError('');
-            setCursor(undefined);
+             setCursors([]);
             setOrders([]);
             setMore(false);
           }}>Limpiar</button>
         )}
       </form>
+      {(status === 'OPEN' || hasHistorySearch) && <button type="button" className="quiet" disabled={loading} onClick={() => {
+        loaded.current?.pages.clear();
+        refresh();
+      }}>Actualizar órdenes</button>}
       {dateError && <p role="alert">{dateError}</p>}
       {loading && <p role="status">Cargando órdenes…</p>}
       {error && (
@@ -230,7 +272,7 @@ export function OrderList({
                     : 'Cambios guardados en este dispositivo. Pendientes de enviarse a J5.'}
                 </p>
               )}
-              <button disabled={loading || (status === 'OPEN' && !canEdit)} onClick={() => onOpen(order)}>
+              <button data-order-id={order.id} disabled={status === 'OPEN' && !canEdit} onClick={() => onOpen(order)}>
                 {status === 'OPEN' ? 'Continuar' : 'Ver detalle'}
               </button>
               {order.status === 'OPEN' && onCancel && (order.version
@@ -243,7 +285,10 @@ export function OrderList({
         })}
       </div>
       {more && !loading && !error && (
-        <button className="quiet" onClick={() => setCursor(orders[orders.length - 1]?.id)}>
+        <button className="quiet" onClick={() => {
+          const last = loaded.current?.pages.get(cursor)?.at(-1)?.id;
+          if (last && !cursors.includes(last)) setCursors([...cursors, last]);
+        }}>
           Cargar más
         </button>
       )}

@@ -18,6 +18,7 @@ import { EntitySearch } from './EntitySearch';
 import { Users } from './Users';
 import { visibleErrors, formatCRC, formatMileage, formatRegistrationDate, formatWorkDate } from './form-validation';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { entry, isOrderId, pushRoute, readRoute, rememberOrder, replaceEntry, routeUrl, type Page } from './navigation';
 import { api, ApiError, onBackendSuccess } from './api';
 import { loginErrorMessage } from './login-error';
 import {
@@ -38,29 +39,17 @@ import {
 import { trackActivity, type Session } from './session';
 import './style.css';
 
-function invoiceOrderId() {
-  return typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('invoiceOrder');
-}
-
-function operationalLink() {
-  return typeof window === 'undefined' ? null : new URLSearchParams(window.location.search);
-}
-
-function initialPage() {
-  const params = operationalLink();
-  if (params?.has('operationalOrder')) return 'operational-order';
-  if (params?.has('operational')) return 'operational';
-  return invoiceOrderId() === null ? 'dashboard' : 'invoice-order';
-}
-
 export function App() {
   const [hasUpdate, setHasUpdate] = useState(updateAvailable);
   useEffect(()=>onUpdateAvailable(()=>setHasUpdate(true)),[]);
   const [conflict, setConflict] = useState<RecordState['conflict']>();
   const [catalog, setCatalog] = useState<VehicleCatalog>({makes:[]});
-  const [page, setPage] = useState<
-    'dashboard' | 'new-order' | 'editor' | 'open' | 'history' | 'legacy' | 'users' | 'invoices' | 'invoice-order' | 'operational' | 'operational-order'
-  >(initialPage);
+  const [route, setRoute] = useState(readRoute);
+  const { page } = route;
+  const [navigationRevision, setNavigationRevision] = useState(0);
+  const [restoreError, setRestoreError] = useState(false);
+  const routePosition = useRef(entry()?.position ?? 0);
+  const restoringHistoryPosition = useRef(false);
   const [invoiceDates, setInvoiceDates] = useState<{ from: string; to: string }>();
   const operationalDetail = page === 'operational-order';
   const invoiceDetail = page === 'invoice-order';
@@ -95,8 +84,8 @@ export function App() {
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>('checking');
   useEffect(() => {
     if (!readOnlyDetail || sessionStatus !== 'authenticated' || session?.role !== 'ADMIN') return;
-    const id = operationalDetail ? operationalLink()?.get('operationalOrder') : invoiceOrderId();
-    if (!id || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) {
+    const id = route.id;
+    if (!id || !isOrderId(id)) {
       setInvoiceDetailError('El enlace de la orden es inválido.');
       return;
     }
@@ -116,7 +105,7 @@ export function App() {
           : 'No se pudo consultar la orden.');
     });
     return () => controller.abort();
-  }, [readOnlyDetail, operationalDetail, sessionStatus, session, invoiceDetailRevision]);
+  }, [readOnlyDetail, operationalDetail, route.id, sessionStatus, session, invoiceDetailRevision]);
   const [bootstrapError, setBootstrapError] = useState(false);
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -257,13 +246,14 @@ export function App() {
     setConflict(undefined);
     setDraft(null);
     setOrder(null);
-    setPage(initialPage());
+    setEditorId(null);
+    setRoute(readRoute());
     setSession(null);
     setSessionStatus('anonymous');
     setTouched(new Set());
-    setLoginMessage(invoiceOrderId() === null
-      ? 'La sesión terminó. Vuelve a entrar para recuperar tu borrador.'
-      : 'La sesión terminó. Volvé a entrar para consultar la orden.');
+    setLoginMessage(readOnlyDetail
+      ? 'La sesión terminó. Volvé a entrar para consultar la orden.'
+      : 'La sesión terminó. Vuelve a entrar para recuperar tu borrador.');
   }
   useLayoutEffect(() => {
     if (!session) return;
@@ -308,7 +298,7 @@ export function App() {
       setLoginMessage('');
       setSessionStatus('authenticated');
       setPassword('');
-      setPage(initialPage());
+      setRoute(readRoute());
     } catch (error) {
       setLoginMessage(loginErrorMessage(error));
     } finally {
@@ -340,6 +330,7 @@ export function App() {
       setTouched(new Set());
       clearNotice();
       setDraft(null);
+      setEditorId(null);
       setLoginMessage('Sesión cerrada.');
     } catch {
       if (activeSession.current !== session) return;
@@ -405,7 +396,7 @@ export function App() {
             ? 'transfer-owner'
             : null,
     );
-    setPage('editor');
+    enterRoute('editor', record.id);
     if (syncOnOpen && (!record.order || record.order.status === 'OPEN' || record.pending?.draft.action === 'reopen')) {
       const syncing = service.sync();
       if (syncInBackground) {
@@ -419,32 +410,40 @@ export function App() {
       }
     }
   }
-  async function navigate(next: typeof page, dates?: { from: string; to: string }) {
+  function enterRoute(next: Page, id?: string, params?: URLSearchParams) {
+    const url = routeUrl(next, id, params);
+    if (window.location.pathname + window.location.search !== url) pushRoute(url);
+    routePosition.current = entry()?.position ?? 0;
+    setRoute(readRoute());
+  }
+
+  async function navigate(next: Page, dates?: { from: string; to: string }) {
     if (busy || orderOperation.current) return;
     if (confirmAction) {
       setMessage('Confirma o cancela la acción pendiente.');
       return;
     }
-    // A draft may continue synchronizing after leaving the editor.
-    if (next !== page) clearNotice();
-    if ((readOnlyDetail || page === 'operational') && next !== page) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('invoiceOrder');
-      url.searchParams.delete('operationalOrder');
-      url.searchParams.delete('operational');
-      window.history.replaceState(window.history.state, '', url);
-      if (readOnlyDetail) {
-        setOrder(null);
-        setDraft(null);
+    if (next === page) return;
+    if (page === 'editor') {
+      orderOperation.current = true;
+      try {
+        await saver.current?.settleLocal();
+        if (saver.current?.unsavedLocally) return;
+      } catch {
+        setMessage('Guardá o descargá el borrador antes de salir.');
+        return;
+      } finally {
+        orderOperation.current = false;
       }
     }
-    if (next === 'operational' && next !== page) {
-      const url = new URL(window.location.href);
-      url.searchParams.set('operational', '');
-      window.history.replaceState(window.history.state, '', url);
+    clearNotice();
+    if (page === 'editor' || readOnlyDetail) {
+      setOrder(null);
+      setDraft(null);
+      setEditorId(null);
     }
-    if (next !== page) setInvoiceDates(next === 'invoices' ? dates : undefined);
-    setPage(next);
+    setInvoiceDates(next === 'invoices' ? dates : undefined);
+    enterRoute(next, undefined, dates ? new URLSearchParams(dates) : undefined);
   }
   async function newOrder(backfill = false) {
     if (!session || activeSession.current !== session || busy || orderOperation.current || confirmAction || (backfill && session.role !== 'ADMIN')) return;
@@ -469,7 +468,7 @@ export function App() {
       setBusy(false);
     }
   }
-  async function openOrder(selected: Order) {
+  async function openOrder(selected: Pick<Order, 'id'> & Partial<Pick<Order, 'status'>>, restoring = false) {
     if (!session || activeSession.current !== session || busy || orderOperation.current) return;
     orderOperation.current = true;
     setBusy(true);
@@ -483,11 +482,14 @@ export function App() {
         saver.current = null;
         clearNotice();
         setConfirmAction(null);
-        setPage('open');
+        if (restoring) setRestoreError(true);
+        else enterRoute('open');
         return;
       }
       const hasLocalWork = local && (local.conflict || local.pending || local.savedRevision < local.revision || !local.version);
-      if ((selected.status === 'OPEN' || saver.current?.localConflict) && hasLocalWork) {
+      if (hasLocalWork && (selected.status === 'OPEN'
+        || (restoring && (!local.version || local.order?.status === 'OPEN'))
+        || saver.current?.localConflict)) {
         await saver.current?.pause();
         await attach(local);
         return;
@@ -512,7 +514,7 @@ export function App() {
         setConflict(undefined);
         setTouched(new Set());
         setConfirmAction(null);
-        setPage('editor');
+        enterRoute('editor', remote.id);
       } else {
         const advanced = remote.status === 'OPEN' && current?.order?.status === 'OPEN' &&
           current.localRevision !== local?.localRevision;
@@ -526,6 +528,7 @@ export function App() {
         }, false, remote.status === 'OPEN');
       }
     } catch (error) {
+      if (restoring) setRestoreError(true);
       setMessage(
         draftUpgradeMessage(error) ?? 'No se pudo abrir otra orden. Revisa la conexión o sincroniza el borrador pendiente.',
       );
@@ -534,6 +537,68 @@ export function App() {
       setBusy(false);
     }
   }
+
+  useEffect(() => {
+    if (!entry()) replaceEntry({ position: routePosition.current });
+    const pop = () => {
+      if (restoringHistoryPosition.current) {
+        restoringHistoryPosition.current = false;
+        return;
+      }
+      const nextPosition = entry()?.position ?? 0;
+      const previousPosition = routePosition.current;
+      const reject = () => {
+        if (previousPosition === nextPosition) return;
+        restoringHistoryPosition.current = true;
+        window.history.go(previousPosition - nextPosition);
+      };
+      if (busy || orderOperation.current || confirmAction) {
+        reject();
+        return;
+      }
+      const accept = () => {
+        routePosition.current = nextPosition;
+        clearNotice();
+        setOrder(null);
+        setDraft(null);
+        setEditorId(null);
+        setInvoiceDates(undefined);
+        setRestoreError(false);
+        setRoute(readRoute());
+        setNavigationRevision(value => value + 1);
+      };
+      const service = page === 'editor' ? saver.current : null;
+      if (service) {
+        orderOperation.current = true;
+        void service.settleLocal().then(() => {
+          if (service.unsavedLocally) reject();
+          else accept();
+        }, reject).finally(() => { orderOperation.current = false; });
+      } else accept();
+    };
+    window.addEventListener('popstate', pop);
+    return () => window.removeEventListener('popstate', pop);
+  }, [page, busy, confirmAction]);
+
+  useEffect(() => {
+    if (page !== 'editor') return;
+    const warn = (event: BeforeUnloadEvent) => {
+      if (!saver.current?.hasUnsettledChanges && !saver.current?.unsavedLocally) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [page]);
+
+  useEffect(() => {
+    if (page !== 'editor' || !session || editorId || restoreError) return;
+    if (!route.id || !isOrderId(route.id)) {
+      setRestoreError(true);
+      return;
+    }
+    void openOrder({ id: route.id }, true);
+  }, [page, route.id, session, editorId, restoreError]);
   async function openPreview() {
     const service = saver.current;
     if (!service || !session || activeSession.current !== session || busy || orderOperation.current) return;
@@ -604,7 +669,7 @@ export function App() {
         setConfirmAction(null);
         setDraft(null);
         setEditorId(null);
-        setPage('open');
+        enterRoute('open');
         return;
       }
       if (action === 'reopen' && order && saver.current?.state.id !== order.id) {
@@ -781,7 +846,7 @@ export function App() {
     !!conflict ||
     busy ||
     !!saver.current?.state.pending?.draft.action;
-  const editor = page === 'editor' || (readOnlyDetail && session?.role === 'ADMIN' && !!order && !!draft);
+  const editor = (page === 'editor' && !!draft) || (readOnlyDetail && session?.role === 'ADMIN' && !!order && !!draft);
   const recovery = !saver.current && terminalRecovery?.id === editorId ? terminalRecovery :
     saver.current?.unsavedLocally || saver.current?.state.recoveryCopies?.length ? saver.current?.state : undefined;
   function validation(field: string) {
@@ -883,7 +948,7 @@ export function App() {
             )}
             {(page === 'open' || page === 'history') && (
               <OrderList
-                key={page}
+                key={page + ':' + navigationRevision}
                 userId={session.userId}
                 userName={session.fullName || session.username}
                 mechanicRoster={mechanicRoster}
@@ -897,13 +962,18 @@ export function App() {
                       session.role === 'ADMIN' && canCancelBackfill(record)) setConfirmAction('void');
                 }}
                 status={page === 'open' ? 'OPEN' : 'CLOSED'}
-                onOpen={(o) => void openOrder(o)}
+                onOpen={(o) => { rememberOrder(o.id); void openOrder(o); }}
               />
             )}
-            {page === 'legacy' && <LegacyHistory />}
-            {page === 'invoices' && session.role === 'ADMIN' && <InvoiceTracking key={session.userId} session={session} initialDates={invoiceDates} />}
-            {page === 'operational' && (session.role === 'ADMIN' ? <OperationalDashboard key={session.userId} onPendingInvoices={dates => void navigate('invoices', dates)} />
+            {page === 'legacy' && <LegacyHistory key={navigationRevision} userId={session.userId} />}
+            {page === 'invoices' && session.role === 'ADMIN' && <InvoiceTracking key={session.userId + ':' + navigationRevision} session={session} initialDates={invoiceDates} />}
+            {page === 'operational' && (session.role === 'ADMIN' ? <OperationalDashboard key={session.userId + ':' + navigationRevision} userId={session.userId} onPendingInvoices={dates => void navigate('invoices', dates)} />
               : <p role="alert">Esta sección es exclusiva para administradores.</p>)}
+            {page === 'editor' && !editor && (restoreError
+              ? <p role="alert">No se pudo abrir la orden. <button onClick={() => {
+                  setRestoreError(false);
+                }}>Reintentar</button></p>
+              : <p role="status">Abriendo la orden…</p>)}
             {readOnlyDetail && !editor && <section className="card" aria-label="Detalle de orden">
               {session.role !== 'ADMIN' ? <p role="alert">Esta sección es exclusiva para administradores.</p>
                 : invoiceDetailError ? <>

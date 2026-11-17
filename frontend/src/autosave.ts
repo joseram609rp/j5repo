@@ -2,6 +2,7 @@ import { canClose, draftSchema, validBackfillDate } from '../../backend/src/vali
 import { openDB } from 'idb';
 import { api, ApiError } from './api';
 import { publishDraftChange } from './draft-changes';
+import { publishServerChange } from './refresh';
 export type Draft = {
   workDate?: string;
   paymentMethod?: 'SINPE' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CASH' | 'BANK_TRANSFER';
@@ -504,6 +505,9 @@ export class Autosave {
     } else void this.sync();
   }
   get unsavedLocally() { return this.storageFailed && !this.localConflict; }
+  get hasUnsettledChanges() {
+    return this.state.revision !== this.persistedRevision && !this.localConflict;
+  }
   sync(resumeSharedDraft = false): Promise<void> {
     if (this.active) return this.active;
     if (this.detached || this.background || (this.following && !resumeSharedDraft)) return Promise.resolve();
@@ -559,6 +563,7 @@ export class Autosave {
         }
         this.report('Sincronizando…');
         const result = await this.send(this.state.id, mutation);
+        if (!mutation.version || mutation.draft.action) publishServerChange('orders');
         if (result.status && result.draft) {
           this.state.order = result as Order;
           this.baselineDraft = result.draft;
