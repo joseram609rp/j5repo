@@ -38,6 +38,8 @@ Separar cuenta DDL y runtime. Migraciones necesitan crear/modificar tablas, cons
 
 ## Verificación y operaciones
 
+El Panel operativo consulta `dbo.Orders`, `dbo.OrderItems`, `dbo.Users` y `dbo.OrderInvoiceTracking` con parámetros y agregaciones del lado de SQL. Usa `order_date` para ventas y productividad, y `closed_at` convertido a UTC−6 para los cierres reales. Calcula IVA con `SUM(ROUND(price * tax_rate / 100, 2))` por orden. Reutiliza la tabla de seguimiento de la migración 019 y los permisos de lectura existentes.
+
 `pnpm --filter @j5/backend db:verify` inspecciona metadata, migraciones registradas, constraints trusted, índices, triggers y catálogo 57/986 sin duplicados/huérfanos; no lista PII ni hashes. El runner de migraciones es quien valida checksums, no db:verify.
 
 `pnpm test:sql` ejecuta fixtures dentro de rollback-only, secuencialmente. SQL sequences pueden consumir números aunque las filas reviertan; no asumir que una prueba deja todos los contadores sin huecos. No demuestra COMMIT ambiguo ni carga de producción.

@@ -112,6 +112,16 @@ Moneda CRC. Cada trabajo lleva descripción, precio sin IVA y observación opcio
 
 Pago: SINPE, tarjeta de crédito, tarjeta de débito, efectivo o transferencia bancaria (`SINPE`, `CREDIT_CARD`, `DEBIT_CARD`, `CASH`, `BANK_TRANSFER`). Factura electrónica exige elegir Sí/No al cerrar; el booleano registra el requerimiento y **no emite facturas ni integra un proveedor**.
 
+## Panel operativo
+
+Disponible desde Inicio y la navegación principal para ADMIN. Los filtros usan la fecha de Costa Rica (UTC−6), con semanas de lunes a domingo y rangos personalizados de hasta 366 días.
+
+- **Negocio** muestra ventas registradas con y sin IVA, impuesto por línea, métodos de pago, órdenes, servicios y facturación electrónica del taller. Las ventas reflejan los importes de las órdenes cerradas. El contador de facturas pendientes abre la consulta de Pendientes con las fechas activas.
+- **Mecánicos** muestra productividad y ventas del mecánico asignado. El resumen, la comparación con el período anterior de igual duración y el desglose diario o semanal incluyen retroactivas por fecha de trabajo. Los conteos abren un listado paginado con detalle de solo lectura.
+- **Tendencias** muestra ventas por fecha de trabajo y cierres reales por fecha local de cierre. El tiempo de apertura a cierre mide tiempo transcurrido. Ambos indicadores de cierre se calculan sobre órdenes normales.
+
+Para revisión local con datos ficticios, ejecutar `pnpm dev:operational` y abrir [Panel operativo local](http://localhost:5173/?operational). Usar `--port 5185` si el puerto habitual está ocupado. Con `pnpm dev`, usar la configuración SQL autorizada del entorno de pruebas.
+
 ## Facturas electrónicas
 
 Solo ADMIN puede acceder al módulo y ver el contador de Pendientes en Inicio. Pendientes lista las órdenes cerradas que requieren factura electrónica, de la más antigua a la más reciente. Emitidas exige al menos un filtro. Ambas secciones combinan placa, cédula registrada en la orden, número OT y fechas del trabajo.
