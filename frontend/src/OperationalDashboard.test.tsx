@@ -28,7 +28,11 @@ it('retries a failed report, keeps filters across tabs and opens the matching re
     expect(container.textContent).not.toContain('Ticket promedio');
     expect(container.querySelector('input[type=checkbox]')).toBeNull();
     expect(container.querySelectorAll('select')).toHaveLength(1);
-    expect(container.querySelector('[aria-label="Ver 1 órdenes cerradas"]')?.className).toBe('op-count');
+    const closed = container.querySelector<HTMLButtonElement>('button[aria-label="Ver 1 órdenes cerradas"]')!;
+    await act(async () => closed.click());
+    expect(document.activeElement?.textContent).toBe('Órdenes cerradas por fecha de trabajo');
+    expect(container.querySelector('a')?.getAttribute('href')).toBe('?operationalOrder=' + sampleOrder.id);
+    await click('Cerrar listado');
     expect(container.querySelector('[aria-label$="órdenes abiertas"]')).toBeNull();
     await click('Mecánicos');
     expect(container.querySelector('[aria-label="Abiertas de Mecánico de prueba"]')).toBeNull();

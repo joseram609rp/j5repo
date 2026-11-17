@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, ApiError } from './api';
 import { formatCRC, formatWorkDate } from './form-validation';
 import { costaRicaToday, period, presets, shiftDate, sumSales, type Preset } from './operational-period';
@@ -62,10 +62,10 @@ function Business({ report, onOrders }: { report: OperationalReport; onOrders: (
     <div className="op-kpis">
       {metrics.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}
       <div><span>Órdenes cerradas</span><strong>{row.closed > 0
-        ? <button type="button" className="op-count" onClick={() => onOrders('CLOSED')} aria-label={'Ver ' + row.closed + ' órdenes cerradas'}>{row.closed}</button>
+        ? <button type="button" className="quiet" onClick={() => onOrders('CLOSED')} aria-label={'Ver ' + row.closed + ' órdenes cerradas'}>{row.closed}</button>
         : row.closed}</strong></div>
       <div><span>Órdenes abiertas</span><strong>{row.open > 0
-        ? <button type="button" className="op-count" onClick={() => onOrders('OPEN')} aria-label={'Ver ' + row.open + ' órdenes abiertas'}>{row.open}</button>
+        ? <button type="button" className="quiet" onClick={() => onOrders('OPEN')} aria-label={'Ver ' + row.open + ' órdenes abiertas'}>{row.open}</button>
         : row.open}</strong></div>
       <div><span>Servicios registrados</span><strong>{row.services}</strong><small>Ítems en las órdenes cerradas</small></div>
     </div>
@@ -88,10 +88,10 @@ function Mechanics({ report, onOrders }: { report: OperationalReport; onOrders: 
       <thead><tr>{['Mecánico', 'Cerradas', 'Abiertas', 'Servicios', 'Con IVA', 'Sin IVA'].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
       <tbody>{report.productivity.map(row => <tr key={row.id}><th scope="row">{row.name}</th>
         <td>{row.closed > 0
-          ? <button type="button" className="op-count" onClick={() => onOrders('CLOSED', row.id)} aria-label={'Cerradas de ' + row.name}>{row.closed}</button>
+          ? <button type="button" className="quiet" onClick={() => onOrders('CLOSED', row.id)} aria-label={'Cerradas de ' + row.name}>{row.closed}</button>
           : row.closed}</td>
         <td>{row.open > 0
-          ? <button type="button" className="op-count" onClick={() => onOrders('OPEN', row.id)} aria-label={'Abiertas de ' + row.name}>{row.open}</button>
+          ? <button type="button" className="quiet" onClick={() => onOrders('OPEN', row.id)} aria-label={'Abiertas de ' + row.name}>{row.open}</button>
           : row.open}</td>
         <td>{row.services}</td><td>{formatCRC(row.gross)}</td><td>{formatCRC(row.net)}</td>
       </tr>)}</tbody>
@@ -142,13 +142,17 @@ function Trends({ report, from, to }: { report: OperationalReport; from: string;
 type Selection = { status: 'OPEN' | 'CLOSED'; mechanic?: string };
 function Orders({ query, selected, close }: { query: string; selected: Selection; close: () => void }) {
   const [page, setPage] = useState(0);
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    heading.current?.focus();
+  }, [selected]);
   const params = new URLSearchParams(query);
   params.set('status', selected.status);
   params.set('page', String(page));
   if (selected.mechanic) params.set('mechanic', selected.mechanic);
   const { data, error, retry } = useReport<OperationalOrderPage>(endpoint + '/orders?' + params);
   return <section className="op-block">
-    <h3>Órdenes {selected.status === 'CLOSED' ? 'cerradas' : 'abiertas'} por fecha de trabajo</h3>
+    <h3 ref={heading} tabIndex={-1}>Órdenes {selected.status === 'CLOSED' ? 'cerradas' : 'abiertas'} por fecha de trabajo</h3>
     <button className="quiet" onClick={close}>Cerrar listado</button>
     {!data ? <Status error={error} retry={retry} /> : !data.rows.length ? <p>Sin órdenes en esta página.</p> : <div className="op-table">
       <table><thead><tr>{['Orden', 'Trabajo', 'Cliente', 'Placa', 'Servicios', 'Con IVA', 'Sin IVA'].map(label =>

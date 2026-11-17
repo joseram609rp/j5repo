@@ -13,18 +13,7 @@
 .op-kpis > div { background: #f4f7fc; }
 .op-kpis span, .op-kpis strong { display: block; }
 .op-kpis strong { font-size: 1.25rem; overflow-wrap: anywhere; }
-.op-dashboard button.op-count {
-  background: transparent;
-  border: 0;
-  border-radius: .2rem;
-  padding: 0;
-  min-height: 24px;
-  min-width: 24px;
-  text-align: left;
-  color: #0847ad;
-  font: inherit;
-  text-decoration: underline;
-}
+.op-kpis button { padding: .25rem .5rem; }
 .op-block { margin: .85rem 0; }
 .op-block h3 { margin-top: 0; }
 .op-table { overflow-x: auto; margin: .85rem 0; max-width: 100%; }
