@@ -7,7 +7,7 @@ const filtersSchema = z.object({
   from: date,
   to: date,
   mechanic: z.uuid().optional(),
-  includeBackfilled: z.enum(['true', 'false']).default('false').transform(value => value === 'true'),
+  includeBackfilled: z.enum(['true', 'false']).default('true').transform(value => value === 'true'),
 });
 const pageSchema = z.object({
   page: z.coerce.number().int().min(0).max(199).default(0),

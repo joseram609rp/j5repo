@@ -13,7 +13,7 @@ const now = Date.parse('2026-11-14T04:59:00Z');
 
 it('uses Costa Rica dates and validates inclusive ranges, mechanic and backfill flag', () => {
   expect(operationalFilters(new URLSearchParams(range), now)).toEqual({
-    from: '2026-11-09', to: '2026-11-13', includeBackfilled: false,
+    from: '2026-11-09', to: '2026-11-13', includeBackfilled: true,
   });
   for (const query of [
     'from=2026-11-13&to=2026-11-14', 'from=2026-02-30&to=2026-11-13',

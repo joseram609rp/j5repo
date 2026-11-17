@@ -24,16 +24,29 @@ it('retries a failed report, keeps filters across tabs and opens the matching re
     expect(container.querySelector('[role=alert]')).not.toBeNull();
     await click('Reintentar');
     expect(container.textContent).toContain('Ventas registradas sin IVA');
-    expect(vi.mocked(api).mock.lastCall?.[0]).toContain('includeBackfilled=false');
-    await act(async () => container.querySelector<HTMLInputElement>('input[type=checkbox]')!.click());
+    expect(container.textContent).toContain('Ítems en las órdenes cerradas');
+    expect(container.textContent).not.toContain('Ticket promedio');
+    expect(container.querySelector('input[type=checkbox]')).toBeNull();
+    expect(container.querySelectorAll('select')).toHaveLength(1);
+    await click('Mecánicos');
+    await act(async () => {
+      const select = container.querySelectorAll('select')[1]!;
+      select.value = mechanic.id;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    expect(vi.mocked(api).mock.lastCall?.[0]).toContain('mechanic=' + mechanic.id);
+    await click('Negocio');
+    expect(vi.mocked(api).mock.lastCall?.[0]).not.toContain('mechanic=');
+    expect(container.querySelectorAll('select')).toHaveLength(1);
     await click('Mecánicos');
     await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Cerradas de Mecánico de prueba"]')!.click());
-    expect(vi.mocked(api).mock.lastCall?.[0]).toContain('includeBackfilled=true&status=CLOSED&page=0&mechanic=' + mechanic.id);
+    expect(vi.mocked(api).mock.lastCall?.[0]).toContain('status=CLOSED&page=0');
     expect(container.querySelector('a')?.getAttribute('href')).toBe('?operationalOrder=' + sampleOrder.id);
     expect(vi.mocked(api).mock.calls.every(([, options]) => !options?.method)).toBe(true);
     await click('Tendencias');
     expect(container.querySelector('a')).toBeNull();
-    expect(container.querySelector<HTMLInputElement>('input[type=checkbox]')?.checked).toBe(true);
+    expect(container.querySelector('input[type=checkbox]')).toBeNull();
+    expect(vi.mocked(api).mock.lastCall?.[0]).toContain('mechanic=' + mechanic.id);
   } finally {
     await act(async () => root.unmount());
     container.remove();

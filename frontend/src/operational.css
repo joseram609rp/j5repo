@@ -6,8 +6,6 @@
   align-items: end;
 }
 .op-filters label { display: flex; flex-direction: column; min-width: 0; }
-.op-filters label.op-check { flex-direction: row; align-items: center; padding: .65rem 0; }
-.op-check input { width: auto; min-width: 1.25rem; min-height: 1.25rem; margin-right: .5rem; }
 .op-tabs { display: flex; flex-wrap: wrap; margin: 1rem 0; }
 .op-tabs button { margin: 0 .5rem .5rem 0; }
 .op-kpis { align-items: stretch; }

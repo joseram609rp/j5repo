@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api, ApiError } from './api';
 import { formatCRC, formatWorkDate } from './form-validation';
 import { costaRicaToday, period, presets, shiftDate, sumSales, type Preset } from './operational-period';
-import type { OperationalOrderPage, OperationalReport, OperationalTotals } from '../../backend/src/operational-types';
+import type { OperationalOrderPage, OperationalReport } from '../../backend/src/operational-types';
 import './operational.css';
 
 const endpoint = '/admin/operational';
@@ -11,7 +11,7 @@ const methods = {
   DEBIT_CARD: 'Tarjeta de débito', BANK_TRANSFER: 'Transferencia bancaria', UNRECORDED: 'No registrado',
 };
 const dateLabel = (date: string) => formatWorkDate(date);
-const ticket = (row: OperationalTotals) => row.closed ? formatCRC(row.gross / row.closed) : '—';
+
 
 function useReport<T>(url: string | null) {
   const [result, setResult] = useState<{ url: string; data?: T; error?: string }>();
@@ -55,7 +55,7 @@ function Business({ report, onOrders }: { report: OperationalReport; onOrders: (
   const row = report.totals;
   const metrics = [
     ['Ventas registradas con IVA', formatCRC(row.gross)], ['Ventas registradas sin IVA', formatCRC(row.net)],
-    ['IVA', formatCRC(row.tax)], ['Ticket promedio con IVA', ticket(row)], ['Servicios de órdenes cerradas', row.services],
+    ['IVA', formatCRC(row.tax)],
     ['Facturas requeridas', row.required], ['Facturas pendientes', row.pending],
   ];
   return <>
@@ -63,6 +63,7 @@ function Business({ report, onOrders }: { report: OperationalReport; onOrders: (
       {metrics.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}
       <div><button className="quiet" onClick={() => onOrders('CLOSED')}>Órdenes cerradas</button><strong>{row.closed}</strong></div>
       <div><button className="quiet" onClick={() => onOrders('OPEN')}>Órdenes abiertas</button><strong>{row.open}</strong></div>
+      <div><span>Servicios registrados</span><strong>{row.services}</strong><small>Ítems en las órdenes cerradas</small></div>
     </div>
     {!row.closed && !row.open && <p role="status">No hay órdenes abiertas ni cerradas con estos filtros.</p>}
     <Bars title="Ventas registradas por método de pago" rows={Object.entries(methods).map(([method, label]) => {
@@ -80,11 +81,11 @@ function Mechanics({ report, onOrders }: { report: OperationalReport; onOrders: 
     <p>Las cifras se atribuyen al mecánico asignado a la orden. La asignación por sí sola no identifica quién hizo cada servicio.</p>
     <Bars title="Órdenes cerradas por fecha de trabajo" rows={report.productivity.map(row => ({ id: row.id, label: row.name, value: row.closed }))} />
     <div className="op-table"><table><caption>Productividad por fecha de trabajo</caption>
-      <thead><tr>{['Mecánico', 'Cerradas', 'Abiertas', 'Servicios', 'Con IVA', 'Sin IVA', 'Ticket promedio'].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
+      <thead><tr>{['Mecánico', 'Cerradas', 'Abiertas', 'Servicios', 'Con IVA', 'Sin IVA'].map(label => <th key={label} scope="col">{label}</th>)}</tr></thead>
       <tbody>{report.productivity.map(row => <tr key={row.id}><th scope="row">{row.name}</th>
         <td><button className="quiet" onClick={() => onOrders('CLOSED', row.id)} aria-label={'Cerradas de ' + row.name}>{row.closed}</button></td>
         <td><button className="quiet" onClick={() => onOrders('OPEN', row.id)} aria-label={'Abiertas de ' + row.name}>{row.open}</button></td>
-        <td>{row.services}</td><td>{formatCRC(row.gross)}</td><td>{formatCRC(row.net)}</td><td>{ticket(row)}</td>
+        <td>{row.services}</td><td>{formatCRC(row.gross)}</td><td>{formatCRC(row.net)}</td>
       </tr>)}</tbody>
     </table></div>
     <Bars title={'Cierres reales del ' + dateLabel(report.comparisonWeek) + ' al ' + dateLabel(report.comparisonThrough) + ' y mismos días de la semana anterior'}
@@ -163,13 +164,12 @@ export function OperationalDashboard() {
   const [custom, setCustom] = useState(() => period('week'));
   const [mechanic, setMechanic] = useState('');
   const [roster, setRoster] = useState<OperationalReport['mechanics']>([]);
-  const [includeBackfilled, setIncludeBackfilled] = useState(false);
   const [selection, setSelection] = useState<Selection>();
   const today = costaRicaToday();
   const { from, to } = preset === 'custom' ? custom : period(preset, today);
   const valid = !!from && !!to && from >= '1900-01-01' && from <= to && to <= today && to <= shiftDate(from, 365);
-  const query = new URLSearchParams({ from, to, includeBackfilled: String(includeBackfilled) });
-  if (mechanic) query.set('mechanic', mechanic);
+  const query = new URLSearchParams({ from, to });
+  if (tab !== 'Negocio' && mechanic) query.set('mechanic', mechanic);
   const { data, error, retry } = useReport<OperationalReport>(valid ? endpoint + '?' + query : null);
   useEffect(() => { if (data) setRoster(data.mechanics); }, [data]);
   const open = (status: Selection['status'], id?: string) => setSelection({ status, mechanic: id });
@@ -183,13 +183,12 @@ export function OperationalDashboard() {
         <label>Desde<input type="date" min="1900-01-01" max={today} value={from} onChange={event => { setCustom({ from: event.target.value, to }); setSelection(undefined); }} /></label>
         <label>Hasta<input type="date" min={from} max={today} value={to} onChange={event => { setCustom({ from, to: event.target.value }); setSelection(undefined); }} /></label>
       </>}
-      <label>Mecánico asignado<select value={mechanic} onChange={event => { setMechanic(event.target.value); setSelection(undefined); }}>
+      {tab !== 'Negocio' && <label>Mecánico asignado<select value={mechanic} onChange={event => { setMechanic(event.target.value); setSelection(undefined); }}>
         <option value="">Todos</option>{roster.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}
-      </select></label>
-      <label className="op-check"><input type="checkbox" checked={includeBackfilled} onChange={event => { setIncludeBackfilled(event.target.checked); setSelection(undefined); }} /> Incluir órdenes retroactivas</label>
+      </select></label>}
     </div>
     {valid && <p>{dateLabel(from)} – {dateLabel(to)} · Costa Rica · Semana de lunes a domingo</p>}
-    <p>Ventas, servicios y estados por fecha de trabajo. Los cierres reales usan la hora local de cierre y solo incluyen órdenes normales.</p>
+    <p>Las órdenes retroactivas cuentan en su fecha de trabajo. Los cierres reales usan la hora local de cierre y solo incluyen órdenes normales.</p>
     <nav className="op-tabs" aria-label="Vistas del panel">{tabs.map(label =>
       <button className={tab === label ? '' : 'quiet'} type="button" key={label} aria-pressed={tab === label} onClick={() => { setTab(label); setSelection(undefined); }}>{label}</button>)}</nav>
     {!valid ? <p role="alert">Elegí un rango válido de hasta 366 días, sin fechas futuras.</p> :
