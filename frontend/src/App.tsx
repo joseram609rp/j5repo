@@ -1304,12 +1304,14 @@ export function App() {
                         <div className="year-field">
                           <input
                             id="vehicle-year"
+                            className="no-number-spinner"
                             data-field="year"
                             {...accessibility('year')}
                             type="number"
                             inputMode="numeric"
                             min={1950}
                             step={1}
+                            onWheel={(event) => event.currentTarget.blur()}
                             value={draft.year ?? ''}
                             onChange={(e) => edit('year', e.target.value)}
                           />
@@ -1360,11 +1362,13 @@ export function App() {
                           Precio sin IVA
                           <input
                             data-field={`item-${index}-price`}
+                            className="no-number-spinner"
                             {...accessibility(`item-${index}-price`)}
                             type="number"
                             min={0.01}
                             max={9999999999.99}
                             step={0.01}
+                            onWheel={(event) => event.currentTarget.blur()}
                             value={item.price || ''}
                             onChange={(e) =>
                               editItem(index, 'price', e.target.value)
