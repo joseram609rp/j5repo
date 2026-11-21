@@ -711,3 +711,7 @@ input.no-number-spinner::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+.section-followup {
+  margin-top: 16px;
+}

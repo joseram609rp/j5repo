@@ -259,7 +259,7 @@ export function InvoiceTracking({ session, initialDates }: {
       {filterError && <p role="alert">{filterError}</p>}
       {notice && <p role={notice.error ? 'alert' : 'status'}>{notice.text}</p>}
       {!filters && !filterError && <p>Aplicá al menos un filtro para ver facturas emitidas.</p>}
-      {filters && <button type="button" className="quiet" disabled={loading || saving} onClick={refresh}>Actualizar facturas</button>}
+      {filters && <button type="button" className="quiet section-followup" disabled={loading || saving} onClick={refresh}>Actualizar facturas</button>}
       {loading && <p role="status">Consultando facturas…</p>}
       {!loading && loadError && <div><p role="alert">{loadError}</p>
         <button type="button" onClick={refresh}>Reintentar</button>

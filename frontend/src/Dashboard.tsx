@@ -31,7 +31,7 @@ export function Dashboard({
             Orden anterior<span>Registrar un trabajo ya realizado</span>
           </button>
         </div>
-        <button className="quiet" onClick={() => onPage('dashboard')}>Volver a Inicio</button>
+        <button className="quiet section-followup" onClick={() => onPage('dashboard')}>Volver a Inicio</button>
       </section>
     );
   }
