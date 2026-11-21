@@ -605,12 +605,17 @@ export function App() {
     }
     void openOrder({ id: route.id }, true);
   }, [page, route.id, session, editorId, restoreError]);
+  function missingMechanic(draft: Draft, saved?: Order | null) {
+    return draft.workDate !== undefined && !saved
+      ? !mechanics.some(user => user.id === draft.mechanicId)
+      : saved?.mechanicAssigned === false;
+  }
   async function openPreview() {
     const service = saver.current;
     if (!service || !session || activeSession.current !== session || busy || orderOperation.current) return;
     setClosing(true);
     if (service.state.pending?.draft.action || service.state.draft.action) return;
-    if (visibleErrors(service.state.draft, touched, true).length) return;
+    if (visibleErrors(service.state.draft, touched, true, missingMechanic(service.state.draft, service.state.order)).length) return;
     if (!validCloseDraft(service.state.draft)) {
       setMessage('Revisa los datos de la orden y el total antes de continuar.');
       return;
@@ -626,10 +631,7 @@ export function App() {
       await service.verifyCloseRevision(reviewed);
       if (!validCloseDraft(current)) return;
       const assignee = backfill ? mechanics.find(user => user.id === current.mechanicId) : undefined;
-      if ((backfill && !assignee) || saved?.mechanicAssigned === false) {
-        setMessage('Selecciona el mecánico que realizó el trabajo antes de cerrar.');
-        return;
-      }
+      if (missingMechanic(current, saved)) return;
       const mechanicName = assignee?.fullName ?? saved?.mechanicName ??
         mechanicRoster.find(user => user.id === saved?.mechanicId)?.fullName ??
         (saved?.mechanicId === session.userId ? session.fullName ?? session.username : undefined);
@@ -845,7 +847,7 @@ export function App() {
   const canFinish = !order || session?.role === 'ADMIN' || order.mechanicId === session?.userId;
   const taxRate = order && order.status !== 'OPEN' ? order.taxRate ?? 0 : 13;
   const totals = amounts(draft?.items, taxRate);
-  const errors = draft && !saver.current?.state.cancelled ? visibleErrors(draft, touched, closing) : [];
+  const errors = draft && !saver.current?.state.cancelled ? visibleErrors(draft, touched, closing, missingMechanic(draft, order)) : [];
   const cancelledDraft = !!saver.current?.state.cancelled;
   const previewPending = confirmAction === 'close' && saver.current?.state.pending?.draft.action === 'close';
   const previewStale = !!preview && !previewPending && (
@@ -1351,6 +1353,7 @@ export function App() {
                         {mechanics.map(user =>
                           <option key={user.id} value={user.id}>{user.fullName} ({user.role})</option>)}
                       </select>
+                      {validation('mechanicId')}
                     </label>}
                     {(!historical || order) && <p>Mecánico: {!order || order.mechanicAssigned === false ? 'Sin asignar' : order.mechanicName ??
                       mechanicRoster.find(user => user.id === order.mechanicId)?.fullName ??
@@ -1475,10 +1478,10 @@ export function App() {
                       />
                     </label>
                   </fieldset>
-                  {!cancelledDraft && editor && closing && (!order || order.status === 'OPEN') && visibleErrors(draft, touched, true).length > 0 && (
+                  {!cancelledDraft && editor && closing && (!order || order.status === 'OPEN') && errors.length > 0 && (
                     <div className="close-errors confirmation" role="alert">
                       <p>Para cerrar la orden, completa:</p>
-                      <ul>{visibleErrors(draft, touched, true).map(error => <li key={error.field}>{error.section}: {error.message}</li>)}</ul>
+                      <ul>{errors.map(error => <li key={error.field}>{error.section}: {error.message}</li>)}</ul>
                     </div>
                   )}
                   <div className="order-actions">

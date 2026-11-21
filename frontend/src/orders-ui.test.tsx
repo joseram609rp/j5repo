@@ -328,7 +328,9 @@ it('keeps the historical date and notices in the local editor, then registers di
   expect(container.querySelector<HTMLInputElement>('#work-date')?.value).toBe('2024-02-29');
   await click('Vista previa de orden');
   expect(container.querySelector('.order-preview')).toBeNull();
+  expect(container.querySelector('.close-errors')?.textContent).toContain('Mecánico asignado: Selecciona el mecánico que realizó el trabajo.');
   await chooseMechanic(testMechanic.id);
+  expect(container.querySelector('.close-errors')).toBeNull();
   expect(disk?.draft.mechanicId).toBe(testMechanic.id);
   await click('Vista previa de orden');
   expect(container.querySelector('.order-preview')?.textContent).toContain(testMechanic.fullName);
@@ -508,7 +510,7 @@ it('ADMIN reopens the same paused editor after closing and visiting history', as
   expect([...container.querySelectorAll('.order-actions button')].map(b => b.textContent?.trim())).toEqual(['Vista previa de orden', 'Cancelar orden']);
   await click('Vista previa de orden');
   expect(container.querySelector('.order-preview')).toBeNull();
-  expect(text()).toContain('Selecciona el mecánico que realizó el trabajo antes de cerrar.');
+  expect(container.querySelector('.close-errors')?.textContent).toContain('Mecánico asignado: Selecciona el mecánico que realizó el trabajo.');
   await chooseMechanic(testMechanic.id);
   await click('Vista previa de orden');
   expect(container.querySelector('.order-preview')?.textContent).toContain(testMechanic.fullName);
