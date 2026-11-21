@@ -36,6 +36,12 @@ Separar cuenta DDL y runtime. Migraciones necesitan crear/modificar tablas, cons
 
 `SQL_AUTH_MODE=sql` usa SQL_USER/SQL_PASSWORD; `default` usa azure-active-directory-default. La ruta de identidad existe en código; su configuración y verificación Azure están pendientes. Managed Functions en SWA Free no admiten identidad administrada para la API; ver infra/README.md para la decisión de alojamiento antes de producción. Cifrado obligatorio y certificado validado (`encrypt=true`, `trustServerCertificate=false`). Firewall debe permitir únicamente conexiones autorizadas.
 
+## Asignación de mecánicos
+
+`dbo.Orders.mechanic_id` sigue siendo la referencia de integridad y atribución. Para una orden OPEN creada por ADMIN, `draft_data.mechanicAssigned` registra si hubo selección explícita. La API devuelve ese estado fuera del borrador al consultar el detalle o la lista. En filas OPEN anteriores al cambio, la API usa la auditoría de creación y reasignación para reconocer la asignación administrativa implícita. Una orden cerrada conserva su atribución existente.
+
+La reasignación usa el guard `TR_Orders_Guard`, el contexto `j5_mechanic_reassignment` y la revisión de la fila. El registro retroactivo exige un mecánico activo y se inserta directamente como CLOSED. Estos cambios reutilizan el esquema existente y no ejecutan migraciones ni correcciones masivas. Para conciliar comisiones históricas, preparar primero un inventario de solo lectura con autorización y validar cada orden con el responsable del taller.
+
 ## Verificación y operaciones
 
 El Panel operativo consulta `dbo.Orders`, `dbo.OrderItems`, `dbo.Users` y `dbo.OrderInvoiceTracking` con parámetros y agregaciones del lado de SQL. Usa `order_date` para ventas y productividad, y `closed_at` convertido a UTC−6 para los cierres reales. Calcula IVA con `SUM(ROUND(price * tax_rate / 100, 2))` por orden. Reutiliza la tabla de seguimiento de la migración 019 y los permisos de lectura existentes.
