@@ -425,7 +425,7 @@ export function createApi(
                 if (existing || draft.action !== 'close' || draft.ownerResolution)
                   throw new HttpError(400, 'INVALID_BACKFILL_ACTION');
                 if (!validBackfillDate(workDate)) throw new HttpError(400, 'INVALID_WORK_DATE');
-                if (!draft.mechanicId || draft.mechanicId === user.id) throw new HttpError(400, 'INVALID_MECHANIC');
+                if (!draft.mechanicId) throw new HttpError(400, 'INVALID_MECHANIC');
               }
               if (existing?.isBackfilled) throw new HttpError(409, 'ORDER_NOT_OPEN');
               const expected = request.headers.get('if-match');

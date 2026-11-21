@@ -475,7 +475,7 @@ export class SqlUnit implements UnitOfWork {
     if (draft.action === 'close') {
       const actor = await this.userById(userId);
       if (previous && actor?.role !== 'ADMIN' && previous.mechanicId !== userId) throw new HttpError(403, 'ASSIGNED_MECHANIC_REQUIRED');
-      if ((backfill && (!draft.mechanicId || draft.mechanicId === userId)) ||
+      if ((backfill && !draft.mechanicId) ||
         (previous && draft.mechanicId && draft.mechanicId !== previous.mechanicId))
         throw new HttpError(400, 'INVALID_MECHANIC');
     }
@@ -505,7 +505,7 @@ export class SqlUnit implements UnitOfWork {
     }
     const taxRate = previous && previous.status !== 'OPEN' ? previous.taxRate ?? 0 : 13;
     const assignedMechanic = draft.mechanicId ?? previous?.mechanicId ?? userId;
-    if (assignedMechanic !== (previous?.mechanicId ?? userId)) {
+    if (backfill || assignedMechanic !== (previous?.mechanicId ?? userId)) {
       const actor = await this.userById(userId);
       if (actor?.role !== 'ADMIN') throw new HttpError(403, 'ADMIN_REQUIRED');
       if (!backfill && previous?.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');

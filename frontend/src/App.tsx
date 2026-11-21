@@ -60,6 +60,7 @@ export function App() {
   const [mechanicRoster, setMechanicRoster] = useState<{id: string; fullName: string; role: string; active: boolean}[]>([]);
   const mechanics = mechanicRoster.filter(user => user.active);
   const [order, setOrder] = useState<Order | null>(null);
+  const [selfAssignment, setSelfAssignment] = useState<Autosave | null>(null);
   const activeSession = useRef<Session | null>(null);
   const [backfillStartError, setBackfillStartError] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -195,7 +196,7 @@ export function App() {
   async function updateMechanic(mechanicId: string) {
     const service = saver.current;
     if (!service || session?.role !== 'ADMIN' || readOnly || orderOperation.current ||
-      !mechanics.some(user => user.id === mechanicId && user.id !== session.userId)) return;
+      !mechanics.some(user => user.id === mechanicId)) return;
     orderOperation.current = true;
     setBusy(true);
     try {
@@ -203,7 +204,9 @@ export function App() {
         await service.edit({ ...service.state.draft, mechanicId });
         await service.settleLocal();
       } else {
+        setSelfAssignment(null);
         await service.assignMechanic(mechanicId);
+        if (mechanicId === session.userId) setSelfAssignment(service);
       }
     } catch {
       if (saver.current === service && !service.state.pending && !service.state.conflict && !service.localConflict)
@@ -625,8 +628,8 @@ export function App() {
       const reviewed = { localRevision, revision, version };
       await service.verifyCloseRevision(reviewed);
       if (!validCloseDraft(current)) return;
-      const assignee = backfill ? mechanics.find(user => user.id === current.mechanicId && user.id !== session.userId) : undefined;
-      if ((backfill && !assignee) || (session.role === 'ADMIN' && saved?.mechanicId === session.userId)) {
+      const assignee = backfill ? mechanics.find(user => user.id === current.mechanicId) : undefined;
+      if ((backfill && !assignee) || (session.role === 'ADMIN' && saved?.mechanicId === session.userId && selfAssignment !== service)) {
         setMessage('Selecciona el mecánico que realizó el trabajo antes de cerrar.');
         return;
       }
@@ -721,7 +724,7 @@ export function App() {
         if(!vehicle || vehicle.ownerId.toLowerCase()!==currentDraft.customerId?.toLowerCase()) throw new Error('OWNER_TRANSFER_NOT_APPLIED');
         setOwnerRevision(n => n + 1);
       }
-      if (action === 'close') { setClosing(false); setPreview(null); }
+      if (action === 'close') { setClosing(false); setPreview(null); setSelfAssignment(null); }
       setOrder(saved ?? null);
       setDraft(service.state.draft);
       setConfirmAction(null);
@@ -1344,10 +1347,10 @@ export function App() {
                     {session.role === 'ADMIN' && (order?.status === 'OPEN' || (historical && !order)) && <label>Mecánico asignado
                       <select aria-label="Mecánico asignado" disabled={readOnly}
                         value={mechanics.find(user => user.id === (order ? order.mechanicId : draft.mechanicId) &&
-                          user.id !== session.userId)?.id ?? ''}
+                          (!order || user.id !== session.userId || selfAssignment === saver.current))?.id ?? ''}
                         onChange={e => void updateMechanic(e.target.value)}>
                         <option value="" disabled>Selecciona el mecánico que realizó el trabajo</option>
-                        {mechanics.filter(user => user.id !== session.userId).map(user =>
+                        {mechanics.map(user =>
                           <option key={user.id} value={user.id}>{user.fullName} ({user.role})</option>)}
                       </select>
                     </label>}

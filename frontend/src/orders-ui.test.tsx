@@ -831,6 +831,27 @@ async function chooseMechanic(id: string) {
   });
 }
 
+it('lets ADMIN explicitly select themselves and close their own work', async () => {
+  const initial = seed();
+  vi.mocked(bootstrapSession).mockResolvedValue({
+    session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,
+  });
+  const implementation = vi.mocked(api).getMockImplementation()!;
+  vi.mocked(api).mockImplementation(async (path, options) => path === '/admin/users'
+    ? { users: [{ ...testMechanic, id: session.userId, fullName: session.fullName, role: 'ADMIN' }] } as never
+    : implementation(path, options));
+  await mount();
+  await click('Órdenes abiertas');
+  await click('Continuar');
+  await click('Vista previa de orden');
+  expect(container.querySelector('.order-preview')).toBeNull();
+  await chooseMechanic(session.userId);
+  await click('Vista previa de orden');
+  expect(container.querySelector('.order-preview')?.textContent).toContain(session.fullName);
+  await click('Confirmar y cerrar orden');
+  expect(orders.get(initial.id)).toMatchObject({ status: 'CLOSED', mechanicId: session.userId });
+});
+
 it('automatically assigns a newly created daily order to the selected mechanic', async () => {
   vi.mocked(bootstrapSession).mockResolvedValue({
     session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,

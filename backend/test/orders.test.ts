@@ -242,7 +242,7 @@ it('requires ADMIN and valid prior work date, closes directly and replays a lost
   repo.accounts.get(userId)!.role = 'ADMIN';
   for (const change of [
     { workDate: '9999-12-31' }, { workDate: '2025-02-29' }, { workDate: '' },
-    { action: undefined }, { paymentMethod: undefined }, { mechanicId: undefined }, { mechanicId: userId },
+    { action: undefined }, { paymentMethod: undefined }, { mechanicId: undefined },
   ]) {
     expect((await mutate(id, { ...payload, ...change })).status).toBe(400);
     expect(repo.orders.has(id)).toBe(false);
@@ -251,6 +251,9 @@ it('requires ADMIN and valid prior work date, closes directly and replays a lost
   expect((await mutate(current.id, payload)).status).toBe(400);
   expect(repo.orders.get(current.id)).toEqual(current);
 
+  const selfAssigned = await mutate(randomUUID(), { ...payload, mechanicId: userId, workDate: '1969-12-29' });
+  expect(selfAssigned.status).toBe(200);
+  expect(await selfAssigned.json()).toMatchObject({ status: 'CLOSED', mechanicId: userId });
   const saved = await mutate(id, payload, undefined, key);
   expect(saved.status).toBe(200);
   const order = await saved.json();
