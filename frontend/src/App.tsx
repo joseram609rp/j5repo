@@ -1257,11 +1257,13 @@ export function App() {
                         Kilometraje
                         <input
                           data-field="mileage"
+                          className="no-number-spinner"
                           {...accessibility('mileage')}
                           type="number"
                           min={0}
                           max={10000000}
                           step={1}
+                          onWheel={(event) => event.currentTarget.blur()}
                           value={draft.mileage ?? ''}
                           onChange={(e) => edit('mileage', e.target.value)}
                         />
