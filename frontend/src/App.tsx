@@ -57,7 +57,6 @@ export function App() {
   const [invoiceDetailError, setInvoiceDetailError] = useState('');
   const [invoiceDetailRevision, setInvoiceDetailRevision] = useState(0);
   const [ownerRevision, setOwnerRevision] = useState(0);
-  const [selectedMechanic, setSelectedMechanic] = useState('');
   const [mechanicRoster, setMechanicRoster] = useState<{id: string; fullName: string; role: string; active: boolean}[]>([]);
   const mechanics = mechanicRoster.filter(user => user.active);
   const [order, setOrder] = useState<Order | null>(null);
@@ -66,7 +65,7 @@ export function App() {
   const [closing, setClosing] = useState(false);
   const [closeOwner,setCloseOwner]=useState<{vehicleId:string;customerId:string;expectedOwnerId:string;ownerName:string;decision:'transfer'|'keep'} | null>(null);
   const [preview, setPreview] = useState<{
-    draft: Draft; revision: CloseRevision; businessDate?: string; stale?: boolean;
+    draft: Draft; revision: CloseRevision; mechanicName: string; businessDate?: string; stale?: boolean;
   } | null>(null);
   const previewButton = useRef<HTMLButtonElement>(null);
   const restorePreviewFocus = useRef(false);
@@ -162,7 +161,6 @@ export function App() {
       .catch(() => { if (current && assigningMechanic) setMessage('No se pudieron cargar los mecánicos. Reabre la orden para reintentar.'); });
     return () => { current = false; };
   }, [session, page, editorId, historical, order?.id, order?.status]);
-  useEffect(() => { setSelectedMechanic(order?.mechanicId ?? ''); }, [order?.id, order?.mechanicId]);
   useEffect(() => {
     if (page !== 'editor' || busy || confirmAction) return;
     let current = true;
@@ -194,18 +192,26 @@ export function App() {
       document.removeEventListener('visibilitychange', refresh);
     };
   }, [page, editorId, busy, confirmAction]);
-  async function updateMechanic() {
+  async function updateMechanic(mechanicId: string) {
     const service = saver.current;
-    if (!service || !order || !session || busy) return;
+    if (!service || session?.role !== 'ADMIN' || readOnly || orderOperation.current ||
+      !mechanics.some(user => user.id === mechanicId && user.id !== session.userId)) return;
+    orderOperation.current = true;
     setBusy(true);
     try {
-      await service.flush(true);
-      await service.edit({ ...service.state.draft, mechanicId: selectedMechanic, action: 'assign-mechanic' });
-      await service.flush();
-      if (service.state.order?.mechanicId !== selectedMechanic) throw new Error('ASSIGNMENT_FAILED');
-      setMessage('Mecánico actualizado.');
-    } catch { setMessage('No se pudo actualizar el mecánico. Revisa la orden y sincroniza los cambios pendientes.'); }
-    finally { setBusy(false); }
+      if (service.state.draft.workDate !== undefined && !service.state.order) {
+        await service.edit({ ...service.state.draft, mechanicId });
+        await service.settleLocal();
+      } else {
+        await service.assignMechanic(mechanicId);
+      }
+    } catch {
+      if (saver.current === service && !service.state.pending && !service.state.conflict && !service.localConflict)
+        setMessage('No se pudo confirmar la asignación. Revisa la orden y vuelve a seleccionar el mecánico.');
+    } finally {
+      orderOperation.current = false;
+      setBusy(false);
+    }
   }
   async function checkSession(isCurrent = () => true) {
     setLoginMessage('');
@@ -619,6 +625,18 @@ export function App() {
       const reviewed = { localRevision, revision, version };
       await service.verifyCloseRevision(reviewed);
       if (!validCloseDraft(current)) return;
+      const assignee = backfill ? mechanics.find(user => user.id === current.mechanicId && user.id !== session.userId) : undefined;
+      if ((backfill && !assignee) || (session.role === 'ADMIN' && saved?.mechanicId === session.userId)) {
+        setMessage('Selecciona el mecánico que realizó el trabajo antes de cerrar.');
+        return;
+      }
+      const mechanicName = assignee?.fullName ?? saved?.mechanicName ??
+        mechanicRoster.find(user => user.id === saved?.mechanicId)?.fullName ??
+        (saved?.mechanicId === session.userId ? session.fullName ?? session.username : undefined);
+      if (!mechanicName) {
+        setMessage('No se pudo confirmar el nombre del mecánico asignado. Actualiza la orden antes de cerrar.');
+        return;
+      }
       let owner: typeof closeOwner = null;
       if (!backfill) {
         const lookup = await api<{ vehicles: { id: string; ownerId: string; owner?: { fullName: string } }[] }>(
@@ -634,7 +652,7 @@ export function App() {
       }
       if (saver.current !== service || activeSession.current !== session) return;
       setCloseOwner(owner);
-      setPreview({ draft: structuredClone(current), revision: reviewed, businessDate: saved?.orderDate });
+      setPreview({ draft: structuredClone(current), revision: reviewed, mechanicName, businessDate: saved?.orderDate });
       setClosing(false);
     } catch (error) {
       if (saver.current !== service || activeSession.current !== session) return;
@@ -784,7 +802,7 @@ export function App() {
     finally { setBusy(false); }
   }
   function saveDraft(next: Draft) {
-    if (!saver.current || saver.current.localConflict || busy || preview || confirmAction || conflict || (order && order.status !== 'OPEN')) return;
+    if (!saver.current || saver.current.localConflict || busy || orderOperation.current || preview || confirmAction || conflict || (order && order.status !== 'OPEN')) return;
     setDraft(next);
     void saver.current
       ?.edit(next)
@@ -1096,6 +1114,7 @@ export function App() {
               preview && session ? (
                 <OrderPreview
                   draft={preview.draft}
+                  mechanicName={preview.mechanicName}
                   businessDate={preview.businessDate}
                   taxRate={13}
                   busy={busy}
@@ -1322,27 +1341,21 @@ export function App() {
                         {validation('year')}
                       </div>
                     </div>
-                    {historical && !order && session.role === 'ADMIN' && (
-                      <label>Mecánico asignado
-                        <select value={draft.mechanicId ?? session.userId} onChange={e => edit('mechanicId', e.target.value)}>
-                          {!mechanics.some(u => u.id === session.userId) && <option value={session.userId}>{session.fullName ?? session.username}</option>}
-                          {mechanics.map(u => <option key={u.id} value={u.id}>{u.fullName} ({u.role})</option>)}
-                        </select>
-                      </label>
-                    )}
-                    {session.role === 'ADMIN' && order?.status === 'OPEN' && <label>Mecánico asignado
-                      <select aria-label="Mecánico asignado" value={selectedMechanic} onChange={e => setSelectedMechanic(e.target.value)}>
-                        {!mechanics.some(u => u.id === order.mechanicId) && <option value={order.mechanicId}>{order.mechanicName}</option>}
-                        {mechanics.map(u => <option key={u.id} value={u.id}>{u.fullName} ({u.role})</option>)}
+                    {session.role === 'ADMIN' && (order?.status === 'OPEN' || (historical && !order)) && <label>Mecánico asignado
+                      <select aria-label="Mecánico asignado" disabled={readOnly}
+                        value={mechanics.find(user => user.id === (order ? order.mechanicId : draft.mechanicId) &&
+                          user.id !== session.userId)?.id ?? ''}
+                        onChange={e => void updateMechanic(e.target.value)}>
+                        <option value="" disabled>Selecciona el mecánico que realizó el trabajo</option>
+                        {mechanics.filter(user => user.id !== session.userId).map(user =>
+                          <option key={user.id} value={user.id}>{user.fullName} ({user.role})</option>)}
                       </select>
-                    <button type="button" disabled={readOnly || !selectedMechanic || selectedMechanic === order.mechanicId} onClick={() => void updateMechanic()}>Actualizar mecánico</button>
                     </label>}
-                    {(!historical || order) && <p>
-                      Mecánico:{' '}
-                      {order?.mechanicName ??
-                        session.fullName ??
-                        session.username}
-                    </p>}
+                    {order && <p>Mecánico: {order.mechanicName ??
+                      mechanicRoster.find(user => user.id === order.mechanicId)?.fullName ??
+                      (order.mechanicId === session.userId ? session.fullName ?? session.username : order.mechanicId)}</p>}
+                    {saver.current?.state.pending?.draft.action === 'assign-mechanic' &&
+                      <p role="status">Cambio de mecánico pendiente de confirmación.</p>}
                     <h3>Trabajos realizados · CRC</h3>
                     {validation('items')}
                     {(draft.items ?? []).map((item, index) => (

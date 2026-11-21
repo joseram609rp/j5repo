@@ -305,6 +305,31 @@ export class Autosave {
     clearTimeout(this.timer);
     this.timer = setTimeout(() => void this.sync(), 800);
   }
+  async assignMechanic(mechanicId: string) {
+    clearTimeout(this.timer);
+    await this.active;
+    await this.settleLocal();
+    const state = this.state;
+    if (this.detached || this.localConflict || this.storageFailed || state.conflict ||
+      state.pending || state.draft.action || state.order?.status !== 'OPEN' ||
+      !state.version || state.order.version !== state.version) throw new Error('SYNC_REQUIRED');
+    if (state.order.mechanicId === mechanicId) return;
+
+    // Save only the assignment even when unrelated form edits are incomplete.
+    state.pending = {
+      key: crypto.randomUUID(),
+      draft: { ...structuredClone(state.order.draft), action: 'assign-mechanic', mechanicId },
+      version: state.version,
+      revision: state.savedRevision,
+      baseDraft: structuredClone(state.order.draft),
+    };
+    this.following = false;
+    await this.write();
+    this.report('Cambio de mecánico pendiente de confirmación.');
+    await this.sync(true);
+    if (state.pending || state.conflict || this.localConflict ||
+      state.order?.mechanicId !== mechanicId) throw new Error('ASSIGNMENT_NOT_CONFIRMED');
+  }
   async flush(resumeSharedDraft = false) {
     clearTimeout(this.timer);
     await this.sync(resumeSharedDraft);
@@ -549,6 +574,10 @@ export class Autosave {
         await this.write();
         if (this.detached || this.background || this.localConflict) return;
         const mutation = this.state.pending;
+        if (mutation.draft.action === 'assign-mechanic' && offline()) {
+          this.report('Asignación pendiente en este dispositivo. Se necesita conexión para confirmarla.', true);
+          return;
+        }
         if (mutation.draft.action === 'close' && offline()) {
           this.report('El cierre está guardado en este dispositivo. Se necesita conexión para recuperar el resultado.');
           return;
@@ -581,7 +610,8 @@ export class Autosave {
         this.state.savedRevision = mutation.revision;
         delete this.state.pending;
         await this.write();
-        this.report('Guardado');
+        this.report(mutation.draft.action === 'assign-mechanic' && result.mechanicId === mutation.draft.mechanicId
+          ? 'Mecánico actualizado.' : 'Guardado');
       }
     } catch (error) {
       if (this.localConflict || this.storageFailed) return;
@@ -595,9 +625,12 @@ export class Autosave {
         this.state.pending?.draft.action
       ) {
         delete this.state.pending;
-        const { action: _, ownerResolution: _ownerResolution, ...draft } = this.state.draft;
-        this.state.draft = draft;
-        this.state.revision = this.state.savedRevision;
+        if (this.state.draft.action) {
+          const { action: _, ownerResolution: _ownerResolution, ...draft } = this.state.draft;
+          if (this.state.draft.action === 'assign-mechanic') delete draft.mechanicId;
+          this.state.draft = draft;
+          this.state.revision = this.state.savedRevision;
+        }
         await this.write().catch(() => undefined);
         if (this.localConflict || this.storageFailed) return;
         this.report(
@@ -614,7 +647,8 @@ export class Autosave {
       ) {
         this.stopped = true;
         const priorMechanic = this.state.order?.mechanicId;
-        await this.refresh(true, error.status === 412 && this.state.pending?.draft.action !== 'close').catch(() => undefined);
+        const action = this.state.pending?.draft.action;
+        await this.refresh(true, error.status === 412 && action !== 'close' && action !== 'assign-mechanic').catch(() => undefined);
         if (this.localConflict || this.storageFailed) return;
         if (this.stopped && this.state.order) {
           this.state.conflict = { remote: structuredClone(this.state.order) };

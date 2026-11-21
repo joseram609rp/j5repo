@@ -34,6 +34,7 @@ const session: Session = {
   idleMs: 7200000,
   lastActivity: Date.now(),
 };
+const testMechanic = { id: '33555555-5555-4555-8555-555555555555', fullName: 'Mecánica de prueba', active: true, role: 'MECHANIC' };
 const complete = {
   customerName: 'Cliente de prueba',
   identification: '123456789',
@@ -116,7 +117,7 @@ beforeEach(() => {
           openedAt: old?.openedAt ?? '2026-10-05T10:00:00Z',
           closedAt: d.action === 'close' ? '2026-10-05T11:00:00Z' : null,
           mechanicId: d.mechanicId ?? old?.mechanicId ?? session.userId,
-          mechanicName: session.fullName,
+          mechanicName: d.mechanicId === testMechanic.id ? testMechanic.fullName : old?.mechanicName ?? session.fullName,
           taxRate: old && old.status !== 'OPEN' ? old.taxRate ?? 0 : 13,
           totalAmount: amounts(d.items, old && old.status !== 'OPEN' ? old.taxRate ?? 0 : 13).total,
         };
@@ -161,7 +162,7 @@ beforeEach(() => {
           },
         ],
       } as never;
-    if (path === '/admin/users') return { users: [] } as never;
+    if (path === '/admin/users') return { users: [testMechanic] } as never;
     return {} as never;
   });
   container = document.createElement('div');
@@ -323,12 +324,17 @@ it('keeps the historical date and notices in the local editor, then registers di
   await click('Continuar');
   expect(container.querySelector<HTMLInputElement>('#work-date')?.value).toBe('2024-02-29');
   await click('Vista previa de orden');
+  expect(container.querySelector('.order-preview')).toBeNull();
+  await chooseMechanic(testMechanic.id);
+  expect(disk?.draft.mechanicId).toBe(testMechanic.id);
+  await click('Vista previa de orden');
+  expect(container.querySelector('.order-preview')?.textContent).toContain(testMechanic.fullName);
   expect(container.querySelector('.order-preview')?.textContent).toContain('29 de febrero de 2024');
   expect(container.querySelector('.order-preview')?.textContent).not.toMatch(/Apertura:|Cierre:|OT-/);
   expect(puts).toBe(0);
   await click('Confirmar y cerrar orden');
   expect(puts).toBe(1);
-  expect(orders.get(localId)).toMatchObject({ status: 'CLOSED', orderDate: '2024-02-29', isBackfilled: true });
+  expect(orders.get(localId)).toMatchObject({ status: 'CLOSED', orderDate: '2024-02-29', isBackfilled: true, mechanicId: testMechanic.id });
   expect(text()).toContain('Trabajo realizado el 29 de febrero de 2024');
   expect(text()).toContain('Orden ingresada en J5 el 5 de octubre de 2026');
   expect(text()).not.toMatch(/Apertura:|Cierre:/);
@@ -369,11 +375,13 @@ it.each(['daily', 'historical'] as const)('invalidates a %s preview after an Ind
   await mount();
   if (historical) {
     await click('Nueva orden'); await click('Orden anterior');
-    disk!.draft = { ...clone(complete), workDate: '2024-02-29' };
+    disk!.draft = { ...clone(complete), workDate: '2024-02-29', mechanicId: testMechanic.id };
     records.set(disk!.id, clone(disk!));
     await click('Inicio');
   }
-  await click('Órdenes abiertas'); await click('Continuar'); await click('Vista previa de orden');
+  await click('Órdenes abiertas'); await click('Continuar');
+  if (!historical) await chooseMechanic(testMechanic.id);
+  await click('Vista previa de orden');
   const current = clone(disk!);
   current.draft.items = [{ description: 'Precio actualizado', price: 2000 }];
   current.localRevision = (current.localRevision ?? 0) + 1;
@@ -382,7 +390,7 @@ it.each(['daily', 'historical'] as const)('invalidates a %s preview after an Ind
   await act(async () => { window.dispatchEvent(new StorageEvent('storage', { key: draftChangeKey })); });
   expect(button('Confirmar y cerrar orden').disabled).toBe(true);
   expect(notices()).toContain('La orden cambió desde que abriste la vista previa');
-  expect(puts).toBe(0);
+  expect(puts).toBe(historical ? 0 : 1);
   await click('Volver a editar'); await click('Vista previa de orden');
   expect(container.querySelector('.order-preview')?.textContent).toContain('Precio actualizado');
   await click('Inicio');
@@ -495,7 +503,13 @@ it('ADMIN reopens the same paused editor after closing and visiting history', as
   vi.mocked(bootstrapSession).mockResolvedValue({ session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true });
   await mount(); await click('Órdenes abiertas'); await click('Continuar');
   expect([...container.querySelectorAll('.order-actions button')].map(b => b.textContent?.trim())).toEqual(['Vista previa de orden', 'Cancelar orden']);
-  await click('Vista previa de orden'); await click('Confirmar y cerrar orden');
+  await click('Vista previa de orden');
+  expect(container.querySelector('.order-preview')).toBeNull();
+  expect(text()).toContain('Selecciona el mecánico que realizó el trabajo antes de cerrar.');
+  await chooseMechanic(testMechanic.id);
+  await click('Vista previa de orden');
+  expect(container.querySelector('.order-preview')?.textContent).toContain(testMechanic.fullName);
+  await click('Confirmar y cerrar orden');
   await click('Historial'); await historySearch(); await click('Ver detalle');
   expect(container.querySelector('fieldset')?.disabled).toBe(true);
   await click('Reabrir orden'); await click('Confirmar');
@@ -809,6 +823,28 @@ it('owner mismatch preserves chosen customer and requires an explicit decision',
  await click('Mantener dueño actual');
  expect(container.querySelector('[aria-label="Dueño actual del vehículo"]')).toBeNull();
 });
+async function chooseMechanic(id: string) {
+  const select = container.querySelector<HTMLSelectElement>('[aria-label="Mecánico asignado"]')!;
+  await act(async () => {
+    select.value = id;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+}
+
+it('automatically assigns a newly created daily order to the selected mechanic', async () => {
+  vi.mocked(bootstrapSession).mockResolvedValue({
+    session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,
+  });
+  await mount();
+  await newDailyOrder();
+  const id = disk!.id;
+  expect(orders.get(id)).toMatchObject({ status: 'OPEN', mechanicId: session.userId });
+  await chooseMechanic(testMechanic.id);
+  expect(orders.get(id)).toMatchObject({ status: 'OPEN', mechanicId: testMechanic.id });
+  expect(text()).toContain('Mecánico: ' + testMechanic.fullName);
+  expect(button('Actualizar mecánico')).toBeUndefined();
+});
+
 it('ADMIN can select an active mechanic and owner update is explicitly labeled', async () => {
  const selected=seed(); selected.draft.customerId='33333333-3333-4333-8333-333333333333'; disk!.draft.customerId=selected.draft.customerId; records.set(selected.id,clone(disk!)); vi.mocked(bootstrapSession).mockResolvedValue({session:{...session,role:'ADMIN'},status:'authenticated',healthOk:true});
  const implementation=vi.mocked(api).getMockImplementation()!;
@@ -817,10 +853,12 @@ it('ADMIN can select an active mechanic and owner update is explicitly labeled',
  await mount(); await click('Órdenes abiertas'); await click('Continuar');
  const select=container.querySelector<HTMLSelectElement>('[aria-label="Mecánico asignado"]')!;
  expect(select.textContent).toContain('Otro mecánico');expect(select.textContent).not.toContain('Inactivo');
- await act(async()=>{select.value=next;select.dispatchEvent(new Event('change',{bubbles:true}));});
+ await input('[data-field=identification]', '42');
+ await chooseMechanic(next);
  expect(disk?.draft.mechanicId).toBeUndefined();
- expect(puts).toBe(0);
- await click('Actualizar mecánico');
+ expect(disk?.draft.identification).toBe('42');
+ expect(puts).toBe(1);
+ expect(button('Actualizar mecánico')).toBeUndefined();
  expect(orders.get(selected.id)?.mechanicId).toBe(next);
  expect(vi.mocked(api).mock.calls.some(([,options])=>options?.body?.toString().includes('assign-mechanic'))).toBe(true);
  await input('.lookup input','XYZ987');await click('Buscar');await click('XYZ987');
@@ -1095,7 +1133,7 @@ it('reopen and reassignment confirmations are cleared on navigation and another 
  expect(notices()).toContain('Orden reabierta.'); await click('Inicio'); expect(notices()).not.toContain('Orden reabierta.');
  await click('Órdenes abiertas'); await click('Continuar');
  await act(async()=>{const e=container.querySelector<HTMLSelectElement>('[aria-label="Mecánico asignado"]')!;e.value=mechanic;e.dispatchEvent(new Event('change',{bubbles:true}));});
- await click('Actualizar mecánico'); expect(notices()).toContain('Mecánico actualizado.');
+ expect(notices()).toContain('Mecánico actualizado.');
  await click('Inicio'); await newDailyOrder(); expect(notices()).not.toContain('Mecánico actualizado.');
 });
 it('history search errors and empty results are local and reset on reentry', async () => {
