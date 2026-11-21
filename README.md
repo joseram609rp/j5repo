@@ -42,6 +42,8 @@ pnpm dev
 
 Abrir `http://localhost:5173`. La API local escucha en `http://127.0.0.1:7071`; Vite deriva `/api` a esa API. `APP_ORIGIN` debe coincidir exactamente con el origen del navegador. SQL necesita permitir la IP local en su firewall. Las migraciones requieren permisos DDL; el runtime debe tener una identidad distinta con permisos mínimos. No se ejecutan migraciones al iniciar la API. `admin:create` solicita contraseña oculta, sin argumentos ni credenciales en el historial de la terminal.
 
+Si usas un worktree, prepara su propio `.env` con la configuración autorizada para ese entorno. Git no copia este archivo. Si la API devuelve `503 SQL_NOT_CONFIGURED`, verifica la configuración de esa carpeta y reinicia el backend local.
+
 ## Variables de entorno
 
 `.env.example` contiene exclusivamente nombres y campos vacíos. Completar valores en `.env`, que está ignorado por Git; los defaults de timeouts están en backend/src/config.ts. Omitir las variables opcionales en lugar de dejarlas vacías en el entorno efectivo.
@@ -88,9 +90,15 @@ Transferir dueño está permitido a **MECHANIC y ADMIN autenticados**, mediante 
 
 `OPEN -> CLOSED` al cierre; `OPEN -> VOID` al cancelar; ADMIN puede reabrir una orden del día cerrada. VOID conserva datos y auditoría, desaparece de abiertas y no integra el historial normal de CLOSED. CLOSED/VOID no admiten reasignación. **Nueva orden → Orden del día** crea una OPEN distinta. ADMIN también puede elegir **Orden anterior**, que queda como borrador local con una fecha de trabajo anterior a hoy en Costa Rica. Al confirmar se registra directamente como CLOSED y recibe su número oficial.
 
-**Vista previa de orden** valida los datos de cierre, los trabajos, el método de pago y la elección de factura electrónica. Muestra cliente, vehículo, servicios, subtotal, IVA, total y la fecha del negocio o del trabajo. Es un resumen para revisar con el cliente. **Volver a editar** conserva el borrador y **Confirmar y cerrar orden** solicita el cierre oficial. Para una orden del día, la aplicación sincroniza antes de preparar la vista y permite elegir entre transferir o conservar el dueño actual si difiere del cliente. SQL verifica esa decisión dentro de la transacción.
+En órdenes del día creadas por ADMIN, el editor y **Órdenes abiertas** muestran **Sin asignar** hasta que el servidor confirma la selección del desplegable. Solo ADMIN puede cambiar el mecánico. Puede elegir su propia cuenta activa si realizó el trabajo. En una orden anterior, la selección se guarda en el borrador y se registra al cerrar. Una orden del día reabierta conserva la asignación y permite cambiarla mientras esté abierta. Si falta el mecánico, aparece en el banner de campos requeridos.
+
+**Vista previa de orden** valida los datos de cierre, los trabajos, el método de pago y la elección de factura electrónica. Muestra mecánico, cliente, vehículo, servicios, subtotal, IVA, total y la fecha del negocio o del trabajo. Es un resumen para revisar con el cliente. **Volver a editar** conserva el borrador y **Confirmar y cerrar orden** solicita el cierre oficial. Para una orden del día, la aplicación sincroniza antes de preparar la vista y permite elegir entre transferir o conservar el dueño actual si difiere del cliente. SQL verifica esa decisión dentro de la transacción.
 
 Identificador visible `OT-YYYYMMDD-NN`: fecha local UTC-6, consecutivo diario de al menos dos dígitos, sin truncar números mayores de 99. UUID sigue siendo identidad técnica y order_number global sirve para desempate. Historial inicia vacío y busca órdenes CLOSED por texto, rango de fechas o ambos. El texto requiere al menos dos caracteres y admite prefijo de OT, nombre parcial, cédula exacta o placa normalizada exacta. Al combinar texto y fechas se aplican ambos filtros. Las páginas contienen hasta 50 resultados. El archivo histórico importado se consulta en su módulo de solo lectura. [Contratos](docs/architecture.md).
+
+## Rutas y actualización de listas
+
+Las pantallas de órdenes, historial, facturas y panel operativo conservan el contexto en la URL. Los enlaces directos y Atrás/Adelante recuperan la pantalla y los filtros aplicados. Facturas separa **Volver** de **Actualizar**. Las listas abiertas se refrescan al volver a la pestaña o cuando cambia una orden, con consultas limitadas. En el editor, la rueda del ratón no cambia inadvertidamente año, kilometraje ni precio.
 
 ## Clientes y vehículos
 
@@ -134,7 +142,7 @@ IndexedDB separa borradores por usuario/orden y conserva payload, ETag, clave id
 
 Las órdenes del día y los borradores de órdenes anteriores se actualizan silenciosamente entre pestañas al recibir cambios guardados en IndexedDB. Los borradores anteriores permanecen locales hasta confirmar el cierre. Una cancelación compartida deshabilita el formulario y retira las acciones y validaciones de cierre. Los avisos del editor y las descargas de recuperación aparecen únicamente en el contexto de su orden; Historial consulta las órdenes cerradas por placa, nombre, cédula o fecha.
 
-ETag se deriva de rowversion. Un conflicto conserva el borrador, consulta la versión actual y ofrece revisión por grupos/mezcla/servidor. La copia previa permanece en recoveryCopies y puede descargarse; una nueva modificación remota obliga a revisar de nuevo. Las acciones de cierre, cancelación y transferencia no se repiten automáticamente al resolver contenido. Reasignación sin cambio de contenido puede recuperarse con versión/clave nuevas.
+ETag se deriva de rowversion. Un conflicto conserva el borrador, consulta la versión actual y ofrece revisión por grupos/mezcla/servidor. La copia previa permanece en recoveryCopies y puede descargarse; una nueva modificación remota obliga a revisar de nuevo. Las acciones de cierre, cancelación y transferencia no se repiten automáticamente al resolver contenido. La reasignación se guarda como una acción independiente con ETag y clave idempotente, incluso si hay campos del formulario incompletos. La etiqueta sigue mostrando el valor confirmado mientras la solicitud está pendiente. Si otra pestaña cambia la versión, revisa la orden antes de reasignar de nuevo.
 
 SQL serverless tiene retry de errores transitorios con presupuesto total 28 s; agotarlo devuelve 503. La PWA solicita actualización explícita y trata de sincronizar antes de activarla; pendientes/conflictos bloquean la actualización. Logout no garantiza eliminación de borradores: IndexedDB es persistencia del dispositivo, no aislamiento frente a quien controle su perfil de navegador. Usar dispositivos/perfiles de confianza y [limpieza local](clean%20up/04_clear_local_cache.md) después de proteger trabajo pendiente.
 

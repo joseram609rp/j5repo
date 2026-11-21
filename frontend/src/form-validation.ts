@@ -1,6 +1,6 @@
 import { customerSchema, vehicleSchema, mileageSchema, itemSchema, paymentMethodSchema, validBackfillDate } from '../../backend/src/validation';
 import type { Draft } from './autosave';
-export type Section = 'Fecha del trabajo' | 'Datos del cliente' | 'Datos del vehículo' | 'Trabajos realizados' | 'Observaciones generales' | 'Pago y factura';
+export type Section = 'Fecha del trabajo' | 'Datos del cliente' | 'Datos del vehículo' | 'Trabajos realizados' | 'Observaciones generales' | 'Pago y factura' | 'Mecánico asignado';
 export type FieldError = {field:string; section:Section; message:string};
 export function fieldErrors(d:Draft): FieldError[] {
  const errors:FieldError[]=[];
@@ -18,8 +18,9 @@ export function fieldErrors(d:Draft): FieldError[] {
 
  return errors;
 }
-export function visibleErrors(d:Draft,touched:ReadonlySet<string>,closing=false) {
+export function visibleErrors(d:Draft,touched:ReadonlySet<string>,closing=false, missingMechanic=false) {
  const errors=fieldErrors(d);
+ if(closing && missingMechanic) errors.push({field:'mechanicId',section:'Mecánico asignado',message:'Selecciona el mecánico que realizó el trabajo.'});
  if(closing && !paymentMethodSchema.safeParse(d.paymentMethod).success) errors.push({field:'paymentMethod',section:'Pago y factura',message:'Selecciona el método de pago.'});
  if(closing && typeof d.electronicInvoice !== 'boolean') errors.push({field:'electronicInvoice',section:'Pago y factura',message:'Indica si requiere factura electrónica: Sí o No.'});
  if(closing && !d.items?.length) errors.push({field:'items',section:'Trabajos realizados',message:'Agrega al menos un trabajo con descripción y precio.'});

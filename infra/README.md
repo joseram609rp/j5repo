@@ -15,7 +15,8 @@ El transporte de Functions usa `authLevel=anonymous`. La API aplica sesión, CSR
 1. Ejecutar `pnpm check` y abrir el PR hacia `dev`.
 2. Tras el merge, comprobar el resultado de **Build and Deploy** para el commit de `dev` en GitHub Actions. Abrir la URL del despliegue, verificar que carga la aplicación y comprobar `GET /api/health`.
 3. Probar en DEV el acceso, la vista previa de ambas modalidades, la edición en otra pestaña y la recuperación de conexión. Usar datos de prueba en un destino SQL autorizado para QA.
-4. Abrir el PR de `dev` a `prod` y revisar su despliegue temporal. Tras el merge, comprobar **Build and Deploy** para el commit de `prod` y repetir las comprobaciones de carga y salud en producción.
+4. Revisar en DEV la navegación Atrás/Adelante, los filtros al seguir enlaces y el regreso desde Facturas. Verificar que una orden administrativa muestre **Sin asignar** hasta elegir mecánico y que editor, lista y proforma coincidan después. Probar orden del día, retroactiva y reabierta.
+5. Abrir el PR de `dev` a `prod` y revisar su despliegue temporal. Tras el merge, comprobar **Build and Deploy** para el commit de `prod` y repetir las comprobaciones de carga y salud en producción.
 
 [Arquitectura](../docs/architecture.md) · [Seguridad](../docs/security-review.md)
 

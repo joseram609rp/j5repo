@@ -633,18 +633,22 @@ it.skipIf(!enabled).each(['','AB','ABC!123','ABC🚘','ABCDEFGHIJKLM'])('SQL clo
 it.skipIf(!enabled)('SQL backfills append to the work date, preserve existing IDs and roll back the allocation (test DB only)', async () => {
   const repo = new SqlRepository();
   const adminId = randomUUID();
-  const workDate = '2000-01-01';
+  const workDate = '2000-01-01', mechanicId = randomUUID();
   await repo.runSql(async tx => {
     await tx.insertUser({
       id: adminId, username: 'historical-' + randomUUID().slice(0, 8),
       fullName: 'Historical fixture', passwordHash: 'unused', role: 'ADMIN', active: true,
+    });
+    await tx.insertUser({
+      id: mechanicId, username: 'mechanic-' + randomUUID().slice(0, 8),
+      fullName: 'Historical mechanic fixture', passwordHash: 'unused', role: 'MECHANIC', active: true,
     });
     const draft: Draft = {
       customerName: 'Historical fixture', identification: String(randomInt(100000000, 999999999)),
       phone: '88888888', plate: 'H' + randomUUID().replaceAll('-', '').slice(0, 11).toUpperCase(),
       make: 'Toyota', model: 'Corolla', year: 1995, mileage: 100, notes: '', recommendations: '',
       paymentMethod: 'CASH', electronicInvoice: false, items: [{ description: 'Servicio', price: 100 }],
-      action: 'close', workDate,
+      action: 'close', workDate, mechanicId,
     };
     const existing = async () => (await tx.query<{ id: string; display_order_id: string; daily_order_number: string }>(
       'SELECT id,display_order_id,daily_order_number FROM dbo.Orders WHERE order_date=CONVERT(date,@workDate,23) ORDER BY daily_order_number',
@@ -654,7 +658,7 @@ it.skipIf(!enabled)('SQL backfills append to the work date, preserve existing ID
     const maximum = BigInt(baseline.at(-1)?.daily_order_number ?? 0);
     const expectedId = (offset: bigint) => 'OT-20000101-' + String(maximum + offset).padStart(2, '0');
     const first = await tx.saveOrder(randomUUID(), adminId, draft);
-    expect(first).toMatchObject({ status: 'CLOSED', isBackfilled: true, orderDate: workDate, displayOrderId: expectedId(1n), totalAmount: 113 });
+    expect(first).toMatchObject({ status: 'CLOSED', isBackfilled: true, orderDate: workDate, mechanicId, displayOrderId: expectedId(1n), totalAmount: 113 });
     expect(first.openedAt?.slice(0, 10)).not.toBe(workDate);
     expect(first.closedAt?.slice(0, 10)).not.toBe(workDate);
 
