@@ -18,6 +18,7 @@ import { EntitySearch } from './EntitySearch';
 import { Users } from './Users';
 import { visibleErrors, formatCRC, formatMileage, formatRegistrationDate, formatWorkDate } from './form-validation';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { entry, isOrderId, pushRoute, readRoute, rememberOrder, replaceEntry, routeUrl, type Page } from './navigation';
 import { api, ApiError, onBackendSuccess } from './api';
 import { loginErrorMessage } from './login-error';
 import {
@@ -38,29 +39,17 @@ import {
 import { trackActivity, type Session } from './session';
 import './style.css';
 
-function invoiceOrderId() {
-  return typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('invoiceOrder');
-}
-
-function operationalLink() {
-  return typeof window === 'undefined' ? null : new URLSearchParams(window.location.search);
-}
-
-function initialPage() {
-  const params = operationalLink();
-  if (params?.has('operationalOrder')) return 'operational-order';
-  if (params?.has('operational')) return 'operational';
-  return invoiceOrderId() === null ? 'dashboard' : 'invoice-order';
-}
-
 export function App() {
   const [hasUpdate, setHasUpdate] = useState(updateAvailable);
   useEffect(()=>onUpdateAvailable(()=>setHasUpdate(true)),[]);
   const [conflict, setConflict] = useState<RecordState['conflict']>();
   const [catalog, setCatalog] = useState<VehicleCatalog>({makes:[]});
-  const [page, setPage] = useState<
-    'dashboard' | 'new-order' | 'editor' | 'open' | 'history' | 'legacy' | 'users' | 'invoices' | 'invoice-order' | 'operational' | 'operational-order'
-  >(initialPage);
+  const [route, setRoute] = useState(readRoute);
+  const { page } = route;
+  const [navigationRevision, setNavigationRevision] = useState(0);
+  const [restoreError, setRestoreError] = useState(false);
+  const routePosition = useRef(entry()?.position ?? 0);
+  const restoringHistoryPosition = useRef(false);
   const [invoiceDates, setInvoiceDates] = useState<{ from: string; to: string }>();
   const operationalDetail = page === 'operational-order';
   const invoiceDetail = page === 'invoice-order';
@@ -68,7 +57,6 @@ export function App() {
   const [invoiceDetailError, setInvoiceDetailError] = useState('');
   const [invoiceDetailRevision, setInvoiceDetailRevision] = useState(0);
   const [ownerRevision, setOwnerRevision] = useState(0);
-  const [selectedMechanic, setSelectedMechanic] = useState('');
   const [mechanicRoster, setMechanicRoster] = useState<{id: string; fullName: string; role: string; active: boolean}[]>([]);
   const mechanics = mechanicRoster.filter(user => user.active);
   const [order, setOrder] = useState<Order | null>(null);
@@ -77,7 +65,7 @@ export function App() {
   const [closing, setClosing] = useState(false);
   const [closeOwner,setCloseOwner]=useState<{vehicleId:string;customerId:string;expectedOwnerId:string;ownerName:string;decision:'transfer'|'keep'} | null>(null);
   const [preview, setPreview] = useState<{
-    draft: Draft; revision: CloseRevision; businessDate?: string; stale?: boolean;
+    draft: Draft; revision: CloseRevision; mechanicName: string; businessDate?: string; stale?: boolean;
   } | null>(null);
   const previewButton = useRef<HTMLButtonElement>(null);
   const restorePreviewFocus = useRef(false);
@@ -95,8 +83,8 @@ export function App() {
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>('checking');
   useEffect(() => {
     if (!readOnlyDetail || sessionStatus !== 'authenticated' || session?.role !== 'ADMIN') return;
-    const id = operationalDetail ? operationalLink()?.get('operationalOrder') : invoiceOrderId();
-    if (!id || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)) {
+    const id = route.id;
+    if (!id || !isOrderId(id)) {
       setInvoiceDetailError('El enlace de la orden es inválido.');
       return;
     }
@@ -116,7 +104,7 @@ export function App() {
           : 'No se pudo consultar la orden.');
     });
     return () => controller.abort();
-  }, [readOnlyDetail, operationalDetail, sessionStatus, session, invoiceDetailRevision]);
+  }, [readOnlyDetail, operationalDetail, route.id, sessionStatus, session, invoiceDetailRevision]);
   const [bootstrapError, setBootstrapError] = useState(false);
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -173,7 +161,6 @@ export function App() {
       .catch(() => { if (current && assigningMechanic) setMessage('No se pudieron cargar los mecánicos. Reabre la orden para reintentar.'); });
     return () => { current = false; };
   }, [session, page, editorId, historical, order?.id, order?.status]);
-  useEffect(() => { setSelectedMechanic(order?.mechanicId ?? ''); }, [order?.id, order?.mechanicId]);
   useEffect(() => {
     if (page !== 'editor' || busy || confirmAction) return;
     let current = true;
@@ -205,18 +192,26 @@ export function App() {
       document.removeEventListener('visibilitychange', refresh);
     };
   }, [page, editorId, busy, confirmAction]);
-  async function updateMechanic() {
+  async function updateMechanic(mechanicId: string) {
     const service = saver.current;
-    if (!service || !order || !session || busy) return;
+    if (!service || session?.role !== 'ADMIN' || readOnly || orderOperation.current ||
+      !mechanics.some(user => user.id === mechanicId)) return;
+    orderOperation.current = true;
     setBusy(true);
     try {
-      await service.flush(true);
-      await service.edit({ ...service.state.draft, mechanicId: selectedMechanic, action: 'assign-mechanic' });
-      await service.flush();
-      if (service.state.order?.mechanicId !== selectedMechanic) throw new Error('ASSIGNMENT_FAILED');
-      setMessage('Mecánico actualizado.');
-    } catch { setMessage('No se pudo actualizar el mecánico. Revisa la orden y sincroniza los cambios pendientes.'); }
-    finally { setBusy(false); }
+      if (service.state.draft.workDate !== undefined && !service.state.order) {
+        await service.edit({ ...service.state.draft, mechanicId });
+        await service.settleLocal();
+      } else {
+        await service.assignMechanic(mechanicId);
+      }
+    } catch {
+      if (saver.current === service && !service.state.pending && !service.state.conflict && !service.localConflict)
+        setMessage('No se pudo confirmar la asignación. Revisa la orden y vuelve a seleccionar el mecánico.');
+    } finally {
+      orderOperation.current = false;
+      setBusy(false);
+    }
   }
   async function checkSession(isCurrent = () => true) {
     setLoginMessage('');
@@ -257,13 +252,14 @@ export function App() {
     setConflict(undefined);
     setDraft(null);
     setOrder(null);
-    setPage(initialPage());
+    setEditorId(null);
+    setRoute(readRoute());
     setSession(null);
     setSessionStatus('anonymous');
     setTouched(new Set());
-    setLoginMessage(invoiceOrderId() === null
-      ? 'La sesión terminó. Vuelve a entrar para recuperar tu borrador.'
-      : 'La sesión terminó. Volvé a entrar para consultar la orden.');
+    setLoginMessage(readOnlyDetail
+      ? 'La sesión terminó. Volvé a entrar para consultar la orden.'
+      : 'La sesión terminó. Vuelve a entrar para recuperar tu borrador.');
   }
   useLayoutEffect(() => {
     if (!session) return;
@@ -308,7 +304,7 @@ export function App() {
       setLoginMessage('');
       setSessionStatus('authenticated');
       setPassword('');
-      setPage(initialPage());
+      setRoute(readRoute());
     } catch (error) {
       setLoginMessage(loginErrorMessage(error));
     } finally {
@@ -340,6 +336,7 @@ export function App() {
       setTouched(new Set());
       clearNotice();
       setDraft(null);
+      setEditorId(null);
       setLoginMessage('Sesión cerrada.');
     } catch {
       if (activeSession.current !== session) return;
@@ -405,7 +402,7 @@ export function App() {
             ? 'transfer-owner'
             : null,
     );
-    setPage('editor');
+    enterRoute('editor', record.id);
     if (syncOnOpen && (!record.order || record.order.status === 'OPEN' || record.pending?.draft.action === 'reopen')) {
       const syncing = service.sync();
       if (syncInBackground) {
@@ -419,32 +416,40 @@ export function App() {
       }
     }
   }
-  async function navigate(next: typeof page, dates?: { from: string; to: string }) {
+  function enterRoute(next: Page, id?: string, params?: URLSearchParams) {
+    const url = routeUrl(next, id, params);
+    if (window.location.pathname + window.location.search !== url) pushRoute(url);
+    routePosition.current = entry()?.position ?? 0;
+    setRoute(readRoute());
+  }
+
+  async function navigate(next: Page, dates?: { from: string; to: string }) {
     if (busy || orderOperation.current) return;
     if (confirmAction) {
       setMessage('Confirma o cancela la acción pendiente.');
       return;
     }
-    // A draft may continue synchronizing after leaving the editor.
-    if (next !== page) clearNotice();
-    if ((readOnlyDetail || page === 'operational') && next !== page) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('invoiceOrder');
-      url.searchParams.delete('operationalOrder');
-      url.searchParams.delete('operational');
-      window.history.replaceState(window.history.state, '', url);
-      if (readOnlyDetail) {
-        setOrder(null);
-        setDraft(null);
+    if (next === page) return;
+    if (page === 'editor') {
+      orderOperation.current = true;
+      try {
+        await saver.current?.settleLocal();
+        if (saver.current?.unsavedLocally) return;
+      } catch {
+        setMessage('Guardá o descargá el borrador antes de salir.');
+        return;
+      } finally {
+        orderOperation.current = false;
       }
     }
-    if (next === 'operational' && next !== page) {
-      const url = new URL(window.location.href);
-      url.searchParams.set('operational', '');
-      window.history.replaceState(window.history.state, '', url);
+    clearNotice();
+    if (page === 'editor' || readOnlyDetail) {
+      setOrder(null);
+      setDraft(null);
+      setEditorId(null);
     }
-    if (next !== page) setInvoiceDates(next === 'invoices' ? dates : undefined);
-    setPage(next);
+    setInvoiceDates(next === 'invoices' ? dates : undefined);
+    enterRoute(next, undefined, dates ? new URLSearchParams(dates) : undefined);
   }
   async function newOrder(backfill = false) {
     if (!session || activeSession.current !== session || busy || orderOperation.current || confirmAction || (backfill && session.role !== 'ADMIN')) return;
@@ -469,7 +474,7 @@ export function App() {
       setBusy(false);
     }
   }
-  async function openOrder(selected: Order) {
+  async function openOrder(selected: Pick<Order, 'id'> & Partial<Pick<Order, 'status'>>, restoring = false) {
     if (!session || activeSession.current !== session || busy || orderOperation.current) return;
     orderOperation.current = true;
     setBusy(true);
@@ -483,11 +488,14 @@ export function App() {
         saver.current = null;
         clearNotice();
         setConfirmAction(null);
-        setPage('open');
+        if (restoring) setRestoreError(true);
+        else enterRoute('open');
         return;
       }
       const hasLocalWork = local && (local.conflict || local.pending || local.savedRevision < local.revision || !local.version);
-      if ((selected.status === 'OPEN' || saver.current?.localConflict) && hasLocalWork) {
+      if (hasLocalWork && (selected.status === 'OPEN'
+        || (restoring && (!local.version || local.order?.status === 'OPEN'))
+        || saver.current?.localConflict)) {
         await saver.current?.pause();
         await attach(local);
         return;
@@ -512,7 +520,7 @@ export function App() {
         setConflict(undefined);
         setTouched(new Set());
         setConfirmAction(null);
-        setPage('editor');
+        enterRoute('editor', remote.id);
       } else {
         const advanced = remote.status === 'OPEN' && current?.order?.status === 'OPEN' &&
           current.localRevision !== local?.localRevision;
@@ -526,6 +534,7 @@ export function App() {
         }, false, remote.status === 'OPEN');
       }
     } catch (error) {
+      if (restoring) setRestoreError(true);
       setMessage(
         draftUpgradeMessage(error) ?? 'No se pudo abrir otra orden. Revisa la conexión o sincroniza el borrador pendiente.',
       );
@@ -534,12 +543,79 @@ export function App() {
       setBusy(false);
     }
   }
+
+  useEffect(() => {
+    if (!entry()) replaceEntry({ position: routePosition.current });
+    const pop = () => {
+      if (restoringHistoryPosition.current) {
+        restoringHistoryPosition.current = false;
+        return;
+      }
+      const nextPosition = entry()?.position ?? 0;
+      const previousPosition = routePosition.current;
+      const reject = () => {
+        if (previousPosition === nextPosition) return;
+        restoringHistoryPosition.current = true;
+        window.history.go(previousPosition - nextPosition);
+      };
+      if (busy || orderOperation.current || confirmAction) {
+        reject();
+        return;
+      }
+      const accept = () => {
+        routePosition.current = nextPosition;
+        clearNotice();
+        setOrder(null);
+        setDraft(null);
+        setEditorId(null);
+        setInvoiceDates(undefined);
+        setRestoreError(false);
+        setRoute(readRoute());
+        setNavigationRevision(value => value + 1);
+      };
+      const service = page === 'editor' ? saver.current : null;
+      if (service) {
+        orderOperation.current = true;
+        void service.settleLocal().then(() => {
+          if (service.unsavedLocally) reject();
+          else accept();
+        }, reject).finally(() => { orderOperation.current = false; });
+      } else accept();
+    };
+    window.addEventListener('popstate', pop);
+    return () => window.removeEventListener('popstate', pop);
+  }, [page, busy, confirmAction]);
+
+  useEffect(() => {
+    if (page !== 'editor') return;
+    const warn = (event: BeforeUnloadEvent) => {
+      if (!saver.current?.hasUnsettledChanges && !saver.current?.unsavedLocally) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [page]);
+
+  useEffect(() => {
+    if (page !== 'editor' || !session || editorId || restoreError) return;
+    if (!route.id || !isOrderId(route.id)) {
+      setRestoreError(true);
+      return;
+    }
+    void openOrder({ id: route.id }, true);
+  }, [page, route.id, session, editorId, restoreError]);
+  function missingMechanic(draft: Draft, saved?: Order | null) {
+    return draft.workDate !== undefined && !saved
+      ? !mechanics.some(user => user.id === draft.mechanicId)
+      : saved?.mechanicAssigned === false;
+  }
   async function openPreview() {
     const service = saver.current;
     if (!service || !session || activeSession.current !== session || busy || orderOperation.current) return;
     setClosing(true);
     if (service.state.pending?.draft.action || service.state.draft.action) return;
-    if (visibleErrors(service.state.draft, touched, true).length) return;
+    if (visibleErrors(service.state.draft, touched, true, missingMechanic(service.state.draft, service.state.order)).length) return;
     if (!validCloseDraft(service.state.draft)) {
       setMessage('Revisa los datos de la orden y el total antes de continuar.');
       return;
@@ -554,6 +630,15 @@ export function App() {
       const reviewed = { localRevision, revision, version };
       await service.verifyCloseRevision(reviewed);
       if (!validCloseDraft(current)) return;
+      const assignee = backfill ? mechanics.find(user => user.id === current.mechanicId) : undefined;
+      if (missingMechanic(current, saved)) return;
+      const mechanicName = assignee?.fullName ?? saved?.mechanicName ??
+        mechanicRoster.find(user => user.id === saved?.mechanicId)?.fullName ??
+        (saved?.mechanicId === session.userId ? session.fullName ?? session.username : undefined);
+      if (!mechanicName) {
+        setMessage('No se pudo confirmar el nombre del mecánico asignado. Actualiza la orden antes de cerrar.');
+        return;
+      }
       let owner: typeof closeOwner = null;
       if (!backfill) {
         const lookup = await api<{ vehicles: { id: string; ownerId: string; owner?: { fullName: string } }[] }>(
@@ -569,7 +654,7 @@ export function App() {
       }
       if (saver.current !== service || activeSession.current !== session) return;
       setCloseOwner(owner);
-      setPreview({ draft: structuredClone(current), revision: reviewed, businessDate: saved?.orderDate });
+      setPreview({ draft: structuredClone(current), revision: reviewed, mechanicName, businessDate: saved?.orderDate });
       setClosing(false);
     } catch (error) {
       if (saver.current !== service || activeSession.current !== session) return;
@@ -604,7 +689,7 @@ export function App() {
         setConfirmAction(null);
         setDraft(null);
         setEditorId(null);
-        setPage('open');
+        enterRoute('open');
         return;
       }
       if (action === 'reopen' && order && saver.current?.state.id !== order.id) {
@@ -719,7 +804,7 @@ export function App() {
     finally { setBusy(false); }
   }
   function saveDraft(next: Draft) {
-    if (!saver.current || saver.current.localConflict || busy || preview || confirmAction || conflict || (order && order.status !== 'OPEN')) return;
+    if (!saver.current || saver.current.localConflict || busy || orderOperation.current || preview || confirmAction || conflict || (order && order.status !== 'OPEN')) return;
     setDraft(next);
     void saver.current
       ?.edit(next)
@@ -762,7 +847,7 @@ export function App() {
   const canFinish = !order || session?.role === 'ADMIN' || order.mechanicId === session?.userId;
   const taxRate = order && order.status !== 'OPEN' ? order.taxRate ?? 0 : 13;
   const totals = amounts(draft?.items, taxRate);
-  const errors = draft && !saver.current?.state.cancelled ? visibleErrors(draft, touched, closing) : [];
+  const errors = draft && !saver.current?.state.cancelled ? visibleErrors(draft, touched, closing, missingMechanic(draft, order)) : [];
   const cancelledDraft = !!saver.current?.state.cancelled;
   const previewPending = confirmAction === 'close' && saver.current?.state.pending?.draft.action === 'close';
   const previewStale = !!preview && !previewPending && (
@@ -781,7 +866,7 @@ export function App() {
     !!conflict ||
     busy ||
     !!saver.current?.state.pending?.draft.action;
-  const editor = page === 'editor' || (readOnlyDetail && session?.role === 'ADMIN' && !!order && !!draft);
+  const editor = (page === 'editor' && !!draft) || (readOnlyDetail && session?.role === 'ADMIN' && !!order && !!draft);
   const recovery = !saver.current && terminalRecovery?.id === editorId ? terminalRecovery :
     saver.current?.unsavedLocally || saver.current?.state.recoveryCopies?.length ? saver.current?.state : undefined;
   function validation(field: string) {
@@ -883,7 +968,7 @@ export function App() {
             )}
             {(page === 'open' || page === 'history') && (
               <OrderList
-                key={page}
+                key={page + ':' + navigationRevision}
                 userId={session.userId}
                 userName={session.fullName || session.username}
                 mechanicRoster={mechanicRoster}
@@ -897,13 +982,18 @@ export function App() {
                       session.role === 'ADMIN' && canCancelBackfill(record)) setConfirmAction('void');
                 }}
                 status={page === 'open' ? 'OPEN' : 'CLOSED'}
-                onOpen={(o) => void openOrder(o)}
+                onOpen={(o) => { rememberOrder(o.id); void openOrder(o); }}
               />
             )}
-            {page === 'legacy' && <LegacyHistory />}
-            {page === 'invoices' && session.role === 'ADMIN' && <InvoiceTracking key={session.userId} session={session} initialDates={invoiceDates} />}
-            {page === 'operational' && (session.role === 'ADMIN' ? <OperationalDashboard key={session.userId} onPendingInvoices={dates => void navigate('invoices', dates)} />
+            {page === 'legacy' && <LegacyHistory key={navigationRevision} userId={session.userId} />}
+            {page === 'invoices' && session.role === 'ADMIN' && <InvoiceTracking key={session.userId + ':' + navigationRevision} session={session} initialDates={invoiceDates} />}
+            {page === 'operational' && (session.role === 'ADMIN' ? <OperationalDashboard key={session.userId + ':' + navigationRevision} userId={session.userId} onPendingInvoices={dates => void navigate('invoices', dates)} />
               : <p role="alert">Esta sección es exclusiva para administradores.</p>)}
+            {page === 'editor' && !editor && (restoreError
+              ? <p role="alert">No se pudo abrir la orden. <button onClick={() => {
+                  setRestoreError(false);
+                }}>Reintentar</button></p>
+              : <p role="status">Abriendo la orden…</p>)}
             {readOnlyDetail && !editor && <section className="card" aria-label="Detalle de orden">
               {session.role !== 'ADMIN' ? <p role="alert">Esta sección es exclusiva para administradores.</p>
                 : invoiceDetailError ? <>
@@ -1026,6 +1116,7 @@ export function App() {
               preview && session ? (
                 <OrderPreview
                   draft={preview.draft}
+                  mechanicName={preview.mechanicName}
                   businessDate={preview.businessDate}
                   taxRate={13}
                   busy={busy}
@@ -1187,11 +1278,13 @@ export function App() {
                         Kilometraje
                         <input
                           data-field="mileage"
+                          className="no-number-spinner"
                           {...accessibility('mileage')}
                           type="number"
                           min={0}
                           max={10000000}
                           step={1}
+                          onWheel={(event) => event.currentTarget.blur()}
                           value={draft.mileage ?? ''}
                           onChange={(e) => edit('mileage', e.target.value)}
                         />
@@ -1234,12 +1327,14 @@ export function App() {
                         <div className="year-field">
                           <input
                             id="vehicle-year"
+                            className="no-number-spinner"
                             data-field="year"
                             {...accessibility('year')}
                             type="number"
                             inputMode="numeric"
                             min={1950}
                             step={1}
+                            onWheel={(event) => event.currentTarget.blur()}
                             value={draft.year ?? ''}
                             onChange={(e) => edit('year', e.target.value)}
                           />
@@ -1248,27 +1343,23 @@ export function App() {
                         {validation('year')}
                       </div>
                     </div>
-                    {historical && !order && session.role === 'ADMIN' && (
-                      <label>Mecánico asignado
-                        <select value={draft.mechanicId ?? session.userId} onChange={e => edit('mechanicId', e.target.value)}>
-                          {!mechanics.some(u => u.id === session.userId) && <option value={session.userId}>{session.fullName ?? session.username}</option>}
-                          {mechanics.map(u => <option key={u.id} value={u.id}>{u.fullName} ({u.role})</option>)}
-                        </select>
-                      </label>
-                    )}
-                    {session.role === 'ADMIN' && order?.status === 'OPEN' && <label>Mecánico asignado
-                      <select aria-label="Mecánico asignado" value={selectedMechanic} onChange={e => setSelectedMechanic(e.target.value)}>
-                        {!mechanics.some(u => u.id === order.mechanicId) && <option value={order.mechanicId}>{order.mechanicName}</option>}
-                        {mechanics.map(u => <option key={u.id} value={u.id}>{u.fullName} ({u.role})</option>)}
+                    {session.role === 'ADMIN' && (order?.status === 'OPEN' || (historical && !order)) && <label>Mecánico asignado
+                      <select aria-label="Mecánico asignado" disabled={readOnly}
+                        value={(order ? order.mechanicAssigned === false ? '' : order.mechanicId : draft.mechanicId) ?? ''}
+                        onChange={e => void updateMechanic(e.target.value)}>
+                        <option value="" disabled>Selecciona el mecánico que realizó el trabajo</option>
+                        {order && order.mechanicAssigned !== false && !mechanics.some(user => user.id === order.mechanicId) &&
+                          <option value={order.mechanicId} disabled>{order.mechanicName ?? order.mechanicId}</option>}
+                        {mechanics.map(user =>
+                          <option key={user.id} value={user.id}>{user.fullName} ({user.role})</option>)}
                       </select>
-                    <button type="button" disabled={readOnly || !selectedMechanic || selectedMechanic === order.mechanicId} onClick={() => void updateMechanic()}>Actualizar mecánico</button>
+                      {validation('mechanicId')}
                     </label>}
-                    {(!historical || order) && <p>
-                      Mecánico:{' '}
-                      {order?.mechanicName ??
-                        session.fullName ??
-                        session.username}
-                    </p>}
+                    {(!historical || order) && <p>Mecánico: {!order || order.mechanicAssigned === false ? 'Sin asignar' : order.mechanicName ??
+                      mechanicRoster.find(user => user.id === order.mechanicId)?.fullName ??
+                      (order.mechanicId === session.userId ? session.fullName ?? session.username : order.mechanicId)}</p>}
+                    {saver.current?.state.pending?.draft.action === 'assign-mechanic' &&
+                      <p role="status">Cambio de mecánico pendiente de confirmación.</p>}
                     <h3>Trabajos realizados · CRC</h3>
                     {validation('items')}
                     {(draft.items ?? []).map((item, index) => (
@@ -1290,11 +1381,13 @@ export function App() {
                           Precio sin IVA
                           <input
                             data-field={`item-${index}-price`}
+                            className="no-number-spinner"
                             {...accessibility(`item-${index}-price`)}
                             type="number"
                             min={0.01}
                             max={9999999999.99}
                             step={0.01}
+                            onWheel={(event) => event.currentTarget.blur()}
                             value={item.price || ''}
                             onChange={(e) =>
                               editItem(index, 'price', e.target.value)
@@ -1385,10 +1478,10 @@ export function App() {
                       />
                     </label>
                   </fieldset>
-                  {!cancelledDraft && editor && closing && (!order || order.status === 'OPEN') && visibleErrors(draft, touched, true).length > 0 && (
+                  {!cancelledDraft && editor && closing && (!order || order.status === 'OPEN') && errors.length > 0 && (
                     <div className="close-errors confirmation" role="alert">
                       <p>Para cerrar la orden, completa:</p>
-                      <ul>{visibleErrors(draft, touched, true).map(error => <li key={error.field}>{error.section}: {error.message}</li>)}</ul>
+                      <ul>{errors.map(error => <li key={error.field}>{error.section}: {error.message}</li>)}</ul>
                     </div>
                   )}
                   <div className="order-actions">

@@ -39,6 +39,7 @@ export type Order = {
   version: string;
   draft: Draft;
   mechanicId: string;
+  mechanicAssigned?: boolean;
   displayOrderId?: string;
   totalAmount?: number;
   subtotalAmount?: number;

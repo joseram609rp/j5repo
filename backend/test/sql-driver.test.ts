@@ -13,6 +13,7 @@ const driver = vi.hoisted(() => {
 vi.mock('mssql', () => ({ default: { ConnectionPool: driver.Pool, Transaction: driver.Transaction, Request: driver.Request, DateTime2: (scale: number) => ({ type: 'datetime2', scale }), ISOLATION_LEVEL: { SERIALIZABLE: 4 } } }));
 import { SqlRepository, SqlUnit, sqlConfig } from '../src/sql.js';
 import { config } from '../src/config.js';
+import type { Order, User } from '../src/domain.js';
 const originalConfig = { ...config.sql };
 afterEach(() => { Object.assign(config.sql, originalConfig); vi.clearAllMocks(); driver.pools.length = 0; });
 function configured() { Object.assign(config.sql, { server: 'test.invalid', database: 'fixture', authMode: 'sql', user: 'fixture', password: 'not-a-real-secret' }); }
@@ -62,6 +63,31 @@ it('provides a rollback-only SQL integration harness', async () => {
   await new SqlRepository().runSql(async () => undefined, undefined, true);
   expect(driver.rollback).toHaveBeenCalledTimes(1);
   expect(driver.commit).not.toHaveBeenCalled();
+});
+
+it.each([0, 1])('gates assignment with the trigger context and checks SQL rowversion (%i changed rows)', async changed => {
+  const unit = new SqlUnit({} as never, new AbortController().signal);
+  const actor: User = { id: 'admin', username: 'admin', fullName: 'Admin', role: 'ADMIN', active: true, passwordHash: '' };
+  const target: User = { ...actor, id: 'mechanic', role: 'MECHANIC' };
+  const previous: Order = { id: 'order', status: 'OPEN', version: '0000000000000001', mechanicId: actor.id,
+    draft: { customerName: '', plate: '', mileage: null, notes: '', recommendations: '' } };
+  const persisted = { ...previous, mechanicId: target.id, version: '0000000000000002' };
+  vi.spyOn(unit, 'userById').mockResolvedValueOnce(actor).mockResolvedValueOnce(target);
+  vi.spyOn(unit, 'order').mockResolvedValue(persisted);
+  const calls = vi.spyOn(unit, 'query');
+  driver.query.mockResolvedValueOnce({ recordset: [], rowsAffected: [] })
+    .mockResolvedValueOnce({ recordset: [], rowsAffected: [] })
+    .mockResolvedValueOnce({ recordset: [], rowsAffected: [changed] });
+  const saved = unit.saveOrder(previous.id, actor.id, {
+    ...previous.draft, action: 'assign-mechanic', mechanicId: target.id,
+  }, previous);
+  if (changed) await expect(saved).resolves.toEqual(persisted);
+  else await expect(saved).rejects.toMatchObject({ status: 412 });
+  expect(calls.mock.calls[1]).toEqual([expect.stringContaining("N'j5_mechanic_reassignment',@value=@allow"), { allow: true }]);
+  expect(calls.mock.calls[2]).toEqual([expect.stringContaining("status='OPEN' AND version=@version"),
+    { id: previous.id, mechanic: target.id, version: Buffer.from(previous.version, 'hex') }]);
+  expect(calls.mock.calls[3]?.[0]).toContain("N'j5_mechanic_reassignment',@value=NULL");
+  expect(unit.order).toHaveBeenCalledTimes(changed);
 });
 
 it('binds activity timestamps as datetime2(3) without legacy datetime rounding', async () => {

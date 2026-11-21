@@ -2,6 +2,60 @@ import { expect, it, vi } from 'vitest';
 import { Autosave, fresh, type RecordState } from './autosave';
 import { ApiError, api } from './api';
 vi.mock('./api', async (original) => ({ ...(await original<typeof import('./api')>()), api: vi.fn() }));
+const newMechanic = '81aa38ec-744a-4791-a764-2943b9fcaf36';
+
+function openWithIncompleteDraft() {
+  const state = fresh();
+  state.version = 'v1';
+  state.order = { id: state.id, status: 'OPEN', version: 'v1', draft: structuredClone(state.draft), mechanicId: 'original' };
+  state.draft.identification = '42';
+  state.revision = 1;
+  return state;
+}
+
+it('serializes rapid selections and replays a lost assignment without overwriting incomplete fields', async () => {
+  const state = openWithIncompleteDraft();
+  const assigned = { ...state.order!, version: 'v2', mechanicId: newMechanic };
+  const send = vi.fn().mockRejectedValueOnce(new TypeError('lost response')).mockResolvedValueOnce(assigned);
+  let disk = structuredClone(state);
+  const persist = async (_: string, record: RecordState) => { disk = structuredClone(record); };
+  const service = new Autosave(state, 'u', 'csrf', vi.fn(), vi.fn(), persist, send);
+  const first = service.assignMechanic(newMechanic);
+  const second = service.assignMechanic(crypto.randomUUID());
+  const results = await Promise.allSettled([first, second]);
+  expect(results.map(result => result.status)).toEqual(['rejected', 'rejected']);
+  expect(send).toHaveBeenCalledTimes(1);
+  expect(disk.order?.mechanicId).toBe('original');
+  expect(disk.pending).toMatchObject({ version: 'v1', draft: { action: 'assign-mechanic', mechanicId: newMechanic } });
+  const pending = structuredClone(disk.pending);
+  const recovered = new Autosave(disk, 'u', 'csrf', vi.fn(), vi.fn(), persist, send);
+  await recovered.sync();
+  expect(send.mock.calls[1]?.[1]).toEqual(pending);
+  expect(disk.order?.mechanicId).toBe(newMechanic);
+  expect(disk.pending).toBeUndefined();
+  expect(disk.draft.identification).toBe('42');
+});
+
+it.each([400, 403, 412])('preserves local edits when reassignment fails with %i', async status => {
+  const state = openWithIncompleteDraft();
+  const remote = { ...state.order!, version: 'v2', mechanicId: 'other-tab' };
+  vi.mocked(api).mockResolvedValue(remote);
+  const send = vi.fn().mockRejectedValue(new ApiError(status, 'ASSIGNMENT_REJECTED'));
+  const service = new Autosave(state, 'u', 'csrf', vi.fn(), vi.fn(), async () => {}, send);
+  await expect(service.assignMechanic(newMechanic)).rejects.toThrow();
+  expect(state.draft.identification).toBe('42');
+  expect(state.savedRevision).toBe(0);
+  expect(state.order?.mechanicId).toBe(status === 412 ? 'other-tab' : 'original');
+  if (status === 412) {
+    expect(state.conflict?.remote).toEqual(remote);
+    expect(state.pending?.draft.mechanicId).toBe(newMechanic);
+  } else {
+    expect(state.pending).toBeUndefined();
+  }
+  await service.sync();
+  expect(send).toHaveBeenCalledTimes(1);
+});
+
 it('preserves the exact pending key and payload across lost responses and reloads', async () => {
   let disk: RecordState = fresh();
   const write = async (_: string, state: RecordState) => {

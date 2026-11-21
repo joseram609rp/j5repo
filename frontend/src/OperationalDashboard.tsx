@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { isOrderId, saveView } from './navigation';
 import { api, ApiError } from './api';
 import { formatCRC, formatWorkDate } from './form-validation';
 import { costaRicaToday, period, presets, shiftDate, sumSales, type Preset } from './operational-period';
@@ -182,13 +183,23 @@ function Orders({ query, selected, close }: { query: string; selected: Selection
 }
 
 const tabs = ['Negocio', 'Mecánicos', 'Tendencias'] as const;
-export function OperationalDashboard({ onPendingInvoices }: {
+export function OperationalDashboard({ onPendingInvoices, userId }: {
+  userId?: string;
   onPendingInvoices: (dates: { from: string; to: string }) => void;
 }) {
-  const [tab, setTab] = useState<typeof tabs[number]>('Negocio');
-  const [preset, setPreset] = useState<Preset>('week');
-  const [custom, setCustom] = useState(() => period('week'));
-  const [mechanic, setMechanic] = useState('');
+  const [initial] = useState(() => new URLSearchParams(window.location.search));
+  const [tab, setTab] = useState<typeof tabs[number]>(() =>
+    tabs.find(label => label === initial.get('vista')) ?? 'Negocio');
+  const [preset, setPreset] = useState<Preset>(() =>
+    (Object.keys(presets) as Preset[]).find(value => value === initial.get('periodo')) ?? 'week');
+  const [custom, setCustom] = useState(() => {
+    const defaults = period('week');
+    return { from: initial.get('from') ?? defaults.from, to: initial.get('to') ?? defaults.to };
+  });
+  const [mechanic, setMechanic] = useState(() => {
+    const value = initial.get('mechanic') ?? '';
+    return isOrderId(value) ? value : '';
+  });
   const [roster, setRoster] = useState<OperationalReport['mechanics']>([]);
   const [selection, setSelection] = useState<Selection>();
   const today = costaRicaToday();
@@ -197,6 +208,13 @@ export function OperationalDashboard({ onPendingInvoices }: {
   const query = new URLSearchParams({ from, to });
   if (tab !== 'Negocio' && mechanic) query.set('mechanic', mechanic);
   const { data, error, retry } = useReport<OperationalReport>(valid ? endpoint + '?' + query : null);
+  useEffect(() => {
+    if (userId) saveView(userId, undefined, {
+      vista: tab === 'Negocio' ? undefined : tab, periodo: preset === 'week' ? undefined : preset,
+      from: preset === 'custom' ? from : undefined, to: preset === 'custom' ? to : undefined,
+      mechanic: mechanic || undefined,
+    });
+  }, [userId, tab, preset, from, to, mechanic]);
   useEffect(() => { if (data) setRoster(data.mechanics); }, [data]);
   const open = (status: Selection['status'], id?: string) => setSelection({ status, mechanic: id });
   return <section className="card op-dashboard">

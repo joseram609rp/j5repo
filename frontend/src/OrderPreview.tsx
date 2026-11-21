@@ -11,8 +11,9 @@ const paymentLabels: Record<NonNullable<Draft['paymentMethod']>, string> = {
   BANK_TRANSFER: 'Transferencia bancaria',
 };
 
-export function OrderPreview({ draft, businessDate, taxRate, busy, stale, pending, children, onEdit, onConfirm }: {
+export function OrderPreview({ draft, mechanicName, businessDate, taxRate, busy, stale, pending, children, onEdit, onConfirm }: {
   draft: Draft;
+  mechanicName: string;
   businessDate?: string;
   taxRate: number;
   busy: boolean;
@@ -40,6 +41,7 @@ export function OrderPreview({ draft, businessDate, taxRate, busy, stale, pendin
         La orden cambió desde que abriste la vista previa. Vuelve al formulario y abre una nueva vista previa para revisar los datos antes de cerrar.
       </p>}
       <dl className="order-preview__details">
+        <div><dt>Mecánico</dt><dd>{mechanicName}</dd></div>
         <div><dt>Cliente</dt><dd>{draft.customerName}</dd></div>
         <div><dt>Placa y vehículo</dt><dd>{draft.plate} · {draft.make} {draft.model} {draft.year}</dd></div>
         <div><dt>{draft.workDate !== undefined ? 'Fecha del trabajo' : 'Fecha de la orden'}</dt>

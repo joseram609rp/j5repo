@@ -91,13 +91,16 @@ type OrderRow = {
   tax_rate: number;
   closed_at: Date | null;
   draft_data: string;
+  implicit_mechanic?: boolean;
   created_at: Date;
   order_date: Date;
   is_backfilled: boolean;
   mechanic_name?: string;
 };
 function order(r: OrderRow): Order {
+  const { mechanicAssigned, ...draft } = JSON.parse(r.draft_data);
   return {
+    mechanicAssigned: r.status !== 'OPEN' || (mechanicAssigned ?? !r.implicit_mechanic),
     orderDate: r.order_date.toISOString().slice(0, 10),
     isBackfilled: r.is_backfilled,
     openedAt: r.created_at.toISOString(),
@@ -113,7 +116,7 @@ function order(r: OrderRow): Order {
     version: r.version.toString('hex'),
     mechanicId: r.mechanic_id.toLowerCase(),
     draft: {
-      ...JSON.parse(r.draft_data),
+      ...draft,
       customerName: r.customer_name_snapshot,
       plate: r.plate_snapshot,
       mileage: r.mileage,
@@ -124,6 +127,12 @@ function order(r: OrderRow): Order {
     },
   };
 }
+// Legacy rows created under the assigned admin need a recorded selection.
+const implicitMechanic = `CAST(CASE WHEN o.status='OPEN' AND u.role='ADMIN'
+  AND EXISTS (SELECT 1 FROM dbo.AuditLogs a WHERE a.entity_id=o.id AND a.actor_id=o.mechanic_id AND a.action='ORDER_CREATED')
+  AND NOT EXISTS (SELECT 1 FROM dbo.AuditLogs a WHERE a.entity_id=o.id AND a.action='ORDER_MECHANIC_CHANGED')
+  THEN 1 ELSE 0 END AS bit) AS implicit_mechanic`;
+
 /** Keep SQL values authoritative while retaining the draft's item order, including duplicates. */
 export function preserveItemOrder<T extends {description:string;price:number;notes:string}>(rows:T[], expected:Draft['items']):T[] {
   const remaining=[...rows]; const ordered:T[]=[];
@@ -314,7 +323,7 @@ export class SqlUnit implements UnitOfWork {
     if (status === 'CLOSED' && !range && search.trim().length < 2) throw new HttpError(400, 'HISTORY_SEARCH_REQUIRED');
     const rows = (
       await this.query<OrderRow>(
-        `SELECT TOP (50) o.*,(SELECT COALESCE(SUM(ROUND(oi.price*b.tax_rate/100,2)),0) FROM dbo.OrderItems oi JOIN dbo.Orders b ON b.id=oi.order_id WHERE oi.order_id=o.id) AS tax_amount,u.full_name AS mechanic_name FROM dbo.Orders o
+        `SELECT TOP (50) o.*,(SELECT COALESCE(SUM(ROUND(oi.price*b.tax_rate/100,2)),0) FROM dbo.OrderItems oi JOIN dbo.Orders b ON b.id=oi.order_id WHERE oi.order_id=o.id) AS tax_amount,u.full_name AS mechanic_name,${implicitMechanic} FROM dbo.Orders o
       JOIN dbo.Users u ON u.id=o.mechanic_id LEFT JOIN dbo.Customers c ON c.id=o.customer_id
       WHERE o.status=@status AND (@before IS NULL OR o.created_at < (SELECT created_at FROM dbo.Orders WHERE id=@before)
         OR (o.created_at=(SELECT created_at FROM dbo.Orders WHERE id=@before) AND o.order_number<(SELECT order_number FROM dbo.Orders WHERE id=@before)))
@@ -440,7 +449,7 @@ export class SqlUnit implements UnitOfWork {
   }
   async order(id: string, readOnly = false) {
     const r = await this.query<OrderRow>(
-      `SELECT o.*,(SELECT COALESCE(SUM(ROUND(oi.price*b.tax_rate/100,2)),0) FROM dbo.OrderItems oi JOIN dbo.Orders b ON b.id=oi.order_id WHERE oi.order_id=o.id) AS tax_amount,u.full_name AS mechanic_name FROM dbo.Orders o ${readOnly ? '' : 'WITH (UPDLOCK,HOLDLOCK)'} JOIN dbo.Users u ON u.id=o.mechanic_id WHERE o.id=@id`,
+      `SELECT o.*,(SELECT COALESCE(SUM(ROUND(oi.price*b.tax_rate/100,2)),0) FROM dbo.OrderItems oi JOIN dbo.Orders b ON b.id=oi.order_id WHERE oi.order_id=o.id) AS tax_amount,u.full_name AS mechanic_name,${implicitMechanic} FROM dbo.Orders o ${readOnly ? '' : 'WITH (UPDLOCK,HOLDLOCK)'} JOIN dbo.Users u ON u.id=o.mechanic_id WHERE o.id=@id`,
       { id },
     );
     if (!r.recordset[0]) return undefined;
@@ -475,6 +484,9 @@ export class SqlUnit implements UnitOfWork {
     if (draft.action === 'close') {
       const actor = await this.userById(userId);
       if (previous && actor?.role !== 'ADMIN' && previous.mechanicId !== userId) throw new HttpError(403, 'ASSIGNED_MECHANIC_REQUIRED');
+      if ((backfill && !draft.mechanicId) ||
+        (previous && draft.mechanicId && draft.mechanicId !== previous.mechanicId))
+        throw new HttpError(400, 'INVALID_MECHANIC');
     }
     if (draft.action === 'void' || draft.action === 'assign-mechanic') {
       if (!previous || previous.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');
@@ -491,7 +503,7 @@ export class SqlUnit implements UnitOfWork {
         const result = await this.query(
           draft.action === 'void'
             ? "UPDATE dbo.Orders SET status='VOID',updated_at=SYSUTCDATETIME() WHERE id=@id AND status='OPEN' AND version=@version"
-            : "UPDATE dbo.Orders SET mechanic_id=@mechanic,updated_at=SYSUTCDATETIME() WHERE id=@id AND status='OPEN' AND version=@version",
+            : "UPDATE dbo.Orders SET mechanic_id=@mechanic,draft_data=JSON_MODIFY(draft_data,'$.mechanicAssigned',CAST(1 AS bit)),updated_at=SYSUTCDATETIME() WHERE id=@id AND status='OPEN' AND version=@version",
           { id, mechanic: draft.mechanicId ?? previous.mechanicId, version: Buffer.from(previous.version, 'hex') },
         );
         if (result.rowsAffected[0] !== 1) throw new HttpError(412, 'VERSION_CONFLICT');
@@ -502,12 +514,12 @@ export class SqlUnit implements UnitOfWork {
     }
     const taxRate = previous && previous.status !== 'OPEN' ? previous.taxRate ?? 0 : 13;
     const assignedMechanic = draft.mechanicId ?? previous?.mechanicId ?? userId;
-    if (assignedMechanic !== (previous?.mechanicId ?? userId)) {
+    if (backfill || assignedMechanic !== (previous?.mechanicId ?? userId)) {
       const actor = await this.userById(userId);
       if (actor?.role !== 'ADMIN') throw new HttpError(403, 'ADMIN_REQUIRED');
       if (!backfill && previous?.status !== 'OPEN') throw new HttpError(409, 'ORDER_NOT_OPEN');
       const target = await this.userById(assignedMechanic);
-      if (!target?.active) throw new HttpError(400, 'INVALID_MECHANIC');
+      if (!target?.active || !['MECHANIC', 'ADMIN'].includes(target.role)) throw new HttpError(400, 'INVALID_MECHANIC');
     }
     let customerId =
       draft.customerId ??
@@ -695,7 +707,7 @@ export class SqlUnit implements UnitOfWork {
     // Temporarily reopen inside the same transaction to replace services without exposing an invalid closed order.
     if (previous?.status === 'CLOSED' && adminMutation) {
       await this.query(
-        "UPDATE dbo.Orders SET status='OPEN',closed_at=NULL WHERE id=@id AND version=@version",
+        "UPDATE dbo.Orders SET status='OPEN',closed_at=NULL,draft_data=JSON_MODIFY(draft_data,'$.mechanicAssigned',CAST(1 AS bit)) WHERE id=@id AND version=@version",
         { id, version: Buffer.from(previous.version, 'hex') },
       );
       previous = (await this.order(id))!;
@@ -722,7 +734,8 @@ export class SqlUnit implements UnitOfWork {
       mileage: draft.mileage,
       notes: draft.notes,
       recommendations: draft.recommendations,
-      data: JSON.stringify(data),
+      data: JSON.stringify({ ...data, mechanicAssigned: draft.mechanicId !== undefined ||
+        (previous ? previous.mechanicAssigned !== false : actor?.role !== 'ADMIN') }),
     };
     if (previous) {
       const r = await this.query(

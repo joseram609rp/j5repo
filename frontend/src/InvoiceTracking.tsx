@@ -1,4 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
+import { isOrderId, readView, saveView } from './navigation';
+import { publishServerChange, useVisibleRefresh } from './refresh';
 import type { InvoiceCursor, InvoiceEntry, InvoiceFilters, InvoicePage, InvoiceState } from '../../backend/src/invoice-types';
 import { api, ApiError } from './api';
 import { formatCRC, formatWorkDate } from './form-validation';
@@ -13,43 +15,27 @@ const fields = [
   ['to', 'Hasta', 'date'],
 ] as const;
 
-function useInvoiceRefresh(refresh: () => void) {
-  const current = useRef(refresh);
-  useLayoutEffect(() => { current.current = refresh; }, [refresh]);
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const schedule = () => {
-      if (document.visibilityState === 'hidden') return;
-      clearTimeout(timer);
-      timer = setTimeout(() => current.current(), 100);
-    };
-    window.addEventListener('focus', schedule);
-    window.addEventListener('pageshow', schedule);
-    window.addEventListener('online', schedule);
-    document.addEventListener('visibilitychange', schedule);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('focus', schedule);
-      window.removeEventListener('pageshow', schedule);
-      window.removeEventListener('online', schedule);
-      document.removeEventListener('visibilitychange', schedule);
-    };
-  }, []);
-}
-
 export function InvoiceCount() {
   const [count, setCount] = useState<number>();
   const [failed, setFailed] = useState(false);
   const [revision, setRevision] = useState(0);
-  useInvoiceRefresh(() => setRevision(value => value + 1));
+  const request = useRef<AbortController | null>(null);
+  useVisibleRefresh({ resources: ['orders', 'invoices'], refresh: () => {
+    if (request.current) return false;
+    setRevision(value => value + 1);
+    return true;
+  } });
   useEffect(() => {
     const controller = new AbortController();
+    request.current = controller;
     void api<{ count: number }>(endpoint + '/count', { signal: controller.signal }).then(result => {
       if (controller.signal.aborted) return;
       setCount(result.count);
       setFailed(false);
     }).catch(() => {
       if (!controller.signal.aborted) setFailed(true);
+    }).finally(() => {
+      if (request.current === controller) request.current = null;
     });
     return () => controller.abort();
   }, [revision]);
@@ -66,13 +52,28 @@ export function InvoiceTracking({ session, initialDates }: {
   session: Session;
   initialDates?: { from: string; to: string };
 }) {
-  const [state, setState] = useState<InvoiceState>('pending');
-  const [input, setInput] = useState<InvoiceFilters>(() => initialDates ?? {});
-  const [filters, setFilters] = useState<InvoiceFilters | null>(() => initialDates ?? {});
-  const [cursors, setCursors] = useState<InvoiceCursor[]>([]);
+  const [initial] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const saved = readView<{ filters: InvoiceFilters | null; cursors: InvoiceCursor[] }>(session.userId);
+    const date = (key: string) => {
+      const value = params.get(key);
+      return value && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : undefined;
+    };
+    const state: InvoiceState = params.get('estado') === 'emitidas' ? 'issued' : 'pending';
+    const dates = initialDates ?? { from: date('from'), to: date('to') };
+    const afterDate = date('afterDate');
+    const afterId = params.get('afterId');
+    const cursors = saved?.cursors ?? (afterDate && afterId && isOrderId(afterId) ? [{ date: afterDate, id: afterId }] : []);
+    const filters = saved ? saved.filters : state === 'pending' || dates.from || dates.to ? dates : null;
+    return { state, filters, cursors };
+  });
+  const [state, setState] = useState<InvoiceState>(initial.state);
+  const [input, setInput] = useState<InvoiceFilters>(initial.filters ?? {});
+  const [filters, setFilters] = useState<InvoiceFilters | null>(initial.filters);
+  const [cursors, setCursors] = useState<InvoiceCursor[]>(initial.cursors);
   const [revision, setRevision] = useState(0);
   const [page, setPage] = useState<InvoicePage>();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initial.filters !== null);
   const [loadError, setLoadError] = useState('');
   const [filterError, setFilterError] = useState('');
   const [notice, setNotice] = useState<{ text: string; error?: boolean }>();
@@ -80,6 +81,7 @@ export function InvoiceTracking({ session, initialDates }: {
   const [saving, setSaving] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const inFlight = useRef<AbortController | null>(null);
+  const reading = useRef<AbortController | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const cursor = cursors.at(-1);
@@ -89,17 +91,27 @@ export function InvoiceTracking({ session, initialDates }: {
   }, [initialDates]);
 
   function refresh() {
+    if (reading.current) return false;
     setLoading(true);
     setRevision(value => value + 1);
+    return true;
   }
 
-  useInvoiceRefresh(() => {
-    if (filters && !selected && !inFlight.current) refresh();
+  useVisibleRefresh({ enabled: !!filters, interval: state === 'pending' ? 120_000 : undefined, resources: ['orders', 'invoices'],
+    refresh: () => !selected && !inFlight.current && refresh(),
   });
+
+  useEffect(() => {
+    saveView(session.userId, { filters, cursors }, {
+      estado: state === 'issued' ? 'emitidas' : undefined,
+      from: filters?.from, to: filters?.to, afterDate: cursor?.date, afterId: cursor?.id,
+    });
+  }, [session.userId, filters, cursors, state, cursor]);
 
   useEffect(() => {
     if (!filters) return;
     const controller = new AbortController();
+    reading.current = controller;
     const params = new URLSearchParams({ state });
     for (const [key, value] of Object.entries(filters)) if (value) params.set(key, value);
     if (cursor) {
@@ -120,8 +132,13 @@ export function InvoiceTracking({ session, initialDates }: {
       setPage(undefined);
       setLoadError(invoiceError(error, 'No se pudieron cargar las facturas.'));
       setLoading(false);
+    }).finally(() => {
+      if (reading.current === controller) reading.current = null;
     });
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      if (reading.current === controller) reading.current = null;
+    };
   }, [state, filters, cursor, revision]);
 
   useEffect(() => () => inFlight.current?.abort(), []);
@@ -208,7 +225,10 @@ export function InvoiceTracking({ session, initialDates }: {
         dialog.current?.close();
         setSelected(undefined);
         setSaving(false);
+        reading.current?.abort();
+        reading.current = null;
         refresh();
+        publishServerChange('invoices', false);
         heading.current?.focus();
       }
     }
@@ -239,11 +259,12 @@ export function InvoiceTracking({ session, initialDates }: {
       {filterError && <p role="alert">{filterError}</p>}
       {notice && <p role={notice.error ? 'alert' : 'status'}>{notice.text}</p>}
       {!filters && !filterError && <p>Aplicá al menos un filtro para ver facturas emitidas.</p>}
+      {filters && <button type="button" className="quiet section-followup" disabled={loading || saving} onClick={refresh}>Actualizar facturas</button>}
       {loading && <p role="status">Consultando facturas…</p>}
       {!loading && loadError && <div><p role="alert">{loadError}</p>
         <button type="button" onClick={refresh}>Reintentar</button>
       </div>}
-      {!loading && page && <>
+      {page && <>
         {!page.entries.length && <p role="status">{state === 'pending' ? 'No hay facturas pendientes que coincidan con esta consulta.' : 'No hay facturas emitidas que coincidan con esta consulta.'}</p>}
         <ul className="invoice-results">
           {page.entries.map(entry => <li key={entry.id} className="card">
@@ -253,20 +274,20 @@ export function InvoiceTracking({ session, initialDates }: {
             <p><time dateTime={entry.date}>{formatWorkDate(entry.date)}</time> · {formatCRC(entry.total)}</p>
             <a href={'/?invoiceOrder=' + entry.id} target="_blank" rel="noopener noreferrer"
               aria-label={`Abrir orden ${entry.orderNumber} en una pestaña nueva`}>Abrir orden</a>{' '}
-            <button type="button" onClick={event => {
+            <button type="button" disabled={loading} onClick={event => {
               opener.current = event.currentTarget;
               setSelected(entry);
             }}>{state === 'pending' ? 'Marcar como emitida' : 'Volver a pendiente'}</button>
           </li>)}
         </ul>
         {(cursor || page.next) && <nav aria-label="Paginación de facturas">
-          <button type="button" disabled={!cursor} onClick={() => {
+          <button type="button" disabled={loading || !cursor} onClick={() => {
             setLoading(true);
             setCursors(cursors.slice(0, -1));
             heading.current?.focus();
           }}>Anterior</button>
           <span>Página {cursors.length + 1}</span>
-          <button type="button" disabled={!page.next} onClick={() => {
+          <button type="button" disabled={loading || !page.next} onClick={() => {
             if (!page.next) return;
             setLoading(true);
             setCursors([...cursors, page.next]);
