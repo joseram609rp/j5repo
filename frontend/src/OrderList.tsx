@@ -74,7 +74,7 @@ export function OrderList({
     setLocalError('');
     void storage.list(userId).then(records => {
       if(current) setLocalOrders(records.filter(r => !r.cancelled && r.order?.status !== 'CLOSED' && r.order?.status !== 'VOID' && (!r.version || r.pending || r.savedRevision < r.revision)).map(r => ({
-        ...(r.order ?? {status: 'OPEN' as const, mechanicId: r.draft.mechanicId ?? userId}), id: r.id, draft: r.draft, version: r.version ?? '', canCancelDraft: canCancelBackfill(r),
+        ...(r.order ?? {status: 'OPEN' as const, mechanicId: r.draft.mechanicId ?? userId, mechanicAssigned: !!r.draft.mechanicId}), id: r.id, draft: r.draft, version: r.version ?? '', canCancelDraft: canCancelBackfill(r),
       })));
     }).catch(error => {
       if (current) setLocalError(draftUpgradeMessage(error) ?? 'No se pudieron consultar los borradores en este dispositivo.');
@@ -249,7 +249,7 @@ export function OrderList({
                   .filter(Boolean)
                   .join(' · ') || 'Vehículo pendiente'}
               </p>
-              <p>Mecánico: {mechanicName || 'Nombre no disponible'}</p>
+              <p>Mecánico: {order.mechanicAssigned === false ? 'Sin asignar' : mechanicName || 'Nombre no disponible'}</p>
               {historical ? (
                 <>
                   <p>{workDate ? `Trabajo realizado el ${formatWorkDate(workDate)}` : 'Fecha del trabajo pendiente'}</p>

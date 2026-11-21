@@ -31,6 +31,7 @@ export type Order = {
   status: 'OPEN' | 'CLOSED' | 'VOID';
   draft: Draft;
   mechanicId: string;
+  mechanicAssigned?: boolean;
   mechanicName?: string;
   displayOrderId?: string;
   openedAt?: string;
@@ -313,7 +314,7 @@ export class Autosave {
     if (this.detached || this.localConflict || this.storageFailed || state.conflict ||
       state.pending || state.draft.action || state.order?.status !== 'OPEN' ||
       !state.version || state.order.version !== state.version) throw new Error('SYNC_REQUIRED');
-    if (state.order.mechanicId === mechanicId) return;
+    if (state.order.mechanicId === mechanicId && state.order.mechanicAssigned !== false) return;
 
     // Save only the assignment even when unrelated form edits are incomplete.
     state.pending = {
@@ -328,7 +329,7 @@ export class Autosave {
     this.report('Cambio de mecánico pendiente de confirmación.');
     await this.sync(true);
     if (state.pending || state.conflict || this.localConflict ||
-      state.order?.mechanicId !== mechanicId) throw new Error('ASSIGNMENT_NOT_CONFIRMED');
+      state.order?.mechanicId !== mechanicId || state.order.mechanicAssigned === false) throw new Error('ASSIGNMENT_NOT_CONFIRMED');
   }
   async flush(resumeSharedDraft = false) {
     clearTimeout(this.timer);

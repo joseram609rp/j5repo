@@ -117,6 +117,8 @@ beforeEach(() => {
           openedAt: old?.openedAt ?? '2026-10-05T10:00:00Z',
           closedAt: d.action === 'close' ? '2026-10-05T11:00:00Z' : null,
           mechanicId: d.mechanicId ?? old?.mechanicId ?? session.userId,
+          mechanicAssigned: d.action === 'assign-mechanic' || !!d.mechanicId ||
+            (old ? old.mechanicAssigned !== false : (await vi.mocked(bootstrapSession).mock.results.at(-1)?.value)?.session?.role !== 'ADMIN'),
           mechanicName: d.mechanicId === testMechanic.id ? testMechanic.fullName : old?.mechanicName ?? session.fullName,
           taxRate: old && old.status !== 'OPEN' ? old.taxRate ?? 0 : 13,
           totalAmount: amounts(d.items, old && old.status !== 'OPEN' ? old.taxRate ?? 0 : 13).total,
@@ -211,7 +213,7 @@ async function input(selector: string, value: string) {
     e.dispatchEvent(new Event('input', { bubbles: true }));
   });
 }
-function seed(status: 'OPEN' | 'CLOSED' = 'OPEN') {
+function seed(status: 'OPEN' | 'CLOSED' = 'OPEN', mechanicAssigned = true) {
   const id = crypto.randomUUID();
   const order: Order = {
     id,
@@ -219,6 +221,7 @@ function seed(status: 'OPEN' | 'CLOSED' = 'OPEN') {
     status,
     draft: clone(complete),
     mechanicId: session.userId,
+    mechanicAssigned,
     mechanicName: session.fullName,
     displayOrderId: 'OT-2026-000007',
     openedAt: '2026-10-05T10:00:00Z',
@@ -496,7 +499,7 @@ it('ADMIN can explicitly confirm reopening a CLOSED order', async () => {
   expect(container.querySelector('fieldset')?.disabled).toBe(false);
 });
 it('ADMIN reopens the same paused editor after closing and visiting history', async () => {
-  const initial = seed();
+  const initial = seed('OPEN', false);
   initial.draft.items![0]!.notes = 'Comentario conservado';
   initial.taxRate = 13;
   disk!.draft = clone(initial.draft); disk!.order = clone(initial);
@@ -832,7 +835,7 @@ async function chooseMechanic(id: string) {
 }
 
 it('lets ADMIN explicitly select themselves and close their own work', async () => {
-  const initial = seed();
+  const initial = seed('OPEN', false);
   vi.mocked(bootstrapSession).mockResolvedValue({
     session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true,
   });
@@ -859,11 +862,17 @@ it('automatically assigns a newly created daily order to the selected mechanic',
   await mount();
   await newDailyOrder();
   const id = disk!.id;
-  expect(orders.get(id)).toMatchObject({ status: 'OPEN', mechanicId: session.userId });
+  expect(orders.get(id)).toMatchObject({ status: 'OPEN', mechanicId: session.userId, mechanicAssigned: false });
+  expect(text()).toContain('Mecánico: Sin asignar');
+  await click('Órdenes abiertas');
+  expect(text()).toContain('Mecánico: Sin asignar');
+  await click('Continuar');
   await chooseMechanic(testMechanic.id);
   expect(orders.get(id)).toMatchObject({ status: 'OPEN', mechanicId: testMechanic.id });
   expect(text()).toContain('Mecánico: ' + testMechanic.fullName);
   expect(button('Actualizar mecánico')).toBeUndefined();
+  await click('Órdenes abiertas');
+  expect(text()).toContain('Mecánico: ' + testMechanic.fullName);
 });
 
 it('ADMIN can select an active mechanic and owner update is explicitly labeled', async () => {
