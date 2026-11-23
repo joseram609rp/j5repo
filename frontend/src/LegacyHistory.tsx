@@ -10,9 +10,10 @@ export function LegacyHistory({userId}: {userId?: string} = {}) {
   const saved = readView<{q: string}>(userId);
   const page = Number(params.get('pagina') ?? 1);
   return {
-   q: saved?.q ?? '', from: params.get('from') ?? '', to: params.get('to') ?? '',
+   q: params.get('q') ?? saved?.q ?? '', from: params.get('from') ?? '', to: params.get('to') ?? '',
    page: Number.isInteger(page) && page > 0 ? page : 1,
    id: params.get('trabajo') ?? '',
+   hasPage: params.has('pagina'),
   };
  });
  const [q,setQ]=useState(initial.q); const [from,setFrom]=useState(initial.from); const [to,setTo]=useState(initial.to);
@@ -31,30 +32,31 @@ export function LegacyHistory({userId}: {userId?: string} = {}) {
  function persist(page: number, id?: string) {
    if (!userId) return;
    const filters = new URLSearchParams(search.current);
-   saveView(userId, {q: filters.get('q') ?? ''}, {
+   const hasFilters = Boolean(filters.get('q') || filters.get('from') || filters.get('to'));
+   saveView(userId, undefined, {
+     q: filters.get('q') ?? undefined,
      from: filters.get('from') ?? undefined, to: filters.get('to') ?? undefined,
-     pagina: page > 1 ? String(page) : undefined, trabajo: id,
+     pagina: page > 1 || !hasFilters ? String(page) : undefined, trabajo: id,
    });
  }
  async function load(page:number,newSearch=false) {
   const current=++generation.current; setBusy(true);setError('');setDetail(undefined);
   if(newSearch) { search.current=new URLSearchParams({q,...(from?{from}:{}),...(to?{to}:{})}).toString();setResults(undefined); }
-  persist(page);
-  try {const data=await api<Results>(`/legacy/work-orders?${search.current}&page=${page}&pageSize=25`);if(current===generation.current)setResults(data);}
+  try {persist(page);const data=await api<Results>(`/legacy/work-orders?${search.current}&page=${page}&pageSize=25`);if(current===generation.current)setResults(data);}
   catch {if(current===generation.current)setError('No se pudo consultar el historial. Revisa la conexión y vuelve a buscar.');}
   finally {if(current===generation.current)setBusy(false);}
  }
  async function open(id:string) {
   const current=++generation.current;setBusy(true);setError('');setDetail(undefined);
-  persist(results?.page ?? initial.page, id);
-  try {const data=await api<Detail>('/legacy/work-orders/'+encodeURIComponent(id));if(current===generation.current)setDetail(data);}
+  try {persist(results?.page ?? initial.page, id);
+  const data=await api<Detail>('/legacy/work-orders/'+encodeURIComponent(id));if(current===generation.current)setDetail(data);}
   catch {if(current===generation.current)setError('No se pudo cargar el detalle. Intenta de nuevo.');}
   finally {if(current===generation.current)setBusy(false);}
  }
  useEffect(() => {
    search.current = new URLSearchParams({q: initial.q, ...(initial.from ? {from: initial.from} : {}), ...(initial.to ? {to: initial.to} : {})}).toString();
    if (/^[a-z\d_-]{1,100}$/i.test(initial.id)) void open(initial.id);
-   else if (initial.q || initial.from || initial.to) void load(initial.page);
+   else if (initial.q || initial.from || initial.to || initial.hasPage) void load(initial.page);
    return () => { generation.current++; };
  }, []);
  return <section className="legacy-history" aria-label="Historial J5 antiguo"><h1>Historial J5 antiguo</h1><p>Archivo de consulta. Estos registros no se utilizan para crear órdenes, clientes ni vehículos actuales. Requiere conexión.</p>
