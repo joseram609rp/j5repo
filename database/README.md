@@ -26,7 +26,7 @@
 | 018_backfilled_orders | Marca órdenes anteriores y exige una fecha de trabajo anterior al registro |
 | 019_order_invoice_tracking | Crea dbo.OrderInvoiceTracking con FK a Orders, estado de emisión y rowversion |
 
-Una orden cerrada que requiere factura se considera pendiente si carece de fila de seguimiento. La migración 019 crea la tabla vacía. Las marcas se guardan por separado de las órdenes.
+Una orden cerrada que requiere factura se considera pendiente si carece de fila de seguimiento. La migración 019 crea la tabla vacía. Las marcas se guardan por separado de las órdenes. La regla que exige factura electrónica para crédito se valida en la API. Las órdenes ya cerradas conservan su requerimiento guardado. Mostrar el subtotal en la vista previa cuando no se requiere factura no cambia los importes persistidos ni requiere migración.
 
 `pnpm db:migrate` obtiene applock exclusivo, comprueba archivos/checksums SHA-256 normalizados por saltos de línea y aplica pendientes transaccionalmente. SchemaMigrations registra nombre/checksum/fecha. Rechaza migraciones históricas ausentes o alteradas. No editar archivos aplicados: añadir una nueva migración. El backfill de 011 cambia identificadores visibles/rowversions, conserva UUID y snapshots y puede requerir revisar borradores offline; no crea alias para números antiguos.
 
