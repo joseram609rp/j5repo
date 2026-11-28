@@ -16,14 +16,18 @@ it('retries a failed report, keeps filters across tabs and opens the matching re
   const click = (label: string) => act(async () => {
     [...container.querySelectorAll('button')].find(button => button.textContent === label)!.click();
   });
+  const report = sampleReport();
+  report.payments = [{ method: 'LEGACY_PAYMENT', gross: report.totals.gross, closed: 1 }];
   vi.mocked(api).mockImplementation(async path => (path.includes('/orders?')
-    ? { rows: [sampleOrder], more: false } : sampleReport()) as never)
+    ? { rows: [sampleOrder], more: false } : report) as never)
     .mockRejectedValueOnce(new ApiError(500, 'UNAVAILABLE'));
   try {
     await act(async () => root.render(<OperationalDashboard onPendingInvoices={vi.fn()} />));
     expect(container.querySelector('[role=alert]')).not.toBeNull();
     await click('Reintentar');
     expect(container.textContent).toContain('Ventas registradas sin IVA');
+    expect(container.textContent).toContain('Otros / métodos anteriores · 100%');
+    expect(container.textContent).not.toContain('Tarjeta de débito');
     expect(container.textContent).toContain('Ítems en las órdenes cerradas');
     expect(container.textContent).not.toContain('Ticket promedio');
     expect(container.querySelector('input[type=checkbox]')).toBeNull();

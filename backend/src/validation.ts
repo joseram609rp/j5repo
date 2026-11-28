@@ -8,7 +8,7 @@ export const makeSchema = z.string().trim().min(1).max(100);
 export const modelSchema = z.string().trim().min(1).max(100);
 export const yearSchema = z.number().int().min(1950);
 export const mileageSchema = z.number().int().min(0).max(10_000_000).nullable();
-export const paymentMethodSchema = z.enum(['SINPE', 'CREDIT_CARD', 'DEBIT_CARD', 'CASH', 'BANK_TRANSFER']);
+export const paymentMethodSchema = z.enum(['SINPE', 'CREDIT_CARD', 'CASH', 'BANK_TRANSFER']);
 export const itemSchema = z.object({ description: z.string().trim().min(1).max(500), notes: z.string().max(2000).optional(), price: z.number().positive().max(9_999_999_999.99).refine(n => Math.abs(n * 100 - Math.round(n * 100)) < 0.0001, 'Use at most two decimal places') }).strict();
 export const customerSchema = z.object({ fullName: fullNameSchema, identification: identificationSchema, phone: phoneSchema, email: emailSchema.optional() }).strict();
 export const vehicleSchema = z.object({ make: makeSchema, model: modelSchema, year: yearSchema, plate: plateSchema, ownerId: z.uuid() }).strict();
@@ -30,13 +30,14 @@ export const draftSchema = z.object({
  identification: blankOr(identificationSchema).optional(), phone: blankOr(phoneSchema).optional(), email: emailSchema.optional(),
  make: blankOr(makeSchema).optional(), model: blankOr(modelSchema).optional(), year: yearSchema.nullable().optional(),
  mileage: mileageSchema, notes: z.string().max(5000).default(''), recommendations: z.string().max(5000).default(''),
- paymentMethod: paymentMethodSchema.optional(), electronicInvoice: z.boolean().optional(),
+ paymentMethod: z.union([paymentMethodSchema, z.literal('DEBIT_CARD')]).optional(), electronicInvoice: z.boolean().optional(),
  ownerResolution: z.object({decision:z.enum(['transfer','keep']),vehicleId:z.uuid(),customerId:z.uuid(),expectedOwnerId:z.uuid()}).strict().optional(),
  mechanicId: z.uuid().optional(), customerId: z.uuid().optional(), vehicleId: z.uuid().optional(), items: z.array(itemSchema).max(100).optional(),
  action: z.enum(['close', 'reopen', 'void', 'admin-edit', 'transfer-owner', 'assign-mechanic']).optional()
 }).strict().refine(d => amounts(d.items).total <= 9_999_999_999.99, 'Total exceeds DECIMAL(12,2)');
 export function canClose(d: z.infer<typeof draftSchema>) {
- return paymentMethodSchema.safeParse(d.paymentMethod).success && typeof d.electronicInvoice === 'boolean' && d.mileage !== null && !!d.items?.length && d.items.every(i => itemSchema.safeParse(i).success) && customerSchema.safeParse({ fullName: d.customerName, identification: d.identification, phone: d.phone, email: d.email }).success &&
+ return paymentMethodSchema.safeParse(d.paymentMethod).success && typeof d.electronicInvoice === 'boolean' &&
+ (d.paymentMethod !== 'CREDIT_CARD' || d.electronicInvoice) && d.mileage !== null && !!d.items?.length && d.items.every(i => itemSchema.safeParse(i).success) && customerSchema.safeParse({ fullName: d.customerName, identification: d.identification, phone: d.phone, email: d.email }).success &&
  makeSchema.safeParse(d.make).success && modelSchema.safeParse(d.model).success && mileageSchema.safeParse(d.mileage).success && d.year != null && plateSchema.safeParse(d.plate).success && yearSchema.safeParse(d.year).success;
 }
 export function totalAmount(items: { price: number }[] = []) { return items.reduce((sum, i) => sum + Math.round(i.price * 100), 0) / 100; }

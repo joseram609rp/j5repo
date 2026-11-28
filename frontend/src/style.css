@@ -1,3 +1,19 @@
+.login-password__control { position: relative; }
+.login-password__control input { width: 100%; padding-right: 3.5rem; }
+.login-password__control input::-ms-reveal { display: none; }
+.login-password__control button {
+  position: absolute;
+  inset-inline-end: 2px;
+  margin-top: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+
 :root {
   --primary: #0847ad;
   --accent: #ed1017;

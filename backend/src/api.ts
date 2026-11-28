@@ -458,6 +458,18 @@ export function createApi(
                 !(user.role === 'ADMIN' && draft.action)
               )
                 throw new HttpError(409, 'ORDER_NOT_OPEN');
+              if (draft.action !== 'void' && draft.action !== 'assign-mechanic') {
+                // Legacy debit can survive editing until the user chooses a current method. It cannot close.
+                if (draft.paymentMethod === 'DEBIT_CARD' && existing?.draft.paymentMethod !== 'DEBIT_CARD')
+                  throw new HttpError(400, 'INVALID_PAYMENT_METHOD');
+                if (draft.paymentMethod === 'CREDIT_CARD') {
+                  if (existing?.draft.paymentMethod !== 'CREDIT_CARD' && user.role !== 'ADMIN')
+                    throw new HttpError(403, 'ADMIN_REQUIRED');
+                  if (draft.action === 'reopen') draft = { ...draft, electronicInvoice: true };
+                  else if (draft.electronicInvoice !== true)
+                    throw new HttpError(400, 'CREDIT_CARD_REQUIRES_INVOICE');
+                }
+              }
               if (draft.action === 'close' && existing && user.role !== 'ADMIN' && existing.mechanicId !== user.id)
                 throw new HttpError(403, 'ASSIGNED_MECHANIC_REQUIRED');
               if (draft.action === 'close' && existing && draft.mechanicId && draft.mechanicId !== existing.mechanicId)
