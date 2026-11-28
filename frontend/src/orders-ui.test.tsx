@@ -930,16 +930,22 @@ it('restores a private history search on browser Back and after a remount', asyn
   await click('Historial');
   await input('.history-search input', 'Cliente de prueba');
   await click('Buscar');
+  const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
   const historyState = window.history.state;
+  const listEntry = { ...historyState, j5: { ...historyState.j5, order: order.id, scroll: 2400 } };
   expect(window.location.pathname).toBe('/historial');
   expect(window.location.search).toBe('');
   await click('Ver detalle');
   expect(window.location.pathname).toBe('/ordenes/' + order.id);
+  expect(document.activeElement).toBe(container.querySelector('.card-top h2'));
+  expect(scrollTo).toHaveBeenLastCalledWith(0, 0);
   await act(async () => {
-    window.history.replaceState(historyState, '', '/historial');
-    window.dispatchEvent(new PopStateEvent('popstate', { state: historyState }));
+    window.history.replaceState(listEntry, '', '/historial');
+    window.dispatchEvent(new PopStateEvent('popstate', { state: listEntry }));
   });
-  expect(button('Ver detalle')).toBeTruthy();
+  expect(document.activeElement).toBe(button('Ver detalle'));
+  expect(scrollTo).toHaveBeenLastCalledWith(0, 2400);
+  scrollTo.mockRestore();
   expect((container.querySelector('.history-search input') as HTMLInputElement).value).toBe('Cliente de prueba');
   await act(async () => root.render(null));
   await mount();

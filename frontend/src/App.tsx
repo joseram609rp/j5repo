@@ -50,6 +50,8 @@ export function App() {
   const [restoreError, setRestoreError] = useState(false);
   const routePosition = useRef(entry()?.position ?? 0);
   const restoringHistoryPosition = useRef(false);
+  const historyDetailToFocus = useRef<string | undefined>(undefined);
+  const detailHeading = useRef<HTMLHeadingElement>(null);
   const [invoiceDates, setInvoiceDates] = useState<{ from: string; to: string }>();
   const operationalDetail = page === 'operational-order';
   const invoiceDetail = page === 'invoice-order';
@@ -422,7 +424,10 @@ export function App() {
   }
   function enterRoute(next: Page, id?: string, params?: URLSearchParams) {
     const url = routeUrl(next, id, params);
-    if (window.location.pathname + window.location.search !== url) pushRoute(url);
+    if (window.location.pathname + window.location.search !== url) {
+      historyDetailToFocus.current = page === 'history' && next === 'editor' ? id : undefined;
+      pushRoute(url);
+    }
     routePosition.current = entry()?.position ?? 0;
     setRoute(readRoute());
   }
@@ -872,6 +877,13 @@ export function App() {
     busy ||
     !!saver.current?.state.pending?.draft.action;
   const editor = (page === 'editor' && !!draft) || (readOnlyDetail && session?.role === 'ADMIN' && !!order && !!draft);
+  useLayoutEffect(() => {
+    if (page !== 'editor' || !editor || !route.id || historyDetailToFocus.current !== route.id || order?.id !== route.id) return;
+    historyDetailToFocus.current = undefined;
+    if (order.status !== 'CLOSED' || !detailHeading.current) return;
+    detailHeading.current.focus({ preventScroll: true });
+    window.scrollTo(0, 0);
+  }, [page, editor, route.id, order]);
   const recovery = !saver.current && terminalRecovery?.id === editorId ? terminalRecovery :
     saver.current?.unsavedLocally || saver.current?.state.recoveryCopies?.length ? saver.current?.state : undefined;
   function validation(field: string) {
@@ -1021,7 +1033,7 @@ export function App() {
         >
           {(sessionStatus !== 'authenticated' || editor) && <>
           {!preview && !closedPreview && <><div className="card-top">
-            <h2>
+            <h2 ref={editor ? detailHeading : undefined} tabIndex={editor ? -1 : undefined}>
               {sessionStatus === 'authenticated'
                 ? (order?.displayOrderId ?? (historical ? 'Orden anterior' : 'Orden local'))
                 : 'Iniciar sesión'}
