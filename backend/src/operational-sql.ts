@@ -31,7 +31,8 @@ export async function readOperationalReport(tx: SqlUnit, filters: OperationalFil
         CASE WHEN o.status='CLOSED' THEN i.tax ELSE 0 END AS tax,
         CASE WHEN o.status='CLOSED' THEN i.services ELSE 0 END AS services,
         CASE WHEN o.status='OPEN' THEN NULL
-          WHEN d.method IN ('SINPE','CASH','CREDIT_CARD','DEBIT_CARD','BANK_TRANSFER') THEN d.method
+          WHEN d.method IN ('SINPE','CASH','CREDIT_CARD','BANK_TRANSFER') THEN d.method
+          WHEN d.method='DEBIT_CARD' THEN 'LEGACY_PAYMENT'
           ELSE 'UNRECORDED' END AS method,
         CASE WHEN o.status='CLOSED' AND d.requiresInvoice=1 THEN 1 ELSE 0 END AS required,
         CASE WHEN o.status='CLOSED' AND d.requiresInvoice=1 AND COALESCE(t.is_issued,0)=0
