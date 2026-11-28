@@ -68,7 +68,7 @@ export function OrderPreview({ draft, mechanicName, businessDate, taxRate, busy,
           <div><dt>Subtotal</dt><dd>{formatCRC(totals.subtotal)}</dd></div>
           <div><dt>IVA {taxRate}%</dt><dd>{formatCRC(totals.tax)}</dd></div>
         </>}
-        <div className="order-preview__total"><dt>Total</dt><dd>{formatCRC(totals.total)}</dd></div>
+        <div className="order-preview__total"><dt>Total</dt><dd>{formatCRC(draft.electronicInvoice === true ? totals.total : totals.subtotal)}</dd></div>
       </dl>
       {!stale && !pending && children}
       <div className="order-preview__actions">

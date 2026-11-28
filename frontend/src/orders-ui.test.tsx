@@ -440,7 +440,7 @@ it('waits for autosave and owner lookup, preserves offline data, and submits one
   expect(ownerChecked).toBe(true);
   expect(container.querySelector('.order-preview')).toBeNull();
   await act(async () => { releaseOwner(); });
-  expect(container.querySelector('.order-preview')?.textContent).toContain(formatCRC(282.5));
+  expect(container.querySelector('.order-preview__total dd')?.textContent).toBe(formatCRC(250));
   const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
   await click('Confirmar y cerrar orden');
   expect(puts).toBe(1);
@@ -1069,7 +1069,7 @@ it('payment and electronic invoice require an explicit choice; No is valid; all 
  const select=async(field:string,value:string)=>act(async()=>{const e=container.querySelector<HTMLSelectElement>(`[data-field=${field}]`)!;e.value=value;e.dispatchEvent(new Event('change',{bubbles:true}));});
  await select('paymentMethod','SINPE');await select('electronicInvoice','false');expect(container.querySelector('.close-errors')).toBeNull();await click('Vista previa de orden');expect(container.querySelector('.order-preview')).toBeTruthy();
  expect([...container.querySelectorAll('.order-preview__totals dt')].map(node => node.textContent)).toEqual(['Total']);
- expect(container.querySelector('.order-preview__total dd')?.textContent).toBe(formatCRC(209050));
+ expect(container.querySelector('.order-preview__total dd')?.textContent).toBe(formatCRC(185000));
  await click('Confirmar y cerrar orden');
  expect(disk?.order?.status).toBe('CLOSED');expect(disk?.draft.paymentMethod).toBe('SINPE');expect(disk?.draft.electronicInvoice).toBe(false);expect(disk?.draft.notes).toBe('');expect(disk?.draft.recommendations).toBe('');
 });
@@ -1127,7 +1127,7 @@ it.each([
   expect(summary.textContent).toContain(label);
   expect(summary.textContent).toContain('Requiere factura electrónica' + (electronicInvoice ? 'Sí' : 'No'));
   expect([...summary.querySelectorAll('.order-preview__totals dd')].map(node => node.textContent))
-    .toEqual((electronicInvoice ? [100, 13, 113] : [113]).map(formatCRC));
+    .toEqual((electronicInvoice ? [100, 13, 113] : [100]).map(formatCRC));
   expect([...summary.querySelectorAll('button')].map(node => node.textContent)).toEqual(['Volver al detalle']);
   await click('Volver al detalle');
   expect(window.location.href).toBe(detailUrl);
