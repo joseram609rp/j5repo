@@ -354,13 +354,14 @@ it('keeps the historical date and notices in the local editor, then registers di
 
 it('shows the business date and rounded totals, and returns to the same draft without closing', async () => {
   const order = seed();
-  orders.set(order.id, { ...order, orderDate: '2026-10-03' });
+  orders.set(order.id, { ...order, orderDate: '2026-10-03', draft: { ...order.draft, electronicInvoice: true } });
   await mount(); await click('Órdenes abiertas'); await click('Continuar');
   await input('[data-field=item-0-price]', '1000.05');
   await click('Vista previa de orden');
   const summary = container.querySelector('.order-preview')!;
   expect(summary.textContent).toContain('3 de octubre de 2026');
   expect(summary.textContent).toContain('Efectivo');
+  expect(summary.textContent).toContain('Requiere factura electrónicaSí');
   expect(summary.textContent).toContain('No es un comprobante fiscal ni una factura electrónica.');
   expect([...summary.querySelectorAll('.order-preview__totals dd')].map(el => el.textContent))
     .toEqual([1000.05, 130.01, 1130.06].map(formatCRC));
@@ -1066,9 +1067,74 @@ it('payment and electronic invoice require an explicit choice; No is valid; all 
  await mount();await click('Órdenes abiertas');await click('Continuar');await click('Vista previa de orden');
  expect(container.querySelector('.close-errors')?.textContent).toContain('Selecciona el método de pago.');expect(container.querySelector('[role=dialog]')).toBeNull();expect(text()).toContain('Selecciona el método de pago.');expect(text()).toContain('Indica si requiere factura electrónica');expect(text()).not.toContain('Escribe las observaciones');
  const select=async(field:string,value:string)=>act(async()=>{const e=container.querySelector<HTMLSelectElement>(`[data-field=${field}]`)!;e.value=value;e.dispatchEvent(new Event('change',{bubbles:true}));});
- await select('paymentMethod','SINPE');await select('electronicInvoice','false');expect(container.querySelector('.close-errors')).toBeNull();await click('Vista previa de orden');expect(container.querySelector('.order-preview')).toBeTruthy();await click('Confirmar y cerrar orden');
+ await select('paymentMethod','SINPE');await select('electronicInvoice','false');expect(container.querySelector('.close-errors')).toBeNull();await click('Vista previa de orden');expect(container.querySelector('.order-preview')).toBeTruthy();
+ expect([...container.querySelectorAll('.order-preview__totals dt')].map(node => node.textContent)).toEqual(['Total']);
+ expect(container.querySelector('.order-preview__total dd')?.textContent).toBe(formatCRC(209050));
+ await click('Confirmar y cerrar orden');
  expect(disk?.order?.status).toBe('CLOSED');expect(disk?.draft.paymentMethod).toBe('SINPE');expect(disk?.draft.electronicInvoice).toBe(false);expect(disk?.draft.notes).toBe('');expect(disk?.draft.recommendations).toBe('');
 });
+it('keeps the login password control visible across focus changes without submitting', async () => {
+  vi.mocked(bootstrapSession).mockResolvedValue({ status: 'anonymous', session: null, healthOk: true });
+  await mount();
+  const password = container.querySelector<HTMLInputElement>('#login-password')!;
+  const username = container.querySelector<HTMLInputElement>('[autocomplete=username]')!;
+  const eye = container.querySelector<HTMLButtonElement>('[aria-controls=login-password]')!;
+  password.focus();
+  username.focus();
+  expect(eye.isConnected).toBe(true);
+  password.focus();
+  await act(async () => eye.click());
+  expect(password.type).toBe('text');
+  expect(eye.getAttribute('aria-pressed')).toBe('true');
+  username.focus();
+  await act(async () => eye.click());
+  expect(password.type).toBe('password');
+  expect(puts).toBe(0);
+});
+
+it('locks the invoice for credit and keeps Sí when changing payment method', async () => {
+  vi.mocked(bootstrapSession).mockResolvedValue({ session: { ...session, role: 'ADMIN' }, status: 'authenticated', healthOk: true });
+  seed();
+  await mount(); await click('Órdenes abiertas'); await click('Continuar');
+  const payment = container.querySelector<HTMLSelectElement>('[data-field=paymentMethod]')!;
+  const invoice = container.querySelector<HTMLSelectElement>('[data-field=electronicInvoice]')!;
+  expect([...payment.options].map(option => option.value)).toEqual(['', 'SINPE', 'CREDIT_CARD', 'CASH', 'BANK_TRANSFER']);
+  await act(async () => { payment.value = 'CREDIT_CARD'; payment.dispatchEvent(new Event('change', { bubbles: true })); });
+  expect(invoice.value).toBe('true');
+  expect(invoice.disabled).toBe(true);
+  expect(text()).toContain('La tarjeta de crédito requiere factura electrónica.');
+  await act(async () => { payment.value = 'SINPE'; payment.dispatchEvent(new Event('change', { bubbles: true })); });
+  expect(invoice.disabled).toBe(false);
+  expect(invoice.value).toBe('true');
+  expect(text()).not.toContain('La tarjeta de crédito requiere factura electrónica.');
+});
+
+it.each([
+  ['CREDIT_CARD', true, 'Tarjeta de crédito'],
+  ['CREDIT_CARD', false, 'Tarjeta de crédito'],
+  ['DEBIT_CARD', false, 'Tarjeta de débito'],
+] as const)('previews the persisted closed order paid by %s with invoice %s', async (paymentMethod, electronicInvoice, label) => {
+  const order = seed('CLOSED');
+  orders.set(order.id, {
+    ...order, draft: { ...order.draft, paymentMethod, electronicInvoice },
+    taxRate: 13, subtotalAmount: 100, taxAmount: 13, totalAmount: 113,
+  });
+  await mount(); await click('Historial'); await historySearch(); await click('Ver detalle');
+  const detailUrl = window.location.href;
+  await click('Vista previa de orden');
+  const summary = container.querySelector('.order-preview')!;
+  expect(summary.textContent).toContain(session.fullName);
+  expect(summary.textContent).toContain(label);
+  expect(summary.textContent).toContain('Requiere factura electrónica' + (electronicInvoice ? 'Sí' : 'No'));
+  expect([...summary.querySelectorAll('.order-preview__totals dd')].map(node => node.textContent))
+    .toEqual((electronicInvoice ? [100, 13, 113] : [113]).map(formatCRC));
+  expect([...summary.querySelectorAll('button')].map(node => node.textContent)).toEqual(['Volver al detalle']);
+  await click('Volver al detalle');
+  expect(window.location.href).toBe(detailUrl);
+  expect(document.activeElement).toBe(button('Vista previa de orden'));
+  expect(puts).toBe(0);
+});
+
 it('line IVA and subtotal/final totals recalculate while optional item notes persist',async()=>{
  seed();await mount();await click('Órdenes abiertas');await click('Continuar');
  await input('[data-field=item-0-price]','1000');expect(container.querySelector('[aria-label="Resumen de importes"]')?.textContent).toContain('Subtotal: ₡ 1');expect(container.querySelector('[aria-label="Resumen de importes"]')?.textContent).toContain('IVA 13%: ₡ 130');expect(container.querySelector('[aria-label="Resumen de importes"]')?.textContent).toContain('Precio final: ₡ 1');
@@ -1466,12 +1532,12 @@ it('a concurrent owner change rejects close and asks for a fresh owner decision 
  await click('Vista previa de orden');expect(container.querySelector('.order-preview')).toBeTruthy();
 });
 
-it('login retains credentials while waiting and after service failure, with no extra Mostrar button',async()=>{
+it('login retains credentials while waiting and after service failure, with the login visibility button',async()=>{
  vi.mocked(bootstrapSession).mockResolvedValue({session:null,status:'anonymous',healthOk:true});
  const original=vi.mocked(api).getMockImplementation()!;let fail!:(error:unknown)=>void;
  vi.mocked(api).mockImplementation(async(path,options)=>path==='/auth/login'?new Promise((_resolve,reject)=>{fail=reject;}):original(path,options));
  await mount();await input('input[autocomplete=username]','fixture');await input('input[autocomplete=current-password]','Fixture-only-123!');
- expect(button('Mostrar')).toBeUndefined();expect(container.querySelector('[aria-label="Mostrar contraseña"]')).toBeNull();
+ expect(container.querySelector('[aria-label="Mostrar contraseña"]')).toBeTruthy();
  await click('Entrar');
  const password=container.querySelector<HTMLInputElement>('input[autocomplete=current-password]')!;
  expect(password.value).toBe('Fixture-only-123!');expect(password.disabled).toBe(true);expect(text()).toContain('hasta un minuto');

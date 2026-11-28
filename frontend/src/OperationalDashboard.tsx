@@ -9,7 +9,7 @@ import './operational.css';
 const endpoint = '/admin/operational';
 const methods = {
   SINPE: 'SINPE', CASH: 'Efectivo', CREDIT_CARD: 'Tarjeta de crédito',
-  DEBIT_CARD: 'Tarjeta de débito', BANK_TRANSFER: 'Transferencia bancaria',
+  BANK_TRANSFER: 'Transferencia bancaria',
 };
 const dateLabel = (date: string) => formatWorkDate(date);
 
@@ -58,6 +58,13 @@ function Business({ report, onOrders, onPendingInvoices }: {
   onPendingInvoices: () => void;
 }) {
   const row = report.totals;
+  const payments = Object.entries(methods).map(([method, label]) => ({
+    label, gross: report.payments.find(payment => payment.method === method)?.gross ?? 0,
+  }));
+  const legacyPayments = report.payments.filter(payment => payment.method === 'LEGACY_PAYMENT' || payment.method === 'DEBIT_CARD');
+  if (legacyPayments.length) {
+    payments.push({ label: 'Otros / métodos anteriores', gross: legacyPayments.reduce((sum, payment) => sum + payment.gross, 0) });
+  }
   const metrics = [
     ['Ventas registradas con IVA', formatCRC(row.gross)], ['Ventas registradas sin IVA', formatCRC(row.net)],
     ['IVA', formatCRC(row.tax)],
@@ -78,8 +85,7 @@ function Business({ report, onOrders, onPendingInvoices }: {
       <div><span>Servicios registrados</span><strong>{row.services}</strong><small>Ítems en las órdenes cerradas</small></div>
     </div>
     {!row.closed && !row.open && <p role="status">No hay órdenes abiertas ni cerradas con estos filtros.</p>}
-    <Bars title="Ventas registradas por método de pago" rows={Object.entries(methods).map(([method, label]) => {
-      const gross = report.payments.find(payment => payment.method === method)?.gross ?? 0;
+    <Bars title="Ventas registradas por método de pago" rows={payments.map(({ label, gross }) => {
       const percent = row.gross ? 100 * gross / row.gross : 0;
       return { label: label + ' · ' + percent.toLocaleString('es-CR', { maximumFractionDigits: 1 }) + '%', value: gross };
     })} format={formatCRC} />

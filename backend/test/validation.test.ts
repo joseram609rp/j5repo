@@ -28,8 +28,14 @@ it.each([1950,2028,2035,100000,2147483647])('accepts year %s without a functiona
 it.each(['','   ','\t\n'])('permits close with optional notes %j',notes=>expect(canClose({...draft,notes,recommendations:''})).toBe(true));
 
 
-it.each(['SINPE','CREDIT_CARD','DEBIT_CARD','CASH','BANK_TRANSFER'] as const)('accepts explicit %s and both invoice choices',paymentMethod=>{
+it.each(['SINPE','CASH','BANK_TRANSFER'] as const)('accepts explicit %s and both invoice choices',paymentMethod=>{
  for(const electronicInvoice of [true,false]) expect(canClose({...draft,paymentMethod,electronicInvoice,notes:'',recommendations:'',items:[{description:'Trabajo',price:1,notes:''}]})).toBe(true);
+});
+it('requires an electronic invoice for credit and prohibits closing with legacy debit', () => {
+ expect(canClose({ ...draft, paymentMethod: 'CREDIT_CARD', electronicInvoice: true })).toBe(true);
+ expect(canClose({ ...draft, paymentMethod: 'CREDIT_CARD', electronicInvoice: false })).toBe(false);
+ expect(canClose({ ...draft, paymentMethod: 'CREDIT_CARD', electronicInvoice: undefined })).toBe(false);
+ expect(canClose({ ...draft, paymentMethod: 'DEBIT_CARD', electronicInvoice: true })).toBe(false);
 });
 it('payment and invoice are required only to close; blank or absent notes are optional',()=>{
  for(const missing of [{paymentMethod:undefined},{electronicInvoice:undefined}]) {expect(draftSchema.safeParse({...draft,...missing}).success).toBe(true);expect(canClose({...draft,...missing})).toBe(false);}

@@ -216,6 +216,35 @@ describe('persistent API contracts (transactional test double)', () => {
   });
 });
 
+it('enforces credit and debit writes without rewriting historical closed credit on reads', async () => {
+  const { repo, call, login } = setup();
+  const admin = (await login()).headers;
+  const mechanic = (await login('mechanic')).headers;
+  const id = crypto.randomUUID();
+  const credit = { ...draft, paymentMethod: 'CREDIT_CARD' as const };
+  const put = (body: object, headers = admin, target = id, version?: string, key = crypto.randomUUID()) =>
+    call('/orders/' + target, 'PUT', body, { ...headers, 'idempotency-key': key, ...(version ? { 'if-match': '"' + version + '"' } : {}) });
+  expect((await put({ ...credit, electronicInvoice: true }, mechanic)).status).toBe(403);
+  expect((await put(credit)).status).toBe(400);
+  expect((await put({ ...credit, electronicInvoice: undefined })).status).toBe(400);
+  expect((await put({ ...draft, paymentMethod: 'DEBIT_CARD' })).status).toBe(400);
+  expect((await put({ ...credit, action: 'close', workDate: '2024-02-29', mechanicId })).status).toBe(400);
+  expect((await put({ ...credit, electronicInvoice: true })).status).toBe(200);
+  const existing = repo.orders.get(id)!;
+  repo.orders.set(id, { ...existing, status: 'CLOSED', draft: credit });
+  expect((await (await call('/orders/' + id, 'GET', undefined, admin)).json()).draft.electronicInvoice).toBe(false);
+  const key = crypto.randomUUID();
+  const [first, retry] = await Promise.all([
+    put({ ...credit, action: 'reopen' }, admin, id, existing.version, key),
+    put({ ...credit, action: 'reopen' }, admin, id, existing.version, key),
+  ]);
+  expect(first.status).toBe(200);
+  expect(await first.json()).toEqual(await retry.json());
+  expect(repo.orders.get(id)?.draft.electronicInvoice).toBe(true);
+  expect((await put({ ...credit, action: 'close' }, admin, id, repo.orders.get(id)?.version)).status).toBe(400);
+  expect(repo.orders.get(id)?.draft.electronicInvoice).toBe(true);
+});
+
 it('returns 503 and Retry-After when SQL is unavailable', async () => {
   const api = createApi({ repository: { run: async () => { throw new HttpError(503, 'SQL_UNAVAILABLE'); } } });
   const response = await api(new Request(origin + '/api/health'));

@@ -67,14 +67,16 @@ export function App() {
   const [preview, setPreview] = useState<{
     draft: Draft; revision: CloseRevision; mechanicName: string; businessDate?: string; stale?: boolean;
   } | null>(null);
+  const [closedPreviewId, setClosedPreviewId] = useState<string | null>(null);
+  const closedPreview = order?.status === 'CLOSED' && closedPreviewId === order.id ? order : null;
   const previewButton = useRef<HTMLButtonElement>(null);
   const restorePreviewFocus = useRef(false);
   useLayoutEffect(() => {
-    if (!preview && restorePreviewFocus.current) {
+    if (!preview && !closedPreview && restorePreviewFocus.current) {
       restorePreviewFocus.current = false;
       previewButton.current?.focus();
     }
-  }, [preview]);
+  }, [preview, closedPreview]);
 
   const [confirmAction, setConfirmAction] = useState<
     'close' | 'reopen' | 'transfer-owner' | 'void' | null
@@ -116,7 +118,7 @@ export function App() {
   const [healthMessage, setHealthMessage] = useState('');
   useEffect(() => onBackendSuccess(() => setHealthMessage('')), []);
   const [editorId, setEditorId] = useState<string | null>(null);
-  useEffect(() => { setClosing(false); setCloseOwner(null); setPreview(null); }, [page, editorId]);
+  useEffect(() => { setClosing(false); setCloseOwner(null); setPreview(null); setClosedPreviewId(null); }, [page, editorId, route.id]);
   const [notice, setNotice] = useState<{ page: typeof page; orderId: string | null; message: string; retryable: boolean } | null>(null);
   const noticeGeneration = useRef(0);
   const generation = noticeGeneration.current;
@@ -134,6 +136,7 @@ export function App() {
   }
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     if (!session || page !== 'editor') return;
@@ -304,6 +307,7 @@ export function App() {
       setLoginMessage('');
       setSessionStatus('authenticated');
       setPassword('');
+      setPasswordVisible(false);
       setRoute(readRoute());
     } catch (error) {
       setLoginMessage(loginErrorMessage(error));
@@ -805,6 +809,7 @@ export function App() {
   }
   function saveDraft(next: Draft) {
     if (!saver.current || saver.current.localConflict || busy || orderOperation.current || preview || confirmAction || conflict || (order && order.status !== 'OPEN')) return;
+    if (next.paymentMethod === 'CREDIT_CARD') next = { ...next, electronicInvoice: true };
     setDraft(next);
     void saver.current
       ?.edit(next)
@@ -1015,7 +1020,7 @@ export function App() {
           }
         >
           {(sessionStatus !== 'authenticated' || editor) && <>
-          {!preview && <><div className="card-top">
+          {!preview && !closedPreview && <><div className="card-top">
             <h2>
               {sessionStatus === 'authenticated'
                 ? (order?.displayOrderId ?? (historical ? 'Orden anterior' : 'Orden local'))
@@ -1094,18 +1099,32 @@ export function App() {
                     onChange={(e) => setUsername(e.target.value)}
                   />
                 </label>
-                <label>
-                  Contraseña
-                  <input
-                    type="password"
-                    disabled={busy}
-                    autoComplete="current-password"
-                    required
-                    maxLength={72}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </label>
+                <div className="login-password">
+                  <label htmlFor="login-password">Contraseña</label>
+                  <div className="login-password__control">
+                    <input
+                      id="login-password"
+                      type={passwordVisible ? 'text' : 'password'}
+                      disabled={busy}
+                      autoComplete="current-password"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      required
+                      maxLength={72}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <button type="button" className="quiet" aria-label="Mostrar contraseña"
+                      aria-controls="login-password" aria-pressed={passwordVisible}
+                      disabled={busy} onClick={() => setPasswordVisible(visible => !visible)}>
+                      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+                        <circle cx="12" cy="12" r="2.5" />
+                        {passwordVisible && <path d="m3 3 18 18" />}
+                      </svg>
+                    </button>
+                  </div>
+                </div>
                 <button disabled={busy} type="submit">
                   {busy ? 'Ingresando…' : 'Entrar'}
                 </button>
@@ -1113,7 +1132,23 @@ export function App() {
               </form>
             }
             authenticated={
-              preview && session ? (
+              closedPreview && session ? (
+                <OrderPreview
+                  draft={closedPreview.draft}
+                  mechanicName={closedPreview.mechanicName ?? 'Nombre no disponible'}
+                  businessDate={closedPreview.orderDate}
+                  taxRate={taxRate}
+                  persistedAmounts={{
+                    subtotal: closedPreview.subtotalAmount,
+                    tax: closedPreview.taxAmount,
+                    total: closedPreview.totalAmount,
+                  }}
+                  onEdit={() => {
+                    restorePreviewFocus.current = true;
+                    setClosedPreviewId(null);
+                  }}
+                />
+              ) : preview && session ? (
                 <OrderPreview
                   draft={preview.draft}
                   mechanicName={preview.mechanicName}
@@ -1147,6 +1182,11 @@ export function App() {
                       setTouched((current) => new Set(current).add(field));
                   }}
                 >
+                  {!readOnlyDetail && order?.status === 'CLOSED' && <button ref={previewButton} type="button"
+                    disabled={busy || !!confirmAction}
+                    onClick={() => setClosedPreviewId(order.id)}>
+                    Vista previa de orden
+                  </button>}
                   {closing && errors.length > 0 && (
                     <div role="alert" className="error-summary">
                       <h3>Revisa estos datos antes de cerrar</h3>
@@ -1445,15 +1485,27 @@ export function App() {
                     </div>
                     <h3>Pago y factura</h3>
                     <label>Método de pago (obligatorio)
-                      <select data-field="paymentMethod" {...accessibility('paymentMethod')} value={draft.paymentMethod ?? ''} onChange={e => saveDraft({...draft, paymentMethod: e.target.value ? e.target.value as Draft['paymentMethod'] : undefined})}>
-                        <option value="">Selecciona un método</option><option value="SINPE">SINPE</option><option value="CREDIT_CARD">Tarjeta de crédito</option><option value="DEBIT_CARD">Tarjeta de débito</option><option value="CASH">Efectivo</option><option value="BANK_TRANSFER">Transferencia bancaria</option>
+                      <select data-field="paymentMethod" {...accessibility('paymentMethod')} value={draft.paymentMethod === 'DEBIT_CARD' && !readOnly ? '' : draft.paymentMethod ?? ''} onChange={e => saveDraft({
+                        ...draft,
+                        paymentMethod: (e.target.value || undefined) as Draft['paymentMethod'],
+                        electronicInvoice: draft.paymentMethod === 'CREDIT_CARD' ? true : draft.electronicInvoice,
+                      })}>
+                        <option value="">Selecciona un método</option>
+                        <option value="SINPE">SINPE</option>
+                        <option value="CREDIT_CARD" disabled={session.role !== 'ADMIN' && draft.paymentMethod !== 'CREDIT_CARD'}>Tarjeta de crédito</option>
+                        <option value="CASH">Efectivo</option>
+                        <option value="BANK_TRANSFER">Transferencia bancaria</option>
+                        {readOnly && draft.paymentMethod === 'DEBIT_CARD' && <option value="DEBIT_CARD">Tarjeta de débito</option>}
                       </select>{validation('paymentMethod')}
                     </label>
                     <label>¿Requiere factura electrónica? (obligatorio)
-                      <select data-field="electronicInvoice" {...accessibility('electronicInvoice')} value={draft.electronicInvoice === undefined ? '' : String(draft.electronicInvoice)} onChange={e => saveDraft({...draft, electronicInvoice: e.target.value === '' ? undefined : e.target.value === 'true'})}>
+                      <select data-field="electronicInvoice" {...accessibility('electronicInvoice')} disabled={!readOnly && draft.paymentMethod === 'CREDIT_CARD'} value={!readOnly && draft.paymentMethod === 'CREDIT_CARD' ? 'true' : draft.electronicInvoice === undefined ? '' : String(draft.electronicInvoice)} onChange={e => saveDraft({...draft, electronicInvoice: e.target.value === '' ? undefined : e.target.value === 'true'})}>
                         <option value="">Selecciona Sí o No</option><option value="true">Sí</option><option value="false">No</option>
                       </select>{validation('electronicInvoice')}
                     </label>
+                    {!readOnly && draft.paymentMethod === 'CREDIT_CARD' && <p className="confirmation" role="status">
+                      La tarjeta de crédito requiere factura electrónica. Esta opción no se puede modificar.
+                    </p>}
                     <label>
                       Observaciones generales (opcional)
                       <textarea

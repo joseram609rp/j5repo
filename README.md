@@ -118,7 +118,7 @@ API devuelve catálogo activo dinámico; 57/986 son invariantes del seed/cleanup
 
 Moneda CRC. Cada trabajo lleva descripción, precio sin IVA y observación opcional; notas/recomendaciones generales también son opcionales. IVA 13%, redondeado por línea a centavos; SQL calcula subtotal, impuesto y total oficiales. Totales/tasa del cliente no se aceptan como autoridad. Importes históricos previos a 009 mantienen su tasa original.
 
-Pago: SINPE, tarjeta de crédito, tarjeta de débito, efectivo o transferencia bancaria (`SINPE`, `CREDIT_CARD`, `DEBIT_CARD`, `CASH`, `BANK_TRANSFER`). Factura electrónica exige elegir Sí/No al cerrar; el booleano registra el requerimiento y **no emite facturas ni integra un proveedor**.
+Pago: SINPE, tarjeta de crédito, efectivo o transferencia bancaria (`SINPE`, `CREDIT_CARD`, `CASH`, `BANK_TRANSFER`). Un administrador puede seleccionar tarjeta de crédito, que requiere factura electrónica. Los demás métodos permiten elegir Sí o No. La selección registra el requerimiento de factura sin emitirla. Las órdenes cerradas conservan el método y el requerimiento registrados. Tendencias agrupa los importes históricos de débito en «Otros / métodos anteriores» si los hubiera.
 
 ## Panel operativo
 
